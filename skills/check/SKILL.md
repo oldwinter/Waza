@@ -13,6 +13,20 @@ Prefix your first line with ðŸ¥· inline, not as its own paragraph.
 
 Read the diff, find the problems, fix what can be fixed safely, ask about the rest. Done means verification ran in this session and passed.
 
+## Worktree Safety Preflight
+
+Before any review, triage, ship, release, or PR operation, read the current worktree with:
+
+```bash
+git status --short --branch -uall
+```
+
+Treat modified, staged, and untracked files as user work. You may read them and include them in the review surface, but you must not move, hide, overwrite, clean, or discard them without explicit user approval in the current turn.
+
+Do not run these commands as default review or PR setup: `git switch`, `git checkout`, `git reset --hard`, `git clean`, `git stash -u`, `git stash --include-untracked`, `git stash -a`, `git stash --all`, or `gh pr checkout`. If a branch change or cleanup is genuinely required, stop and ask for that exact operation.
+
+For PR inspection, prefer commands that do not switch the current working tree: `gh pr view`, `gh pr diff`, `git fetch origin pull/<n>/head:refs/tmp/pr-<n>`, and `git merge-tree`.
+
 ## Mode Picker
 
 Pick the mode that matches the user's intent, then read that section in full. Modes layer on top of the shared review surface (Scope, Hard Stops, Autofix, Specialist Review, Verification, Sign-off) further down.
@@ -36,7 +50,7 @@ Activate when the user's message starts with "Implement the following plan", "æŒ
 In this mode, do not run a code review. Instead:
 
 1. State which plan is being executed (first heading or summary line).
-2. Check for obvious repo drift: run `git status` and skim any changed files that contradict the plan. If drift makes the plan unsafe, name the specific conflict and stop.
+2. Check for obvious repo drift: run `git status --short --branch -uall` and skim any changed files that contradict the plan. If drift makes the plan unsafe, name the specific conflict and stop.
 3. Work through each plan item as a to-do. Mark each complete as you go.
 4. After all items are done, run the project's verification command.
 5. Transition automatically into Ship mode if the project context or current thread indicates review-then-ship.
