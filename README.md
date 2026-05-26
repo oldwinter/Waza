@@ -160,6 +160,16 @@ curl -sL https://raw.githubusercontent.com/tw93/Waza/v3.26.0/scripts/setup-rule.
 
 Use `codex` instead of `claude-code` for Codex. Curl URLs are pinned to the current release tag for reproducibility; swap `v3.26.0` for `main` if you want bleeding-edge scripts.
 
+### Routing Hint
+
+Optional pointer that tells the host to prefer Waza skills when a request matches their triggers. Useful for Codex, Pi, and other agents that do not auto-route from skill `description`. Claude Code already routes through descriptions, so this is opt-in even there.
+
+```bash
+curl -sL https://raw.githubusercontent.com/tw93/Waza/v3.26.0/scripts/setup-rule.sh | bash -s -- waza-routing claude-code
+```
+
+Use `codex` instead of `claude-code` for Codex.
+
 ## Uninstall
 
 ```bash
@@ -167,9 +177,10 @@ npx skills remove tw93/Waza -g
 rm -f ~/.claude/statusline.sh
 rm -f ~/.claude/rules/english.md
 rm -f ~/.claude/rules/anti-patterns.md
+rm -f ~/.claude/rules/waza-routing.md
 ```
 
-For Claude Desktop, delete Waza from Customize > Skills. For Codex rule installs, remove the marked Waza block from `~/.codex/AGENTS.md`.
+For Claude Desktop, delete Waza from Customize > Skills. For Codex rule installs, remove the marked Waza blocks from `~/.codex/AGENTS.md`.
 
 ## Background
 
