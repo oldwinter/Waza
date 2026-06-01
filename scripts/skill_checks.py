@@ -25,6 +25,15 @@ URL_PREFIXES = ("http://", "https://", "mailto:", "ftp://", "tel:", "data:")
 SEP_RE = re.compile(r'^[\s|:\-]+$')
 PERSONAL_PATH_PATTERN = re.compile(r'/(?:Users|home)/[A-Za-z0-9._-]+/')
 SKILL_REF_RE = re.compile(r'skills/([a-z][a-z0-9_-]*)/SKILL\.md')
+# Quoted user-utterance triggers in rules/waza-routing.md. Covers straight ("),
+# curly (U+201C/D), and CJK corner brackets (「」 U+300C/D, 『』 U+300E/F) so a
+# Chinese phrase in 「」 is checked just like one in straight quotes.
+QUOTED_PHRASE_RE = re.compile(
+    r'"([^"]+)"'
+    r'|\u201c([^\u201d]+)\u201d'
+    r'|\u300c([^\u300d]+)\u300d'
+    r'|\u300e([^\u300f]+)\u300f'
+)
 PROJECT_RITUAL_RE = re.compile(r'\b(?:Sparkle|MAS|Homebrew tap|Xcode scheme)\b', re.IGNORECASE)
 PRIVATE_CONTEXT_RE = re.compile(
     r'(?:\.codex/(?:sessions|memories)|rollout_summaries/|'
@@ -544,7 +553,8 @@ def check_waza_routing_triggers(root: Path):
         if not skill_md.exists():
             continue  # missing skill dir is check_waza_routing_skills' job
         when = norm(parse_frontmatter(skill_md)["when_to_use"])
-        for quoted in re.findall(r'[\"\u201c\u201d]([^\"\u201c\u201d]+)[\"\u201c\u201d]', cells[2]):
+        for match in QUOTED_PHRASE_RE.finditer(cells[2]):
+            quoted = next(g for g in match.groups() if g is not None)
             for seg in quoted.split("/"):
                 seg_norm = norm(seg)
                 if seg_norm and seg_norm not in when:
