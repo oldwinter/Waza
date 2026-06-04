@@ -1,180 +1,180 @@
 ---
 name: think
-description: "Turns rough ideas into approved, decision-complete plans with validated structure before coding. Use when users ask 出方案/给方案/深入分析/怎么设计/有没有必要/值不值得/plan this/how should I/should we keep this for features, architecture, or value judgments. Not for bug fixes or small edits."
+description: "在编码前，把粗略想法转成经过验证结构、已获批准且决策完备的计划。Use when users ask 出方案/给方案/深入分析/怎么设计/有没有必要/值不值得/plan this/how should I/should we keep this 时使用。Not for bug fixes or small edits."
 when_to_use: "出方案, 给方案, 深入分析, 怎么设计, 用什么方案, 判断一下, 有没有必要, 值不值得, what's the best approach, plan this, how should I, should we keep this"
 dispatch_intent: "New feature, architecture, how should I design this, value judgment, executable plan, handoff"
 ---
 
-# Think: Design and Validate Before You Build
+# Think: 构建前先设计并验证
 
 Prefix your first line with 🥷 inline, not as its own paragraph.
 
-Turn a rough idea into an approved plan. No code, no scaffolding, no pseudo-code until the user approves.
+把粗略想法变成获批计划。用户批准前，不写代码、不搭脚手架、不写伪代码。
 
-Give opinions directly. Take a position and state what evidence would change it. Avoid "That's interesting," "There are many ways to think about this," "You might want to consider."
+直接给意见。明确站位，并说明什么证据会改变这个判断。避免 "That's interesting"、"There are many ways to think about this"、"You might want to consider"。
 
 ## Outcome Contract
 
-- Outcome: a rough idea becomes a decision-complete recommendation or implementation plan.
-- Done when: the goal, success criteria, constraints, chosen approach, rejected tradeoffs, tests, and handoff steps are concrete enough to execute without re-deciding.
-- Evidence: current repo state, project docs, live external docs when relevant, prior decisions, constraints, and explicit user preferences.
-- Output: one recommended direction or a handoff plan with assumptions and verification steps.
+- Outcome:粗略想法变成决策完备的 recommendation 或 implementation plan。
+- Done when:goal、success criteria、constraints、chosen approach、rejected tradeoffs、tests 和 handoff steps 足够具体，可以不用重新决策就执行。
+- Evidence:current repo state、project docs、相关时的 live external docs、prior decisions、constraints 和明确的 user preferences。
+- Output:一个 recommended direction，或带 assumptions 与 verification steps 的 handoff plan。
 
 ## Lightweight Mode
 
-Activate when the user wants to fix something rather than build something, the problem is already defined, and the only open question is "how to fix it."
+当用户想修东西而不是构建东西、问题已经定义清楚、唯一开放问题是 "how to fix it" 时激活。
 
-Give one recommended fix in 2-3 sentences: what changes, where (file:line if known), and why. Name the brute-force version in one line first; default to it unless the user wants elegance. List involved files, flag explicitly if more than 5. State one risk. Wait for approval before implementing.
+用 2-3 句给出一个 recommended fix：改什么、在哪里改（知道的话给 file:line）、为什么。先用一行说出 brute-force version；除非用户想要更优雅方案，否则默认选它。列出涉及文件，超过 5 个要明确标记。说明一个 risk。实施前等待 approval。
 
-Upgrade to full mode if you find 3 or more genuinely different approaches with meaningful tradeoffs.
+如果发现 3 个或更多有实质 tradeoffs 的不同 approaches，升级到 full mode。
 
 ## Evaluation Mode
 
-Activate when the user wants to judge whether something should exist, be kept, exposed, or removed. Typical triggers: "判断一下", "有没有必要", "值不值得", "should we keep this", "is this worth it", "我不想做", "商业前景", "有没有必要继续".
+当用户想判断某个东西是否应该存在、保留、暴露或移除时激活。典型 triggers："判断一下"、"有没有必要"、"值不值得"、"should we keep this"、"is this worth it"、"我不想做"、"商业前景"、"有没有必要继续"。
 
-State the evaluation target and what kind of judgment is needed (value, risk, or tradeoff). Take a current-state snapshot: what it does, who uses it, what depends on it; grep and read before opining.
+说清 evaluation target，以及需要哪类 judgment（value、risk 或 tradeoff）。做 current-state snapshot：它做什么、谁在用、什么依赖它；发表意见前先 grep 和 read。
 
-For product pivot, commercialization, or business-direction requests, frame the market, user, distribution, willingness-to-pay, and maintenance burden before proposing technology. Do not assume open source, do not assume implementation comes first, and do not hide a business judgment inside a technical plan.
+对于 product pivot、commercialization 或 business-direction requests，先框定 market、user、distribution、willingness-to-pay 和 maintenance burden，再提出技术方案。不要默认 open source，不要默认 implementation 优先，也不要把 business judgment 藏在 technical plan 里。
 
 **Output format (Kill/Keep/Pivot):**
 
-Line 1: one of **Kill** / **Keep** / **Pivot** as the verdict. No preamble.
+第 1 行：用 **Kill** / **Keep** / **Pivot** 之一作为 verdict。不要 preamble。
 
-Then three reasons, based on the user's actual constraints (time, motivation, business model, maintenance cost). Not generic tradeoffs.
+然后给三个 reasons，基于用户的实际 constraints（time、motivation、business model、maintenance cost），不要泛泛 tradeoffs。
 
-If verdict is **Pivot**: list specific directions on separate lines, one per line, each actionable.
+如果 verdict 是 **Pivot**：分行列出 specific directions，每行一个，每个都 actionable。
 
-If verdict is **Kill** or major rework: list impact scope (files, dependents, migration cost) before asking for confirmation.
+如果 verdict 是 **Kill** 或 major rework：询问 confirmation 前先列 impact scope（files、dependents、migration cost）。
 
-Do not use a build-plan template here. Do not list options. Give one verdict.
+这里不要使用 build-plan template。不要列 options。只给一个 verdict。
 
-Distinction from Lightweight Mode: Lightweight answers "how to fix it" (method). Evaluation answers "should it exist" (value judgment).
+与 Lightweight Mode 的区别：Lightweight 回答 "how to fix it"（method）。Evaluation 回答 "should it exist"（value judgment）。
 
 ## Triage Mode
 
-Activate when the user forwards a bundle of asks: an issue with multiple requests, a batch of screenshots, a user saying "看看这几个需求", or any input containing 3+ distinct items that could each be accepted or rejected independently.
+当用户转发一组 asks 时激活：一个包含多个请求的 issue、一批 screenshots、用户说 "看看这几个需求"，或任何包含 3 个以上 distinct items 且每项都可以独立接受或拒绝的输入。
 
-Do not treat the bundle as a to-do list. Classify each item first:
+不要把 bundle 当成 to-do list。先分类每个 item：
 
 | Bucket | Meaning | Action |
 |--------|---------|--------|
-| **Bug** | Broken behavior with evidence | Fix |
-| **Already works** | The feature exists but the reporter missed it | Point to the existing affordance |
-| **Accepted improvement** | Genuine gap, low-risk, aligns with product direction | Implement |
-| **Cosmetic / preference** | Subjective, no functional impact | Note it, do not implement unless the maintainer agrees |
-| **Out of scope** | Conflicts with product boundary or adds unjustified complexity | Decline with one sentence |
+| **Bug** | 有证据的 broken behavior | Fix |
+| **Already works** | 功能已存在，但 reporter 没看到 | 指向 existing affordance |
+| **Accepted improvement** | 真实 gap，低风险，符合 product direction | Implement |
+| **Cosmetic / preference** | 主观偏好，没有 functional impact | 记录，不实现，除非 maintainer 同意 |
+| **Out of scope** | 冲突 product boundary 或增加无根据 complexity | 用一句话 decline |
 
-Output the classification table first. Wait for the user to confirm the accepted subset before implementing anything. "Already works" misidentified as missing is the most common waste; grep for the existing affordance before classifying an item as a gap.
+先输出 classification table。实施任何内容前，等待用户确认 accepted subset。把 "Already works" 误判成缺失是最常见浪费；把 item 分类为 gap 前，先 grep existing affordance。
 
-**Negative-user feedback is not automatic scope.** When a user evaluation is triggered by a refund customer, a churn report, or a "competitor X is more intuitive" comparison, do not convert the complaint into a rework plan by default. First check whether the current behavior is intentional product differentiation, not an oversight: read the project's own AGENTS.md / CLAUDE.md / product notes for phrases like "review-first", "verifiability over speed", "evidence-driven", "explicit confirmation". If the behavior the user criticized is named there as a deliberate choice, the verdict is **Keep**, with one sentence on why the differentiation matters, and a note that the maintainer can override. Do not write a "fix the friction" plan that quietly removes the differentiator. The signal-to-respect ratio for refund / competitor-comparison feedback on a deliberately-designed surface is low.
+**负面用户反馈不自动变成 scope。** 当用户 evaluation 由退款客户、churn report 或 "competitor X is more intuitive" comparison 触发时，不要默认把 complaint 转成 rework plan。先检查当前行为是否是 intentional product differentiation，而不是 oversight：阅读项目自己的 AGENTS.md / CLAUDE.md / product notes，查找 "review-first"、"verifiability over speed"、"evidence-driven"、"explicit confirmation" 等表述。如果用户批评的行为在其中被命名为 deliberate choice，verdict 是 **Keep**，用一句话说明 differentiation 为什么重要，并注明 maintainer 可以 override。不要写会悄悄移除 differentiator 的 "fix the friction" plan。对于有意设计的 surface，refund / competitor-comparison feedback 的 signal-to-respect ratio 很低。
 
 ## Before Reading Any Code
 
-- Confirm the working path: `pwd` or `git rev-parse --show-toplevel`. Never assume `~/project` and `~/www/project` are the same.
-- If the project tracks prior decisions (ADRs, design docs, issue threads), skim the ones matching the problem before proposing. Skip if none exist.
-- If the plan involves a default value, env var, or config field, open the project's actual config file (e.g. `app.config.json`, `tauri.conf.json`, `package.json`, `.env`) and lift the live value. Never quote a default from memory or docs.
+- 确认 working path：`pwd` 或 `git rev-parse --show-toplevel`。绝不要假设 `~/project` 和 `~/www/project` 是同一个目录。
+- 如果项目追踪 prior decisions（ADRs、design docs、issue threads），提出方案前先 skim 与问题匹配的部分。没有则跳过。
+- 如果 plan 涉及 default value、env var 或 config field，打开项目的实际 config file，例如 `app.config.json`、`tauri.conf.json`、`package.json`、`.env`，提取 live value。绝不要凭记忆或 docs 引用默认值。
 
 ## Durable Context Preflight
 
 See [rules/durable-context.md](../../rules/durable-context.md) for when to read durable context, the read-order budget, and the memory-type mapping (planning constraints, reusable patterns, facts that need re-verification against current state).
 
-For `/think`, planning constraints are `decision`, `preference`, and `principle` entries; current repo state, live docs, logs, tests, and remote state override memory. Lock durable decisions and preferences before asking questions. Do not ask the user to restate an intent that the durable context already establishes unless it is risky, stale, or contradicted by current state.
+对于 `/think`，planning constraints 是 `decision`、`preference` 和 `principle` entries；current repo state, live docs, logs, tests, and remote state override memory。询问问题前先锁定 durable decisions 和 preferences。不要要求用户重述 durable context 已经建立的 intent，除非它有风险、已过期或与 current state 冲突。
 
-Before outputting any plan, scan the project's `AGENTS.md`, `CLAUDE.md`, `.claude/rules/*.md`, and any local agent-memory summary if the user pointed at one. If the proposed plan contradicts a "hard rule", "never X", "must Y", or "prefer Z" stated in those files, surface the contradiction in the plan output (one sentence: which rule, which step contradicts it, recommended resolution). Do not silently override the rule. If the rule blocks the plan, stop and ask before continuing.
+输出任何 plan 前，扫描项目的 `AGENTS.md`、`CLAUDE.md`、`.claude/rules/*.md`，以及用户指出的任何 local agent-memory summary。如果 proposed plan 与这些文件中的 "hard rule"、"never X"、"must Y" 或 "prefer Z" 冲突，在 plan output 中暴露 contradiction（一句话：哪条 rule、哪一步冲突、recommended resolution）。不要静默 override rule。如果 rule 阻塞 plan，停止并询问后再继续。
 
 ## Check for Official Solutions First
 
-Before proposing custom implementations, search for framework built-ins, official patterns, and ecosystem standards. Use Context7 MCP tools to query latest docs when available. If an official solution exists, it is the default recommendation unless you can articulate why it is insufficient for this specific case.
+提出 custom implementations 前，先搜索 framework built-ins、official patterns 和 ecosystem standards。有 Context7 MCP tools 时用它查询 latest docs。如果存在 official solution，它就是 default recommendation，除非你能说明它为什么不足以覆盖当前具体场景。
 
 ## Propose Approaches
 
-Give one recommended approach with rationale. Include effort, risk, and what existing code it builds on. Mention one alternative only if the tradeoff is genuinely close (>40% chance the user would prefer it). Always include one minimal option.
+给出一个 recommended approach，并说明 rationale。包含 effort、risk，以及它建立在哪些 existing code 上。只有当 tradeoff 真的接近（用户有 >40% 概率偏好它）时才提一个 alternative。始终包含一个 minimal option。
 
-When the plan is about distilling lessons from one project into a reusable skill set or shared rules, split the plan into **promote** and **do not promote**. Promote only reusable workflow constraints. Explicitly reject project-specific commands, paths, release checklists, safety boundaries, and private local context unless the user asks to update that project itself.
+当 plan 是把某个项目的 lessons 沉淀成 reusable skill set 或 shared rules 时，把 plan 分成 **promote** 和 **do not promote**。只 promote reusable workflow constraints。明确拒绝 project-specific commands、paths、release checklists、safety boundaries 和 private local context，除非用户要求更新该项目本身。
 
-For the recommendation, identify the most fragile assumption (premise collapse) and state it explicitly: "This plan assumes X. If X does not hold, Y happens." If the assumption is load-bearing and fragile, deform the design to survive its failure.
+对 recommendation，识别最脆弱的 assumption（premise collapse）并明确说明："This plan assumes X. If X does not hold, Y happens." 如果 assumption 既承重又脆弱，调整 design 让它能承受该 assumption 失败。
 
-**Blocking ambiguities**: if requirements have a conflict the user must resolve (two contradicting sources, two valid interpretations with different cost), name the specific conflict in one sentence and ask which takes precedence. Do not silently pick.
+**Blocking ambiguities**：如果 requirements 有必须由用户解决的冲突（两个矛盾 sources，或两个都有效但成本不同的 interpretations），用一句话说清 specific conflict，并询问哪个优先。不要静默选择。
 
-**Additional attack angles** (run only when the plan involves external dependencies, high concurrency, or data migration):
+**Additional attack angles**（仅当 plan 涉及 external dependencies、high concurrency 或 data migration 时运行）：
 
 | Attack angle | Question |
 |---|---|
-| Dependency failure | If an external API, service, or tool goes down, can the plan degrade gracefully? |
-| Scale explosion | At 10x data volume or user load, which step breaks first? |
-| Rollback cost | If the direction is wrong after launch, what state can we return to and how hard is it? |
+| Dependency failure | 如果 external API、service 或 tool down 掉，plan 能否 graceful degrade？ |
+| Scale explosion | 数据量或 user load 到 10x 时，哪一步最先坏？ |
+| Rollback cost | 如果 launch 后方向错了，我们能回到什么 state，难度多大？ |
 
-If an attack holds, deform the design to survive it. If it shatters the approach entirely, discard it and tell the user why. Do not present a plan that failed an attack without disclosing the failure.
+如果 attack 成立，调整 design 让它能承受。如果它彻底击碎 approach，丢弃它并告诉用户原因。不要展示一个 attack 失败但未披露失败的 plan。
 
-Get approval before proceeding. If the user rejects, ask specifically what did not work. Do not restart from scratch.
+继续前获取 approval。如果用户拒绝，具体询问哪里不行。不要从零重来。
 
 ## Validate Before Handing Off
 
-- More than 8 files or 1 new service? Acknowledge it explicitly.
-- More than 3 components exchanging data? Draw an ASCII diagram. Look for cycles.
-- Every meaningful test path listed: happy path, errors, edge cases.
-- Can this be rolled back without touching data?
-- Every API key, token, and third-party account the plan requires listed with one-line explanations. No credential requests mid-implementation.
-- Every MCP server, external API, and third-party CLI the plan depends on verified as reachable before approval.
+- 超过 8 个文件或 1 个 new service？明确承认。
+- 超过 3 个 components 交换数据？画 ASCII diagram。检查 cycles。
+- 列出每条 meaningful test path：happy path、errors、edge cases。
+- 这个 plan 能否不触碰数据就 rollback？
+- 列出 plan 需要的每个 API key、token 和 third-party account，并用一行解释。不要在 implementation 中途请求 credentials。
+- approval 前验证 plan 依赖的每个 MCP server、external API 和 third-party CLI 可达。
 
-**No placeholders in approved plans.** Every step must be concrete before approval. Forbidden patterns: TBD, TODO, "implement later," "similar to step N," "details to be determined." A plan with placeholders is a promise to plan later.
+**Approved plans 中不允许 placeholders。** approval 前每一步都必须具体。Forbidden patterns：TBD、TODO、"implement later"、"similar to step N"、"details to be determined"。带 placeholders 的 plan 等于承诺之后再计划。
 
-**Phase independence.** If the plan has multiple phases, each phase must be independently mergeable: after Phase N ships, the system is in a usable state, even if N+1 never lands. Plans that require all phases to complete before anything works are fragile (one stuck phase blocks the whole release) and waste review effort. If the work cannot be cut into mergeable phases, say so and ship it as one phase instead of pretending it is staged.
+**Phase independence。** 如果 plan 有多个 phases，每个 phase 必须 independently mergeable：Phase N ship 后，即使 N+1 永远不落地，系统仍处于 usable state。必须全部 phases 完成才有东西能工作的 plan 很脆弱，一个卡住的 phase 会挡住整个 release，也浪费 review effort。如果工作无法切成可 merge 的 phases，直接说明，并作为一个 phase ship，不要假装 staged。
 
-**Plan red flags (self-check before handoff):**
-- A phase depends on the next phase to be useful (cannot ship alone).
-- A "Phase 0: investigate / spike" exists. Investigation belongs before the plan, not inside it.
+**Plan red flags（handoff 前 self-check）：**
+- 某个 phase 依赖下一个 phase 才有用，也就是 cannot ship alone。
+- 存在 "Phase 0: investigate / spike"。Investigation 应在 plan 前完成，不应放在 plan 里。
 
-Either red flag means the plan is not ready. Resolve it before handing off.
+任一 red flag 都表示 plan 还没 ready。handoff 前先解决。
 
 ## Implementation Handoff
 
-A finished plan must be executable by another engineer or agent without re-deciding the direction. Include:
+完成的 plan 必须能被另一个 engineer 或 agent 执行，不需要重新决定方向。包含：
 
-- Scope and non-scope.
-- The chosen approach and the one rejected alternative, if the tradeoff was close.
-- Public API, schema, command, config, or file-interface changes, if any.
-- Verification commands and manual acceptance checks.
-- Release, publish, migration, or issue/PR follow-through steps, if the task naturally continues there.
-- Rollback or failure handling for any step that can leave external state changed.
+- Scope 和 non-scope。
+- chosen approach，以及 tradeoff 接近时的那个 rejected alternative。
+- 如有，列 Public API、schema、command、config 或 file-interface changes。
+- Verification commands 和 manual acceptance checks。
+- 如果任务自然延伸到 release、publish、migration 或 issue/PR follow-through，列出对应 steps。
+- 对任何可能改变 external state 的 step，列 rollback 或 failure handling。
 
-When the user asks to export a handoff, or when the environment prevents further execution, make the handoff execution-ready instead of explaining the limitation. Include file targets, key constants or selectors, exact commands, runtime or visual checklist, and risk boundaries. If the work depends on a screenshot or artifact, name the artifact and the pass/fail delta.
+当用户要求 export a handoff，或环境阻止继续执行时，给 execution-ready handoff，而不是只解释 limitation。包含 file targets、key constants 或 selectors、exact commands、runtime 或 visual checklist，以及 risk boundaries。如果工作依赖 screenshot 或 artifact，命名 artifact 和 pass/fail delta。
 
-When the user later says "Implement the plan", "可以干", "直接改", "整", or equivalent, treat that as approval of the written plan. Do not re-litigate the design. State which plan is being executed, check for obvious drift in the repo, and proceed. If the environment has changed enough that the plan is unsafe, name the specific drift and stop before editing.
+当用户之后说 "Implement the plan"、"可以干"、"直接改"、"整" 或等价表达，把它视为对 written plan 的 approval。不要重新争论 design。说明正在执行哪个 plan，检查 repo 是否有明显 drift，然后继续。如果环境变化已经让 plan 不安全，说明 specific drift，并在编辑前停止。
 
 ## Gotchas
 
 | What happened | Rule |
 |---------------|------|
-| Moved files to `~/project`, repo was at `~/www/project` | Run `pwd` before the first filesystem operation |
-| Asked for API key after 3 implementation steps | List every dependency before handing off |
-| User said "just do it" or equivalent approval | Treat as approval of the recommended option. State which option was selected, finish the plan. Do not implement inside `/think`. |
-| Planned MCP workflow without checking if MCP was loaded | Verify tool availability before handing off, not mid-implementation |
-| Rejected design restarted from scratch | Ask what specifically failed, re-enter with narrowed constraints |
-| User said "just fix X" and skipped /think | If the fix touches 3+ files or needs a method choice, pause and run Lightweight Mode |
-| User approved a concrete plan and the agent debated the plan again | Execute the approved plan. Only stop for repo drift, missing permissions, or unsafe external state |
-| Picked a regional or locale-specific API variant without checking | List all regional or locale differences before writing integration code |
-| Introduced a second language or runtime into a single-stack project | Never add a new language or runtime without explicit approval |
-| User said "判断一下这个报错" and got Evaluation Mode | "判断一下" + error/bug context = debugging, route to `/hunt`. Evaluation Mode is for value/existence judgments only |
-| User asked to "沉淀到 Waza" after a project review | First separate transferable Waza capability from project facts. Do not import that project's commands, paths, or release rules into Waza |
+| 把文件移到 `~/project`，但 repo 在 `~/www/project` | 第一次 filesystem operation 前运行 `pwd` |
+| 实施 3 步后才索要 API key | handoff 前列出每个 dependency |
+| 用户说 "just do it" 或等价 approval | 视为批准 recommended option。说明选择了哪个 option，完成 plan。不要在 `/think` 里 implement |
+| 计划 MCP workflow 却没检查 MCP 是否加载 | handoff 前验证 tool availability，不要 implementation 中途才验证 |
+| 被拒绝的 design 从零重来 | 询问具体哪里失败，并带着 narrowed constraints 重新进入 |
+| 用户说 "just fix X" 并跳过 /think | 如果 fix 触碰 3+ 文件或需要 method choice，暂停并运行 Lightweight Mode |
+| 用户批准 concrete plan 后 agent 又争论 plan | 执行 approved plan。只因 repo drift、missing permissions 或 unsafe external state 停止 |
+| 未检查就选择 regional 或 locale-specific API variant | 写 integration code 前列出所有 regional 或 locale differences |
+| 在 single-stack project 中引入第二种 language 或 runtime | 没有 explicit approval，绝不添加 new language 或 runtime |
+| 用户说 "判断一下这个报错" 却进入 Evaluation Mode | "判断一下" + error/bug context = debugging，route to `/hunt`。Evaluation Mode 只用于 value/existence judgments |
+| 用户在 project review 后要求 "沉淀到 Waza" | 先把 transferable Waza capability 与 project facts 分开。不要把该项目的 commands、paths 或 release rules import 到 Waza |
 
 ## Output
 
-**Approved design summary:**
-- **Building**: what this is (1 paragraph)
-- **Not building**: explicit out-of-scope list
-- **Approach**: chosen option with rationale
-- **Key decisions**: 3-5 with reasoning
-- **Unknowns**: only items that are explicitly deferred with a stated reason and a clear owner. Not vague gaps. If an unknown blocks a decision, loop back before approval.
+**Approved design summary：**
+- **Building**：这是什么（1 段）
+- **Not building**：明确 out-of-scope list
+- **Approach**：chosen option 和 rationale
+- **Key decisions**：3-5 项，带 reasoning
+- **Unknowns**：只列明确 deferred、带 stated reason 和 clear owner 的 items。不要列 vague gaps。如果某个 unknown 阻塞 decision，approval 前先 loop back。
 
-After the user approves the design, stop. Implementation starts only when requested.
+用户批准 design 后停止。只有用户请求时才开始 implementation。
 
 ## After Approval
 
-When the plan is approved, output this guidance:
+plan 获批后，输出这段 guidance：
 
 ```
 Plan approved. To implement: say "implement this plan". After implementation, run `/check` to review before merging or release follow-through.
 ```
 
-Keep it concise (2-3 sentences max). The user decides when to start implementation.
+保持简洁，最多 2-3 句。由用户决定何时开始 implementation。

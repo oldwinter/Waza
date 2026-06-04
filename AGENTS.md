@@ -1,29 +1,29 @@
 # Waza Agent Guide
 
-This file is the canonical agent guide for the Waza repository. `CLAUDE.md` is a symlink to it, so Claude Code and Codex see identical content. Edit this file; do not edit `CLAUDE.md`.
+这个文件是 Waza 仓库的 canonical agent guide。`CLAUDE.md` 是指向它的 symlink，所以 Claude Code 和 Codex 会看到同一份内容。编辑此文件，不要编辑 `CLAUDE.md`。
 
 ## Project
 
-Waza is a skill collection for engineering workflows. The repository contains eight skills: `think`, `design`, `check`, `hunt`, `write`, `learn`, `read`, and `health`.
+Waza 是面向 engineering workflows 的 skill collection。仓库包含八个 skills：`think`、`design`、`check`、`hunt`、`write`、`learn`、`read` 和 `health`。
 
 ## Repository Map
 
-- `VERSION` - single source of truth for the lock-step version. Every `SKILL.md` frontmatter, marketplace entry, README install URL, and installer `WAZA_REF` default must agree with this file.
-- `skills/RESOLVER.md` - trigger and routing table for the skill set.
-- `skills/*/SKILL.md` - individual skill entrypoints.
-- `skills/*/agents/` - specialist reviewer or inspector prompts.
-- `skills/*/references/` - supporting references loaded only when needed.
-- `skills/*/scripts/` - deterministic helper scripts.
-- `rules/` - shared writing and behavior rules used by install and validation flows. `rules/durable-context.md` is the shared Durable Context Preflight preamble; the six skills with optional memory context link to it from their own preflight section.
-- `.claude-plugin/marketplace.json` - **generated**. Edit `VERSION` or per-skill `SKILL.md` frontmatter and run `make regenerate`; never hand-edit.
-- `packaging.allowlist` - default-deny list of paths that ship in `waza.zip`. New shippable assets must be added here explicitly; everything else is excluded.
-- `.github/workflows/` - public test and release automation. `release.yml` runs `make test` before `make package` so the tagged commit is gated by the same suite as PRs.
-- `scripts/build_metadata.py` - codegen for marketplace.json, README install URLs, and installer-script `WAZA_REF` defaults. Run via `make regenerate`; CI checks drift via `make verify-generated`.
-- `scripts/verify_skills.py` - the only validator entrypoint. Covers frontmatter, references, marketplace, resolver, links, table pipes, trigger overlap, rule-file presence, README install string, English coaching guard, and AI-attribution leak detection.
-- `scripts/package-skill.sh` + `scripts/packaging_filter.py` - build `dist/waza.zip` from `packaging.allowlist`.
-- `scripts/setup-rule.sh` + `scripts/setup-statusline.sh` - public install helpers; `WAZA_REF` defaults are codegen-pinned to the current release tag.
-- `Makefile` - smoke discovery and packaging entrypoints. Adding a `tests/test_<name>.sh` file is enough to create a `smoke-<name>` target automatically.
-- `tests/test_*.sh` - one smoke per surface; sources `tests/test_helpers.sh` for tmpdir / repo-copy / stub-curl factories.
+- `VERSION` - lock-step version 的单一事实源。每个 `SKILL.md` frontmatter、marketplace entry、README install URL 和 installer `WAZA_REF` 默认值都必须与此文件一致。
+- `skills/RESOLVER.md` - skill set 的 trigger 和 routing table。
+- `skills/*/SKILL.md` - 单个 skill entrypoint。
+- `skills/*/agents/` - specialist reviewer 或 inspector prompts。
+- `skills/*/references/` - 只在需要时加载的 supporting references。
+- `skills/*/scripts/` - 确定性的 helper scripts。
+- `rules/` - install 和 validation flows 使用的共享 writing/behavior rules。`rules/durable-context.md` 是共享 Durable Context Preflight preamble；六个带 optional memory context 的 skills 会在自己的 preflight section 链接到它。
+- `.claude-plugin/marketplace.json` - **generated**。编辑 `VERSION` 或每个 skill 的 `SKILL.md` frontmatter 后运行 `make regenerate`；不要手工编辑。
+- `packaging.allowlist` - 打进 `waza.zip` 的路径 default-deny 清单。新的 shippable assets 必须显式加入这里；其他内容都会被排除。
+- `.github/workflows/` - public test 和 release automation。`release.yml` 会先运行 `make test` 再运行 `make package`，让 tagged commit 经过与 PR 相同的 suite。
+- `scripts/build_metadata.py` - marketplace.json、README install URLs 和 installer-script `WAZA_REF` 默认值的 codegen。通过 `make regenerate` 运行；CI 用 `make verify-generated` 检查 drift。
+- `scripts/verify_skills.py` - 唯一的 validator entrypoint。覆盖 frontmatter、references、marketplace、resolver、links、table pipes、trigger overlap、rule-file presence、README install string、English coaching guard 和 AI-attribution leak detection。
+- `scripts/package-skill.sh` + `scripts/packaging_filter.py` - 从 `packaging.allowlist` 构建 `dist/waza.zip`。
+- `scripts/setup-rule.sh` + `scripts/setup-statusline.sh` - public install helpers；`WAZA_REF` 默认值由 codegen 固定到当前 release tag。
+- `Makefile` - smoke discovery 和 packaging entrypoints。新增一个 `tests/test_<name>.sh` 文件就会自动创建对应的 `smoke-<name>` target。
+- `tests/test_*.sh` - 每个 surface 一个 smoke；会 source `tests/test_helpers.sh` 来获取 tmpdir、repo-copy、stub-curl factories。
 
 ## Commands
 
@@ -34,90 +34,90 @@ make verify-generated # drift check used by CI; non-zero if regenerate would cha
 make package          # build dist/waza.zip from packaging.allowlist
 ```
 
-Run `make test` before meaningful changes to skill behavior, packaging, scripts, marketplace metadata, or anything generated. If you edited only frontmatter or VERSION, also run `make regenerate` and commit the resulting `.claude-plugin/marketplace.json` / `README.md` / installer changes together with your source edits.
+在对 skill behavior、packaging、scripts、marketplace metadata 或任何 generated 内容做有意义修改前，运行 `make test`。如果只编辑了 frontmatter 或 VERSION，也要运行 `make regenerate`，并把生成的 `.claude-plugin/marketplace.json` / `README.md` / installer 变更与 source edits 一起提交。
 
 ## Skill Design Rules
 
-Before adding a capability, decide the layer deliberately:
+添加 capability 前，先有意识地决定它属于哪一层：
 
 | Question | Yes | No |
 |---|---|---|
-| Does the user need judgment, adaptation, or follow-up questions? | Skill | Script or rule |
-| Does the same input always produce the same output? | Script or rule | Skill |
-| Is it a lookup, list, status check, or invariant check? | Script or rule | Skill |
-| Does behavior shift with conversation context? | Skill | Script or rule |
+| 用户是否需要判断、适应场景或追问？ | Skill | Script or rule |
+| 同样输入是否总会产生同样输出？ | Script or rule | Skill |
+| 它是否只是 lookup、list、status check 或 invariant check？ | Script or rule | Skill |
+| 行为是否会随 conversation context 改变？ | Skill | Script or rule |
 
-Examples: `verify_skills.py` is a script; `rules/english.md` and `rules/chinese.md` are rules; `/think`, `/hunt`, `/check`, and `/health` are skills.
+例子：`verify_skills.py` 是 script；`rules/english.md` 和 `rules/chinese.md` 是 rules；`/think`、`/hunt`、`/check` 和 `/health` 是 skills。
 
-- Put adaptive, judgment-heavy workflows in skills.
-- Put deterministic checks, lookups, and table-driven validation in scripts.
-- `rules/anti-patterns.md` owns cross-skill always-on behavioral guardrails (AI failure modes that apply regardless of active skill). Per-skill gotchas stay in each `skills/*/SKILL.md` Gotchas table; a gotcha belongs in `rules/anti-patterns.md` only when it applies identically across all eight skills.
-- Before adding or changing an anti-pattern row, compare existing rows by failure mode. Merge duplicate concepts instead of adding near-synonyms, and keep row wording generic enough to ship outside this repo.
-- Keep `skills/RESOLVER.md` in sync when a skill description, trigger, or scope changes.
-- Keep each `description` concrete enough for automatic routing.
-- Write skill entrypoints outcome-first: name the target result, what counts as done, which constraints and evidence matter, and what the final answer or artifact should look like. Keep detailed process in mode sections and references.
-- Avoid broad skills that mix unrelated workflows.
-- Eight skills is the hard cap. Do not propose a 9th skill or split an existing one. Behavior additions land in `references/`, `rules/`, `scripts/`, or `rules/anti-patterns.md`, not as a new skill.
-- Keep generic programmer capabilities in Waza. Project-specific constraints should be extracted from public repository context or user-provided task context.
-- Treat `code-review` as an invocation alias for Waza `check`, not as a separate generic skill.
-- Waza `check` must remain project-aware without depending on unpublished local files. It extracts commands, generated artifacts, risk areas, and release rules from the target diff, public docs, manifests, CI config, and user-provided context.
-- Keep distribution files self-contained for Claude Desktop and plugin installs. The release ZIP may inline sub-skill bodies into a generated root `SKILL.md`; source-of-truth skill content remains under `skills/*/SKILL.md`.
-- If a `templates/` directory is added, keep reusable public scaffolds there and include it in packaging/validation rules deliberately.
-- Keep the README short: a new reader should understand Waza in 30 seconds. Detailed rules belong in `skills/<name>/SKILL.md`, `rules/*.md`, or this file. Do not stack promotional sections at the top.
+- 把 adaptive、judgment-heavy workflows 放进 skills。
+- 把 deterministic checks、lookups 和 table-driven validation 放进 scripts。
+- `rules/anti-patterns.md` 负责跨 skill 的 always-on behavioral guardrails，也就是无论 active skill 是哪个都适用的 AI failure modes。每个 skill 自己的 gotchas 留在各自 `skills/*/SKILL.md` 的 Gotchas table；只有当某个 gotcha 对八个 skills 都完全适用时，才放进 `rules/anti-patterns.md`。
+- 添加或修改 anti-pattern row 前，按 failure mode 比较已有 rows。合并重复概念，不要添加近义词，并让 row wording 足够通用，可以发布到本仓库之外。
+- skill description、trigger 或 scope 改变时，同步更新 `skills/RESOLVER.md`。
+- 每个 `description` 都要足够具体，便于 automatic routing。
+- 写 skill entrypoints 时 outcome-first：说清目标结果、什么算完成、哪些约束和证据重要、最终回答或 artifact 应该长什么样。详细流程放到 mode sections 和 references。
+- 避免把无关 workflows 混在一个宽泛 skill 里。
+- 八个 skills 是硬上限。不要提出第 9 个 skill，也不要拆分现有 skill。Behavior additions 应落在 `references/`、`rules/`、`scripts/` 或 `rules/anti-patterns.md`，不要新增 skill。
+- Waza 保留通用程序员能力。Project-specific constraints 应从公开 repository context 或用户提供的 task context 中提取。
+- 把 `code-review` 视为 Waza `check` 的 invocation alias，不要当成另一个通用 skill。
+- Waza `check` 必须保持 project-aware，但不能依赖未发布的本地文件。它从 target diff、public docs、manifests、CI config 和 user-provided context 中提取 commands、generated artifacts、risk areas 和 release rules。
+- Distribution files 要对 Claude Desktop 和 plugin installs 自包含。release ZIP 可以把 sub-skill bodies inline 到 generated root `SKILL.md`；source-of-truth skill content 仍保留在 `skills/*/SKILL.md`。
+- 如果添加 `templates/` 目录，把可复用 public scaffolds 放在那里，并有意识地纳入 packaging/validation rules。
+- README 保持简短：新读者应能在 30 秒内理解 Waza。详细 rules 属于 `skills/<name>/SKILL.md`、`rules/*.md` 或本文件。不要在顶部堆 promotional sections。
 
 ## Adding Or Changing A Skill
 
-Use this path for any new skill or meaningful behavior change:
+任何 new skill 或 meaningful behavior change 都走这条路径：
 
-1. Create or update `skills/<name>/SKILL.md`; keep the description concrete, triggerable, and include a `Not for ...` exclusion. Frontmatter `metadata.version` must match the top-level `VERSION` file.
-2. Update `skills/RESOLVER.md` routing rows so the new skill or changed scope is reachable; never hand-edit `.claude-plugin/marketplace.json` (run `make regenerate` instead).
-3. Keep Waza public: extract project-specific details from public repo context at runtime instead of hardcoding private paths, credentials, or one-machine workflow.
-4. Put deterministic enforcement in `scripts/` or `rules/`; keep only adaptive judgment in the skill body.
-5. If the new skill ships a new top-level asset (new dir under root, new helper script the user needs), add the path to `packaging.allowlist`. Default behavior is exclusion.
-6. Run `make regenerate` after frontmatter / VERSION edits, then `make test` and `make package` before release handoff.
+1. 创建或更新 `skills/<name>/SKILL.md`；description 保持具体、可触发，并包含 `Not for ...` exclusion。Frontmatter `metadata.version` 必须匹配顶层 `VERSION` 文件。
+2. 更新 `skills/RESOLVER.md` routing rows，让新 skill 或变化后的 scope 可达；不要手工编辑 `.claude-plugin/marketplace.json`，改用 `make regenerate`。
+3. 保持 Waza public：在 runtime 从 public repo context 中提取 project-specific details，不要硬编码 private paths、credentials 或 one-machine workflow。
+4. 把 deterministic enforcement 放进 `scripts/` 或 `rules/`；skill body 只保留 adaptive judgment。
+5. 如果 new skill 会发布新的 top-level asset，例如根目录下的新目录或用户需要的新 helper script，把路径加入 `packaging.allowlist`。默认行为是排除。
+6. frontmatter / VERSION 编辑后运行 `make regenerate`，release handoff 前再运行 `make test` 和 `make package`。
 
 ## Maintainability Invariants
 
-- Prefer generation over drift lint when the same metadata appears in multiple distribution files. `VERSION` and `skills/*/SKILL.md` frontmatter are the source of truth for generated marketplace and install metadata.
-- Keep executable programs as real files, not heredocs inside shell scripts or Makefile recipes. Shell wrappers may delegate to Python helpers, but large logic belongs in importable `.py` files with `py_compile` coverage.
-- Keep smoke tests in `tests/test_*.sh`; `Makefile` should discover and run them, not embed large test bodies.
-- Avoid hidden runtime dependencies. If a script needs a non-stdlib Python package, external CLI, or network resolver, declare it in CI/docs and add a smoke test that fails without it.
-- Installer scripts that fetch remote content must default to a release tag. Use `WAZA_REF=main` only as an explicit bleeding-edge override.
-- One-off review reports, scorecards, or diagnostic snapshots do not belong in durable docs. Extract the stable rule into `AGENTS.md`, `CLAUDE.md`, `rules/`, `skills/*/references/`, or a verifier script, then drop the report.
-- Project case studies are inputs, not Waza policy. Only promote the transferable workflow rule; keep project-specific commands, paths, release rituals, and safety constraints in that project's public context.
-- Local-only instruction overlays are not durable source of truth. If a rule must guide future contributors or packaged agents, put it in tracked public docs or shipped skill/rule files.
-- Local review and health checks must account for modified, staged, and untracked files. New helpers, tests, references, and packaging allowlists are part of the review surface before they are committed.
+- 当同一 metadata 出现在多个 distribution files 中时，优先用 generation，而不是 drift lint。`VERSION` 和 `skills/*/SKILL.md` frontmatter 是 generated marketplace 和 install metadata 的事实源。
+- 可执行程序保持为真实文件，不要写成 shell scripts 或 Makefile recipes 里的 heredocs。Shell wrappers 可以委托给 Python helpers，但大逻辑应放在可 import 的 `.py` 文件里，并有 `py_compile` coverage。
+- Smoke tests 放在 `tests/test_*.sh`；`Makefile` 应发现并运行它们，不要嵌入大段 test bodies。
+- 避免 hidden runtime dependencies。如果某个 script 需要非 stdlib Python package、external CLI 或 network resolver，在 CI/docs 中声明，并添加一个缺失时会失败的 smoke test。
+- 会 fetch remote content 的 installer scripts 必须默认指向 release tag。只有显式 bleeding-edge override 才使用 `WAZA_REF=main`。
+- One-off review reports、scorecards 或 diagnostic snapshots 不属于 durable docs。把 stable rule 提取到 `AGENTS.md`、`CLAUDE.md`、`rules/`、`skills/*/references/` 或 verifier script，然后丢弃 report。
+- Project case studies 是输入，不是 Waza policy。只提升可迁移 workflow rule；project-specific commands、paths、release rituals 和 safety constraints 留在该项目的 public context 中。
+- Local-only instruction overlays 不是 durable source of truth。如果某条 rule 必须指导未来 contributors 或 packaged agents，就放到 tracked public docs 或 shipped skill/rule files。
+- Local review 和 health checks 必须覆盖 modified、staged 和 untracked files。New helpers、tests、references 和 packaging allowlists 在提交前都是 review surface 的一部分。
 
 ## Distribution Rules
 
-- `.claude-plugin/marketplace.json`, `skills/RESOLVER.md`, and every `skills/*/SKILL.md` must agree on skill names, descriptions, and source paths.
-- `npx skills add tw93/Waza` should install the eight direct coding skills by default. Do not add a source-root `SKILL.md`; it prevents nested skill discovery.
-- Claude Desktop uses the release ZIP built by `scripts/package-skill.sh`.
-- `scripts/package-skill.sh` builds a public archive with exactly one generated root `SKILL.md`; nested `skills/*/SKILL.md` files are inlined for packaged installs.
-- Do not make packaged skills resolve scripts or references through personal home-directory caches or machine paths. Resolve relative to the installed Waza directory.
-- Rules under `rules/` are shared public behavior, not project-private memory.
+- `.claude-plugin/marketplace.json`、`skills/RESOLVER.md` 和每个 `skills/*/SKILL.md` 必须在 skill names、descriptions 和 source paths 上一致。
+- `npx skills add tw93/Waza` 默认应安装八个 direct coding skills。不要添加 source-root `SKILL.md`，它会阻止 nested skill discovery。
+- Claude Desktop 使用 `scripts/package-skill.sh` 构建的 release ZIP。
+- `scripts/package-skill.sh` 会构建一个 public archive，其中恰好有一个 generated root `SKILL.md`；nested `skills/*/SKILL.md` files 会为 packaged installs inline 进去。
+- 不要让 packaged skills 通过个人 home-directory caches 或 machine paths 解析 scripts 或 references。应相对 installed Waza directory 解析。
+- `rules/` 下的 rules 是 shared public behavior，不是 project-private memory。
 
 ## Verification
 
-- Skill behavior changes: run `python3 scripts/verify_skills.py` and the relevant smoke target.
-- Packaging changes: run `make package` and inspect the generated archive.
-- Marketplace, resolver, or root dispatcher changes: run `python3 scripts/verify_skills.py` and confirm every marketplace source points at an existing skill directory.
-- Non-trivial diffs: run the review workflow before release handoff.
-- Documentation-only changes: check internal links and command names.
+- Skill behavior changes：运行 `python3 scripts/verify_skills.py` 和相关 smoke target。
+- Packaging changes：运行 `make package` 并检查 generated archive。
+- Marketplace、resolver 或 root dispatcher changes：运行 `python3 scripts/verify_skills.py`，并确认每个 marketplace source 都指向存在的 skill directory。
+- Non-trivial diffs：release handoff 前运行 review workflow。
+- Documentation-only changes：检查 internal links 和 command names。
 
 ## Commit And Release
 
-- Commit convention: `{type}: {description}` where type is `feat`, `fix`, `refactor`, `docs`, or `chore`.
-- Keep commits atomic. A commit touching more than ~20 files should split into packaging / docs / scripts / per-skill units, unless every file is the same codegen output from `make regenerate`.
-- Release tags use lowercase `v{version}`.
-- Rebuild packaged artifacts before publishing release assets. Run `make package` before publishing; CI should upload the ZIP on published releases.
-- After a GitHub release is published and assets are verified, add every positive release reaction with `gh api`: `+1`, `laugh`, `heart`, `hooray`, `rocket`, and `eyes`. Resolve the release id from the tag, POST each reaction to `repos/<owner>/<repo>/releases/<id>/reactions`, then re-read reactions to confirm them.
-- **Never add the `-1` or `confused` reactions**. Those are negative signals; adding them to one's own release reads as self-deprecation. Only the six positive reactions above.
+- Commit convention：`{type}: {description}`，type 是 `feat`、`fix`、`refactor`、`docs` 或 `chore`。
+- 保持 commits atomic。除非每个文件都是 `make regenerate` 产生的同一批 codegen output，否则一个 commit 触碰超过约 20 个文件时，应拆成 packaging / docs / scripts / per-skill units。
+- Release tags 使用小写 `v{version}`。
+- 发布 release assets 前重建 packaged artifacts。发布前运行 `make package`；CI 应在 published releases 上上传 ZIP。
+- GitHub release 发布且 assets 已验证后，用 `gh api` 添加所有正向 release reactions：`+1`、`laugh`、`heart`、`hooray`、`rocket` 和 `eyes`。从 tag 解析 release id，向 `repos/<owner>/<repo>/releases/<id>/reactions` POST 每个 reaction，然后重新读取 reactions 确认。
+- **绝不要添加 `-1` 或 `confused` reactions**。这些是负向信号，给自己的 release 添加会显得自我贬低。只添加上面六个正向 reactions。
 
 ### Release title and body template
 
-- Title: `V{version} {Codename} {emoji}`, e.g. `V3.8.0 Forge 🔨`.
-- Body: Markdown with the structure below.
+- Title：`V{version} {Codename} {emoji}`，例如 `V3.8.0 Forge 🔨`。
+- Body：使用下面结构的 Markdown。
 
 ```markdown
 <div align="center">
@@ -139,6 +139,6 @@ Use this path for any new skill or meaningful behavior change:
 Update: `npx skills add tw93/Waza@latest` · [Claude Desktop](https://github.com/tw93/Waza/releases/latest/download/waza.zip) · ⭐ [tw93/Waza](https://github.com/tw93/Waza)
 ```
 
-- Each item: `**Label**: one sentence`. Bold label is the skill or module name; the description leads with what changed.
-- Style: engineer-facing, no marketing language. English and Chinese items must map one-to-one by number, 5 to 8 items total, one sentence each.
-- Footer: update command + star + repo link, separated by `·`.
+- 每个 item：`**Label**: one sentence`。加粗 label 是 skill 或 module name；description 先说清发生了什么变化。
+- Style：面向工程师，不用营销语言。英文和中文 items 必须按编号一一对应，共 5 到 8 项，每项一句。
+- Footer：update command + star + repo link，用 `·` 分隔。

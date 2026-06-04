@@ -1,23 +1,23 @@
 ## English Scenario
 
-Eliminate predictable AI writing patterns. Write like a human: varied, imperfect, specific.
+消除可预测的 AI writing patterns。写得像人：varied、imperfect、specific。
 
 ### Core Rules
 
-1. **Cut filler phrases.** Remove throat-clearing openers, emphasis crutches, and all adverbs.
-2. **Break formulaic structures.** Avoid binary contrasts, negative listings, dramatic fragmentation, rhetorical setups, false agency.
-3. **Use active voice.** Every sentence needs a human subject doing something. No inanimate objects performing human actions ("the complaint becomes a fix").
-4. **Be specific.** No vague declaratives ("The reasons are structural"). Name the specific thing. No lazy extremes ("every," "always," "never") doing vague work.
-5. **Put the reader in the room.** No narrator-from-a-distance voice. "You" beats "People." Specifics beat abstractions.
-6. **Vary rhythm.** Mix sentence lengths. Two items beat three. End paragraphs differently. No em dashes.
-7. **Trust readers.** State facts directly. Skip softening, justification, hand-holding.
-8. **Cut quotables.** If it sounds like a pull-quote, rewrite it.
-9. **Do not replace one formula with another.** “Human” does not mean slangy, quirky, or performatively casual.
-10. **No emoji.** Remove any emoji from the text being edited.
+1. **Cut filler phrases.** 移除 throat-clearing openers、emphasis crutches 和所有 adverbs。
+2. **Break formulaic structures.** 避免 binary contrasts、negative listings、dramatic fragmentation、rhetorical setups、false agency。
+3. **Use active voice.** 每个句子都需要 human subject 在做事。不要让 inanimate objects 执行 human actions（"the complaint becomes a fix"）。
+4. **Be specific.** 不要 vague declaratives（"The reasons are structural"）。命名具体事物。不要用 lazy extremes（"every," "always," "never"）承担模糊工作。
+5. **Put the reader in the room.** 不要 narrator-from-a-distance voice。"You" 好过 "People"。Specifics 好过 abstractions。
+6. **Vary rhythm.** 混合 sentence lengths。两个 items 好过三个。paragraph endings 要变化。不要 em dashes。
+7. **Trust readers.** 直接陈述 facts。跳过 softening、justification、hand-holding。
+8. **Cut quotables.** 如果听起来像 pull-quote，重写。
+9. **Do not replace one formula with another.** “Human” 不等于 slangy、quirky 或 performatively casual。
+10. **No emoji.** 从被编辑文本中移除所有 emoji。
 
 ### Word Choice
 
-Examples, not exhaustive -- any word used to signal importance rather than to say something is suspect.
+以下只是 examples，不穷尽。任何用来 signal importance 而不是说清楚事情的 word 都可疑。
 
 **Overused adverbs: kill them all:**
 "quietly", "deeply", "fundamentally", "remarkably", "arguably", "certainly", "really", "just", "literally", "genuinely", "honestly", "simply", "actually"
@@ -52,7 +52,7 @@ Examples, not exhaustive -- any word used to signal importance rather than to sa
 
 ### Sentence Structures to Avoid
 
-Examples, not exhaustive -- any construction that performs insight rather than delivers it belongs here.
+以下只是 examples，不穷尽。任何在表演 insight 而不是传递 insight 的 construction 都属于这里。
 
 **Negative parallelism**: the single most common AI tell:
 > NO: "It's not bold. It's backwards." / "Not because X, but because Y." / "The question isn't X. The question is Y."
@@ -190,8 +190,8 @@ Rate 1-10 on each dimension:
 | Authenticity | Sounds human? |
 | Density | Anything cuttable? |
 
-Below 35/50: revise.
+低于 35/50：revise。
 
 ---
 
-**Bottom line: varied, imperfect, specific. Any single trope used once may be fine. The problem is when multiple appear together or one repeats.**
+**Bottom line: varied, imperfect, specific. 单个 trope 用一次也许可以。问题出现在多个 trope 同时出现，或同一个 trope 重复。**

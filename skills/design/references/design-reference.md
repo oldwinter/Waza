@@ -2,199 +2,199 @@
 
 ## Tech Stack Conflicts
 
-These combinations produce silent failures or incoherent output. Never combine them:
+这些组合会产生静默失败或不一致的输出。绝不要混用：
 
 | Never combine | Why |
 |---|---|
-| Tailwind + CSS Modules on the same element | Specificity conflicts, unpredictable cascade |
-| Framer Motion + CSS transitions on the same element | Double-animating the same property causes jank |
-| styled-components or emotion + Tailwind | Two competing class systems fighting for the same DOM node |
-| Heroicons + Lucide + Font Awesome in one project | Visual inconsistency, size mismatches, bundle bloat |
-| Multiple Google Font families as display fonts | Competing personalities cancel each other out |
-| Glassmorphism backdrop-filter + solid `border: 1px solid` | Solid borders shatter the layered depth illusion |
-| Dark background + `#ffffff` text at full opacity | Too harsh; use `rgba(255,255,255,0.85)` or `#f0f0f0` |
-| Tailwind v4 `@theme` + dynamically constructed class names | `@theme` tokens generate utility classes JIT; if class names are built from variables or not present in scanned source, the class is purged and styles silently disappear. Fix: use static class names in source files, add to `safelist`, or define custom colors in `:root` + `extend.colors` in `tailwind.config.js` instead of `@theme` |
+| Tailwind + CSS Modules on the same element | specificity 冲突，cascade 不可预测 |
+| Framer Motion + CSS transitions on the same element | 同一属性被双重动画驱动会造成 jank |
+| styled-components or emotion + Tailwind | 两套 class 系统争抢同一个 DOM node |
+| Heroicons + Lucide + Font Awesome in one project | 视觉不一致、尺寸不匹配、bundle 膨胀 |
+| Multiple Google Font families as display fonts | 多种字体个性彼此抵消 |
+| Glassmorphism backdrop-filter + solid `border: 1px solid` | 实线边框会打碎 layered depth 的错觉 |
+| Dark background + `#ffffff` text at full opacity | 太刺眼；使用 `rgba(255,255,255,0.85)` 或 `#f0f0f0` |
+| Tailwind v4 `@theme` + dynamically constructed class names | `@theme` tokens 通过 JIT 生成 utility classes；如果 class names 由变量拼出或没有出现在 scanned source 中，class 会被 purge，样式会静默消失。Fix: 在 source files 中使用 static class names，加入 `safelist`，或在 `tailwind.config.js` 中用 `:root` + `extend.colors` 定义 custom colors，而不是用 `@theme` |
 
-Before writing the first component, name the single CSS strategy for the project: Tailwind only, CSS Modules only, or CSS-in-JS only. Do not drift from it.
+写第一个 component 前，先命名项目唯一 CSS strategy：Tailwind only、CSS Modules only 或 CSS-in-JS only。不要漂移。
 
 ## Common Traps
 
-Before submitting, check whether any of the following slipped in without intention:
+提交前，检查是否无意中混入了以下模式：
 
-- A purple or blue gradient over white as the hero background
-- A three-part hero: large headline, one-line subtext, two CTA buttons side by side
-- A grid of cards with identical rounded corners, identical drop shadows, identical padding
-- A top navigation bar with logo left, links center, primary action far right
-- Sections that alternate between white and `#f9f9f9`
-- A centered icon or illustration sitting above a heading above a paragraph
-- A four-column footer with equal-weight columns
+- 白底上的紫色或蓝色 gradient hero background
+- 三段式 hero：大标题、一行 subtext、两个并排 CTA buttons
+- 一组 cards：完全相同的 rounded corners、drop shadows 和 padding
+- 顶部导航：logo 在左、links 居中、primary action 在最右
+- sections 在白色和 `#f9f9f9` 之间来回交替
+- 居中的 icon 或 illustration 位于 heading 上方，heading 又位于 paragraph 上方
+- 四列 footer，所有 columns 权重相同
 
-Any of these can appear if they serve the design intentionally. They cannot appear by default.
+如果这些模式服务于明确的 design intent，可以出现。它们不能作为默认出现。
 
-Final test: if you swapped in completely different content and the layout still made sense without changes, you built a template, not a design. Redo it.
+最终测试：如果换成完全不同的内容后，layout 不改也仍然成立，你做的是 template，不是 design。重做。
 
 ## Content Authenticity
 
-Placeholder copy that looks real but is not real breaks the illusion the moment a user reads it. Apply these rules before handoff.
+看起来真实但并不真实的 placeholder copy，会在用户开始阅读的一瞬间破坏可信感。handoff 前应用这些规则。
 
 **Sample data:**
-- No generic names: not John Doe, Jane Smith, Alex Johnson, or any first-name-last-name combination that reads as filler. Use culturally varied names with real specificity (e.g., Priya Mehta, Lars Eriksson, Nia Okafor).
-- No generic company names: not Acme Corp, Nexus, SmartFlow, TechCorp, Initech. Pick names with a domain (e.g., Meridian Logistics, Hokkaido Ceramics, Vantage Bioworks).
-- No Lorem Ipsum. Write short real copy that matches the layout's reading level.
-- No round numbers in data samples. `99.99%` uptime, `50%` conversion, `$100.00` MRR look synthetic. Use organic values instead: `99.94%`, `47.2%`, `$99.00`.
-- Multiple avatar instances must not share the same image. Multiple blog post or event cards must not share the same date.
+- 不要 generic names：不要 John Doe、Jane Smith、Alex Johnson，也不要任何读起来像填充物的 first-name-last-name 组合。使用文化背景更丰富且具体的名字（例如 Priya Mehta、Lars Eriksson、Nia Okafor）。
+- 不要 generic company names：不要 Acme Corp、Nexus、SmartFlow、TechCorp、Initech。选择带有 domain 感的名字（例如 Meridian Logistics、Hokkaido Ceramics、Vantage Bioworks）。
+- 不要 Lorem Ipsum。写能匹配 layout 阅读层级的短真实文案。
+- sample data 中不要 round numbers。`99.99%` uptime、`50%` conversion、`$100.00` MRR 看起来很假。使用更自然的值：`99.94%`、`47.2%`、`$99.00`。
+- 多个 avatar instances 不得共用同一张 image。多个 blog post 或 event cards 不得共用同一个 date。
 
 **UI copy:**
-- Sentence case on all headings. Title Case On Every Heading is the most common AI tell in body copy.
-- Remove exclamation marks from success states ("Saved!" → "Saved", "Done!" → "Done"). Reserve `!` for genuine urgency.
-- Never open an error message with "Oops!". It reads as condescending.
-- No passive voice in error messages ("Something went wrong" → "We couldn't load your data. Try refreshing.").
-- Banned AI marketing words in hero copy, CTAs, and feature descriptions: Elevate, Seamless, Unleash, Delve, Tapestry, Game-changer, Next-Gen, "In the world of...". These words communicate nothing about the product. Name the specific value instead.
+- 所有 headings 使用 sentence case。Title Case On Every Heading 是 body copy 中最常见的 AI tell。
+- 从 success states 移除感叹号（"Saved!" -> "Saved"，"Done!" -> "Done"）。`!` 只留给真正紧急的场景。
+- error message 不要以 "Oops!" 开头。它读起来像居高临下。
+- error messages 不用 passive voice（"Something went wrong" -> "We couldn't load your data. Try refreshing."）。
+- hero copy、CTAs 和 feature descriptions 中禁用 AI marketing words：Elevate、Seamless、Unleash、Delve、Tapestry、Game-changer、Next-Gen、"In the world of..."。这些词没有传达任何产品价值。改为命名具体价值。
 
 ## Placeholders Over Imitations
 
-When an icon, image, or component is unavailable: use a placeholder. In hi-fi design a labeled placeholder is always better than a low-quality attempt at the real thing. Examples: a grey rectangle for a hero image, a monogram wordmark for a missing logo, a dashed border for a component not yet designed.
+当 icon、image 或 component 不可用时：使用 placeholder。在 hi-fi design 中，一个带 label 的 placeholder 永远好过低质量仿制。例子：hero image 用灰色矩形，缺失 logo 用 monogram wordmark，未设计 component 用 dashed border。
 
-Never draw illustrative imagery using inline SVG. SVG is for icons and geometric shapes. For photography, illustrations, or product shots, use a placeholder and ask the user to supply real assets.
+不要用 inline SVG 画 illustrative imagery。SVG 用于 icons 和 geometric shapes。photography、illustrations 或 product shots 应使用 placeholder，并请用户提供真实 assets。
 
 ## Production Quality Baseline
 
-Check before handoff. These are not aesthetic choices, they are non-negotiable.
+handoff 前检查。这些不是 aesthetic choices，而是 non-negotiable。
 
-> Treat the sections below as craft details, not defaults. Only apply them when they serve the locked visual direction. If removing a detail changes nothing about how the interface feels, leave it out.
+> 把下面 sections 当成 craft details，而不是 defaults。只有在它们服务已锁定的 visual direction 时才应用。如果移除某个 detail 不会改变 interface 的感受，就不要加。
 
 ### Accessibility
-- Icon-only buttons need `aria-label`
-- Actions use `<button>`, navigation uses `<a>` (not `<div onClick>`)
-- Images need `alt` (or `alt=""` if decorative)
-- Visible focus states: `focus-visible:ring-*` or equivalent; never `outline: none` without replacement
+- Icon-only buttons 需要 `aria-label`
+- Actions 使用 `<button>`，navigation 使用 `<a>`（不要用 `<div onClick>`）
+- Images 需要 `alt`（decorative 时用 `alt=""`）
+- 可见 focus states：`focus-visible:ring-*` 或等价写法；不要 `outline: none` 后没有替代方案
 
 ### Animation
-- Honor `prefers-reduced-motion`: disable or reduce animations when set
-- Animate `transform`/`opacity` only (compositor-friendly, no layout thrash)
-- Never `transition: all`; list properties explicitly
-- Interruptible animations: prefer CSS transitions for interactive state changes (hover, toggle, open/close) because they retarget mid-animation; reserve keyframe animations for staged sequences that run once (e.g., staggered page enters)
-- Staggered enter: split content into semantic chunks with ~100ms delay; titles into words at ~80ms; typical enter uses `opacity: 0 → 1`, `translateY(12px) → 0`, and `blur(4px) → 0`
-- Subtle exit: use a small fixed `translateY(-12px)` instead of full height; keep duration ~150ms `ease-in`, shorter and softer than enter
-- Contextual icon swaps: animate with `scale: 0.25 → 1`, `opacity: 0 → 1`, and `blur: 4px → 0px`. With a spring library: `{ type: "spring", duration: 0.3, bounce: 0 }`. Without: keep both icons in DOM (one absolute) and cross-fade with CSS using `cubic-bezier(0.2, 0, 0, 1)`
-- Scale on press: buttons use `scale(0.96)` on active/press via CSS transitions so the press can be interrupted; add a `static` prop to disable when motion would be distracting
-- Page-load guard: use `initial={false}` on animated presence wrappers for toggles, tabs, and icon swaps to prevent enter animations on first render; do not use it for intentional page-load entrance sequences
+- 尊重 `prefers-reduced-motion`：设置时禁用或减少 animations
+- 只 animate `transform`/`opacity`（compositor-friendly，避免 layout thrash）
+- 永远不要 `transition: all`；明确列出 properties
+- Interruptible animations：interactive state changes（hover、toggle、open/close）优先用 CSS transitions，因为它们能在 animation 中途 retarget；keyframe animations 只留给运行一次的 staged sequences（例如 staggered page enters）
+- Staggered enter：把 content 拆成 semantic chunks，约 100ms delay；titles 拆成 words，约 80ms；典型 enter 使用 `opacity: 0 -> 1`、`translateY(12px) -> 0` 和 `blur(4px) -> 0`
+- Subtle exit：使用小的 fixed `translateY(-12px)`，不要 full height；duration 保持约 150ms `ease-in`，比 enter 更短更柔和
+- Contextual icon swaps：用 `scale: 0.25 -> 1`、`opacity: 0 -> 1` 和 `blur: 4px -> 0px`。有 spring library 时：`{ type: "spring", duration: 0.3, bounce: 0 }`。没有时：两个 icons 都保留在 DOM 中（一个 absolute），用 `cubic-bezier(0.2, 0, 0, 1)` 做 CSS cross-fade
+- Scale on press：buttons 通过 CSS transitions 在 active/press 使用 `scale(0.96)`，这样 press 可以被打断；添加 `static` prop，在 motion 会分散注意力时禁用
+- Page-load guard：对 toggles、tabs 和 icon swaps 的 animated presence wrappers 使用 `initial={false}`，防止首次 render 时出现 enter animations；不要把它用于刻意的 page-load entrance sequences
 
 ### Performance
-- Transition specificity: never `transition: all`; list exact properties (e.g., `transition-property: scale, opacity`). Tailwind's `transition-transform` covers `transform, translate, scale, rotate`; use `transition-[scale,opacity,filter]` for mixed properties
-- GPU compositing: only use `will-change` for `transform`, `opacity`, or `filter`. Never `will-change: all`. Add only when you notice first-frame stutter; do not apply preemptively to every element
-- Images: explicit `width` and `height` (prevents layout shift)
-- Below-fold images: `loading="lazy"`
-- Critical fonts: `font-display: swap`
+- Transition specificity：永远不要 `transition: all`；列出精确 properties（例如 `transition-property: scale, opacity`）。Tailwind 的 `transition-transform` 覆盖 `transform, translate, scale, rotate`；混合 properties 用 `transition-[scale,opacity,filter]`
+- GPU compositing：`will-change` 只用于 `transform`、`opacity` 或 `filter`。永远不要 `will-change: all`。只有看到 first-frame stutter 时才加；不要预防性加到每个 element
+- Images：明确 `width` 和 `height`（防止 layout shift）
+- Below-fold images：`loading="lazy"`
+- Critical fonts：`font-display: swap`
 
 ### Touch and Mobile
-- `touch-action: manipulation` (prevents double-tap zoom delay)
-- Full-bleed layouts: `env(safe-area-inset-*)` for notch devices
-- Modals and drawers: `overscroll-behavior: contain`
-- Hover guard: wrap interactive hover states with `@media(hover:hover)` so they only apply on pointer devices, not touch screens. Tailwind: `[@media(hover:hover)]:hover:bg-...`. Without this, a tapped element on mobile gets a permanent hover state until the next tap elsewhere.
+- `touch-action: manipulation`（防止 double-tap zoom delay）
+- Full-bleed layouts：对 notch devices 使用 `env(safe-area-inset-*)`
+- Modals 和 drawers：`overscroll-behavior: contain`
+- Hover guard：用 `@media(hover:hover)` 包住 interactive hover states，让它们只在 pointer devices 上生效，不作用于 touch screens。Tailwind：`[@media(hover:hover)]:hover:bg-...`。否则 mobile 上被 tap 的 element 会保持 permanent hover state，直到下次 tap 到别处
 
 ### Typography Details
-- Text wrapping: `text-wrap: balance` on headings and short text blocks (≤6 lines in Chromium, ≤10 in Firefox); `text-wrap: pretty` on body paragraphs and longer text; leave default on code blocks and pre-formatted text
-- Font smoothing: apply `-webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale` once on the root layout (macOS only)
-- Tabular numbers: use `font-variant-numeric: tabular-nums` for counters, timers, prices, number columns, or any dynamically updating numbers
-- Letter-spacing scales with font size: display type needs negative tracking to look engineered rather than stretched. Two tiers: roughly -0.022em for display sizes (32px and above), -0.012em for mid-range (20–28px), normal at 16px and below. Apply to any display-weight typeface, not just geometric sans. Positive letter-spacing on large headlines is always wrong.
+- Text wrapping：headings 和短 text blocks（Chromium <=6 行，Firefox <=10 行）用 `text-wrap: balance`；body paragraphs 和较长 text 用 `text-wrap: pretty`；code blocks 和 pre-formatted text 保持默认
+- Font smoothing：在 root layout 上统一应用一次 `-webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale`（macOS only）
+- Tabular numbers：counters、timers、prices、number columns 或任何动态变化的 numbers 使用 `font-variant-numeric: tabular-nums`
+- Letter-spacing 随 font size 调整：display type 需要 negative tracking 才显得精修而不是被拉伸。两档：display sizes（32px 及以上）约 -0.022em，mid-range（20-28px）约 -0.012em，16px 及以下 normal。适用于所有 display-weight typeface，不只是 geometric sans。大标题上的 positive letter-spacing 永远不对
 
 ### Surfaces
-- Concentric border radius: calculate `outerRadius = innerRadius + padding` so nested rounded corners feel intentional, not mechanical; if padding exceeds `24px`, treat layers as separate surfaces and choose each radius independently
-- Optical alignment: nudge icons by eye, not just by math, so buttons feel centered; buttons with text and an icon use slightly less padding on the icon side (e.g., `pl-4 pr-3.5`); play triangles and asymmetric icons should shift `1px`-`2px` toward the heavier side, or fix the SVG directly
-- Shadows over borders: use layered `box-shadow` for depth on cards, buttons, and elevated elements so the surface feels lifted, not fenced in; reserve actual `border` for dividers, table cells, and layout separation (applies primarily to light mode; on dark surfaces see the dark-mode surface hierarchy rule below)
-- Image outlines: add a subtle inset outline so images hold their own depth without altering layout dimensions: `outline: 1px solid rgba(0,0,0,0.1); outline-offset: -1px` (light) or `outline: 1px solid rgba(255,255,255,0.1); outline-offset: -1px` (dark)
-- Minimum hit area: keep every interactive target at least 40×40px so even small controls feel generous and precise; extend with a centered pseudo-element when the visible element is smaller, and never let hit areas of two interactive elements overlap
-- Multi-card alignment: in a card group, bottom-align all CTA buttons so height variations between cards don't create a ragged action row. In pricing or comparison cards, align feature list items to a shared Y origin across all columns. In side-by-side panels (testimonials, plans, feature breakdowns), title, description, price, and action button must share baselines across the row. Section top and bottom padding need not be symmetric: optical balance often requires bottom padding 20-25% larger than top. Constrain body paragraph width to approximately 65 characters (ch) to maintain comfortable reading line length.
-- Light-mode app surface hierarchy: adjacent nested surfaces must be visually distinguishable. Minimum: background-color step of at least 4% lightness between sidebar and main area, and between main area and cards; or a shadow of at least `0 1px 3px rgba(0,0,0,0.10)` on elevated cards. A white card on a near-white background with `box-shadow: 0 1px 2px rgba(0,0,0,0.05)` is invisible -- that is not depth, it is noise.
-- Dark-mode surface hierarchy: the page canvas is a near-black solid (e.g. `#08090a`). Elevation is communicated by adding semi-transparent white overlays on top of that canvas: cards at `rgba(255,255,255,0.02)`, elevated surfaces at `0.04`, prominent panels at `0.05`. Borders follow the same logic: `rgba(255,255,255,0.05)` for subtle, `0.08` for standard. Traditional drop shadows (dark on dark) are nearly invisible; luminance stepping through background opacity is the primary depth cue on dark surfaces.
-- Border radius system: define a named radius scale during direction lock instead of picking values ad-hoc. A minimal scale is 3–4 tiers (e.g. `{4px, 8px, 12px, pill}`); a richer system might run 6–8 tiers. The point is committing to a named set before the first component so that all surfaces speak the same spatial language -- not covering every possible radius value.
+- Concentric border radius：计算 `outerRadius = innerRadius + padding`，让 nested rounded corners 看起来有意图而不是机械；如果 padding 超过 `24px`，把 layers 当成 separate surfaces，各自选择 radius
+- Optical alignment：icons 用眼睛校准，不只靠数学，让 buttons 感觉居中；带 text 和 icon 的 buttons 在 icon 一侧用略小 padding（例如 `pl-4 pr-3.5`）；play triangles 和不对称 icons 应向视觉更重的一侧移动 `1px`-`2px`，或直接修 SVG
+- Shadows over borders：cards、buttons 和 elevated elements 用 layered `box-shadow` 表达 depth，让 surface 感觉被抬起，而不是被围起来；真正的 `border` 保留给 dividers、table cells 和 layout separation（主要适用于 light mode；dark surfaces 见下方 dark-mode surface hierarchy rule）
+- Image outlines：添加微妙 inset outline，让 images 保持 depth 且不改变 layout dimensions：`outline: 1px solid rgba(0,0,0,0.1); outline-offset: -1px`（light）或 `outline: 1px solid rgba(255,255,255,0.1); outline-offset: -1px`（dark）
+- Minimum hit area：每个 interactive target 至少 40x40px，让小 controls 也足够宽容和精准；visible element 更小时用居中的 pseudo-element 扩展；永远不要让两个 interactive elements 的 hit areas 重叠
+- Multi-card alignment：card group 中所有 CTA buttons 底部对齐，避免 cards 高度差造成参差不齐的 action row。pricing 或 comparison cards 中，feature list items 对齐到各 columns 共享的 Y origin。side-by-side panels（testimonials、plans、feature breakdowns）中，title、description、price 和 action button 必须共享 row baseline。section top 和 bottom padding 不必对称：optical balance 往往需要 bottom padding 比 top 大 20-25%。body paragraph width 限制在约 65 characters（ch），维持舒适阅读行长
+- Light-mode app surface hierarchy：相邻 nested surfaces 必须能被视觉区分。最低要求：sidebar 和 main area 之间、main area 和 cards 之间，background-color 至少有 4% lightness step；或 elevated cards 至少有 `0 1px 3px rgba(0,0,0,0.10)` shadow。near-white background 上的 white card 配 `box-shadow: 0 1px 2px rgba(0,0,0,0.05)` 是看不见的，那不是 depth，是 noise
+- Dark-mode surface hierarchy：page canvas 是 near-black solid（例如 `#08090a`）。Elevation 通过在 canvas 上叠加 semi-transparent white overlays 表达：cards 为 `rgba(255,255,255,0.02)`，elevated surfaces 为 `0.04`，prominent panels 为 `0.05`。Borders 遵循同样逻辑：subtle 用 `rgba(255,255,255,0.05)`，standard 用 `0.08`。传统 drop shadows（dark on dark）几乎不可见；在 dark surfaces 上，借 background opacity 做 luminance stepping 是主要 depth cue
+- Border radius system：direction lock 阶段定义 named radius scale，不要临时挑值。minimal scale 是 3-4 档（例如 `{4px, 8px, 12px, pill}`）；更丰富的 system 可能有 6-8 档。重点是在第一个 component 前承诺一组 named values，让所有 surfaces 使用同一种空间语言，而不是覆盖每个可能的 radius 值
 
 ### Adding to Existing UI
 
-When extending an existing interface, first spend time understanding its visual vocabulary. Match all of the following before writing the first line of new code:
-- Copywriting tone and reading level (technical? casual? punchy?)
-- Color palette and semantic color roles (which tokens mean "danger", "success", "muted")
-- Hover and click states: scale, color shift, underline, background fill
-- Animation style: duration, easing, whether interactions bounce or are strictly ease-out
-- Shadow and card treatment: which surfaces are elevated, which are flush
-- Layout density and whitespace rhythm
-- Border radius choices and whether buttons are pill, square, or a specific fixed value
+扩展现有 interface 时，先花时间理解它的 visual vocabulary。写第一行新 code 前，匹配下面所有项：
+- Copywriting tone 和 reading level（technical？casual？punchy？）
+- Color palette 和 semantic color roles（哪些 tokens 表示 "danger"、"success"、"muted"）
+- Hover 和 click states：scale、color shift、underline、background fill
+- Animation style：duration、easing、interaction 是否 bounce，还是严格 ease-out
+- Shadow 和 card treatment：哪些 surfaces elevated，哪些 flush
+- Layout density 和 whitespace rhythm
+- Border radius choices，以及 buttons 是 pill、square 还是某个 fixed value
 
-If swapping in different content would make the new component look out of place, the vocabulary was not matched closely enough.
+如果换入不同内容会让新 component 显得格格不入，说明 vocabulary 没有匹配到位。
 
 ## Data Visualization Surfaces
 
-For dashboards, analytics views, chart-heavy interfaces, or number-dense displays, load `references/design-data-viz.md`. It owns dashboard defaults, chart selection, number alignment, and product-benchmark extraction.
+对于 dashboards、analytics views、chart-heavy interfaces 或 number-dense displays，加载 `references/design-data-viz.md`。它负责 dashboard defaults、chart selection、number alignment 和 product-benchmark extraction。
 
 ## Reflex Fonts to Reject
 
-LLMs default to these because they dominate training data. Using them signals "no decision was made." Pick from foundries with a clear voice instead. The ban is on reflex use as a display face; informed product-UI use (e.g. Inter for a dense data table) is allowed when justified. This list is not exhaustive -- any font used reflexively without a stated reason qualifies.
+LLMs 默认选择这些字体，因为它们在训练数据中占比很高。使用它们等于发出 "no decision was made" 信号。应选择具有明确声音的 foundries。禁令针对 reflex use as a display face；有理由的 product-UI use（例如 dense data table 中的 Inter）可以接受。列表并不穷尽；任何没有 stated reason 的 reflexive font use 都算。
 
 Reject: Inter, DM Sans, DM Serif Display, DM Serif Text, Outfit, Plus Jakarta Sans, Instrument Sans, Instrument Serif, Space Grotesk, Space Mono, IBM Plex Sans, IBM Plex Serif, IBM Plex Mono, Syne, Fraunces, Newsreader, Lora, Crimson Pro, Crimson Text, Playfair Display, Cormorant, Cormorant Garamond.
 
 ## Font Selection Procedure
 
-1. Write three words that describe the brand (e.g. "precise, minimal, fast").
-2. Name the three fonts you would reach for reflexively.
-3. Reject all three.
-4. Pick a typeface from a named foundry (Klim, Commercial Type, Colophon, Grilli Type, OH no Type, Village, etc.) or an open-source option with a clear personality that matches the brand words. Be able to explain why that specific typeface in one sentence.
+1. 写三个描述 brand 的词（例如 "precise, minimal, fast"）。
+2. 命名你会 reflexively 选择的三个 fonts。
+3. 拒绝这三个。
+4. 从 named foundry（Klim、Commercial Type、Colophon、Grilli Type、OH no Type、Village 等）或具有清晰个性且匹配 brand words 的 open-source option 中选择 typeface。能用一句话解释为什么是这款 typeface。
 
 ## Color System: OKLCH Rules
 
-- Use OKLCH instead of HSL. OKLCH is perceptually uniform: equal numeric changes produce equal perceived changes across the spectrum.
-- Reduce chroma as lightness approaches the extremes. At 85% lightness a chroma around 0.08 is enough; pushing to 0.15 looks garish. At 15% lightness, tighten chroma similarly.
-- Tint neutrals toward the brand hue with a chroma of 0.005 to 0.01. Even this faint amount is perceptible and creates subconscious cohesion.
-- 60-30-10 is about visual weight, not pixel count. 60% neutral/surface, 30% secondary text and borders, 10% accent.
-- Never use gray text on a colored background. Use a shade of the background hue at reduced lightness instead.
+- 使用 OKLCH，不用 HSL。OKLCH 是 perceptually uniform：相同数值变化会在光谱各处产生相同的感知变化。
+- 随 lightness 接近极端值而降低 chroma。85% lightness 时 chroma 约 0.08 已足够；推到 0.15 会显得刺眼。15% lightness 时也同样收紧 chroma。
+- 用 0.005 到 0.01 的 chroma 把 neutrals 轻微 tint 到 brand hue。即使这么微弱也能被感知，并创造潜意识 cohesion。
+- 60-30-10 指 visual weight，不是 pixel count。60% neutral/surface，30% secondary text 和 borders，10% accent。
+- 绝不要在 colored background 上使用 gray text。改用 background hue 的较低 lightness shade。
 
 ## Theme Matrix
 
-Choose light or dark deliberately based on audience and context. Neither is a default.
+根据 audience 和 context 有意识地选择 light 或 dark。两者都不是默认。
 
 | Context | Direction | Reason |
 |---|---|---|
-| Trading or analytics dashboard, night-shift use | Dark | High data density; reduced glare during long sessions |
-| Children's reading or learning app | Light | Welcoming, low fatigue for eyes still developing contrast sensitivity |
-| Enterprise SRE or observability tool | Dark | Operator context; dark surfaces read at a glance in low-light NOC rooms |
-| Weekend planning, recipes, journaling | Light | Ambient daytime use; light feels casual and approachable |
-| Music player or media browser | Dark | Content-forward; dark surfaces recede and let media pop |
-| Hospital or clinical patient portal | Light | Trust and legibility are paramount; clinical associations favor light |
-| Vintage or artisanal brand site | Cream/warm light | Dark would clash with the analog material references |
+| Trading or analytics dashboard, night-shift use | Dark | 高数据密度；长时间使用时减少眩光 |
+| Children's reading or learning app | Light | 友好、低疲劳，适合仍在发展 contrast sensitivity 的眼睛 |
+| Enterprise SRE or observability tool | Dark | Operator context；dark surfaces 在低光 NOC rooms 中更易一眼扫读 |
+| Weekend planning, recipes, journaling | Light | 白天 ambient use；light 感觉更随意、更亲近 |
+| Music player or media browser | Dark | Content-forward；dark surfaces 后退，让 media 更突出 |
+| Hospital or clinical patient portal | Light | Trust 和 legibility 最重要；clinical associations 更偏向 light |
+| Vintage or artisanal brand site | Cream/warm light | Dark 会和 analog material references 冲突 |
 
-If the answer is not obvious from the context, default to light. If the user's context implies both modes, ship light first and layer dark-mode tokens on top.
+如果 context 不明显，默认 light。如果用户 context 同时暗示两种 mode，先 ship light，再在其上 layer dark-mode tokens。
 
 ## Absolute Bans (CSS-Pattern Level)
 
-These patterns appear in the majority of AI-generated interfaces. Each one has a specific rewrite. Not exhaustive -- any CSS pattern applied as a mindless default rather than an intentional choice belongs in the same category.
+这些 patterns 出现在大多数 AI-generated interfaces 中。每一个都有具体 rewrite。列表并不穷尽；任何作为无脑默认而非有意选择的 CSS pattern 都属于同类。
 
 | Pattern | Why | Rewrite |
 |---|---|---|
-| `border-left` or `border-right` wider than 1px as a section accent | The single most overused "design touch" in admin and dashboard UIs; it looks like a mistake at anything beyond a hairline divider | Change element structure: use a colored dot, a short horizontal rule, a background swatch, or a typographic weight shift instead |
-| `background-clip: text` gradient text | Decorative rather than meaningful; one of the top AI design tells; illegible when printed or in high-contrast mode | Use a solid brand color, a tinted neutral, or typographic weight for emphasis |
-| `backdrop-filter: blur` glassmorphism as the default card surface | Expensive on low-power devices; overused; the layered-depth illusion breaks with a solid border | Use elevated surfaces via background color steps and `box-shadow` instead |
-| Purple-to-blue gradients or cyan-on-dark accent systems | The canonical "AI design" color palette; communicates nothing about the brand | Pick a palette from the brand words via the OKLCH rules above |
-| Generic rounded-rect card with `box-shadow` as the default container | Template thinking; applies the same container to every content type regardless of hierarchy | Default to cardless sections; only add card treatment when the content type requires it |
-| Modals as a lazy escape for overflow UI | Interrupts flow and breaks browser back navigation; used when an inline expansion, drawer, or separate page would be better | Inline expand, detail panel, or dedicated route; modals only when the action truly requires focus-lock |
-| `transition: all` or animating width/height/padding/margin | Forces the browser into layout recalculation on every frame | List exact properties (`transition-property: transform, opacity`); use `grid-template-rows: 0fr to 1fr` for height reveals |
+| `border-left` or `border-right` wider than 1px as a section accent | admin 和 dashboard UIs 中最滥用的 "design touch"；超过 hairline divider 就像错误 | 改变 element structure：使用 colored dot、short horizontal rule、background swatch 或 typographic weight shift |
+| `background-clip: text` gradient text | 只是装饰而非有意义；顶级 AI design tell 之一；打印或 high-contrast mode 下不可读 | 使用 solid brand color、tinted neutral 或 typographic weight 强调 |
+| `backdrop-filter: blur` glassmorphism as the default card surface | 低功耗设备上昂贵；过度使用；配 solid border 会破坏 layered-depth illusion | 改用 background color steps 和 `box-shadow` 表达 elevated surfaces |
+| Purple-to-blue gradients or cyan-on-dark accent systems | canonical "AI design" color palette；不传达任何 brand 信息 | 根据上方 OKLCH rules，从 brand words 选择 palette |
+| Generic rounded-rect card with `box-shadow` as the default container | template thinking；不管 hierarchy，把同一种 container 套到所有 content type | 默认使用 cardless sections；只有 content type 需要时才添加 card treatment |
+| Modals as a lazy escape for overflow UI | 打断 flow，破坏 browser back navigation；常被用来逃避本该 inline expansion、drawer 或 separate page 的场景 | Inline expand、detail panel 或 dedicated route；只有 action 真正需要 focus-lock 时才使用 modal |
+| `transition: all` or animating width/height/padding/margin | 每一帧都强迫 browser 做 layout recalculation | 列出精确 properties（`transition-property: transform, opacity`）；height reveals 使用 `grid-template-rows: 0fr to 1fr` |
 
 ## Motion Specifics
 
-Complements the motion timing in the main SKILL.md constraints.
+补充 main SKILL.md constraints 中的 motion timing。
 
-- No bounce or elastic easing. Real objects decelerate smoothly. Use exponential ease-out (`ease-out-quart`, `ease-out-quint`, or `cubic-bezier(0.16,1,0.3,1)`) for natural, high-quality deceleration.
-- Animate `transform` and `opacity` only. Every other property triggers layout or paint.
-- For height reveals, use `grid-template-rows: 0fr` to `1fr` transitions instead of animating `height` directly. It avoids the `height: auto` animation trap.
-- Icon swaps: use a 120ms cross-fade with `opacity` and a subtle `scale(0.9)` to `scale(1)`. No rotation unless rotation is semantically meaningful (e.g. a chevron indicating direction change).
-- Do not use `transition: all` even as a quick prototype shortcut. It animates layout, color, and font-size simultaneously, causing visible jank.
+- 不用 bounce 或 elastic easing。真实物体平滑减速。使用 exponential ease-out（`ease-out-quart`、`ease-out-quint` 或 `cubic-bezier(0.16,1,0.3,1)`）获得自然、高质量的 deceleration。
+- 只 animate `transform` 和 `opacity`。其他 property 都会触发 layout 或 paint。
+- height reveals 使用 `grid-template-rows: 0fr` 到 `1fr` transitions，而不是直接 animate `height`。这能避开 `height: auto` animation trap。
+- Icon swaps：使用 120ms cross-fade，配合 `opacity` 和轻微 `scale(0.9)` 到 `scale(1)`。除非 rotation 具有语义意义（例如 chevron 表示方向变化），不要旋转。
+- 即使 quick prototype 也不要用 `transition: all`。它会同时 animate layout、color 和 font-size，造成可见 jank。
 
 ## Reference-site Brand Presets (awesome-design-md)
 
-`VoltAgent/awesome-design-md` maintains 66+ curated DESIGN.md files extracted from real-world brand sites. Running `npx getdesign@latest add <brand>` drops the file into the project root, giving the agent concrete token values to decompose rather than reasoning from memory.
+`VoltAgent/awesome-design-md` 维护了 66+ 个 curated DESIGN.md files，这些文件从真实 brand sites 提取而来。运行 `npx getdesign@latest add <brand>` 会把文件放到 project root，让 agent 分解 concrete token values，而不是靠记忆推理。
 
-**Usage rule:** never auto-run the command. Offer it as an option during direction lock, run it only with explicit user approval, and treat the result as seed decomposition material, not a finished direction.
+**Usage rule:** 绝不要 auto-run command。direction lock 阶段只把它作为选项提出，只有用户明确批准才运行，并把结果当作 seed decomposition material，而不是 finished direction。
 
-**Brands in the catalog** (recognize these when a user names a reference):
+**Brands in the catalog**（用户提到 reference 时识别这些）：
 
 | Category | Brands |
 |---|---|
@@ -208,70 +208,70 @@ Complements the motion timing in the main SKILL.md constraints.
 | Media & Consumer | Apple, IBM, NVIDIA, Pinterest, PlayStation, SpaceX, Spotify, Uber |
 | Automotive | BMW, Bugatti, Ferrari, Lamborghini, Tesla |
 
-**Conflict resolution:** this skill's rules always win. If the preset recommends a font on the Reflex Fonts blocklist (e.g. Inter as a display face), discard it and apply the Font Selection Procedure. If it proposes a pattern in the Absolute Bans table (e.g. purple-to-blue gradient), discard it. State the override in the handoff summary.
+**Conflict resolution:** 这个 skill 的 rules 永远获胜。如果 preset 推荐 Reflex Fonts blocklist 中的 font（例如把 Inter 用作 display face），丢弃它并应用 Font Selection Procedure。如果它提出 Absolute Bans table 中的 pattern（例如 purple-to-blue gradient），丢弃它。在 handoff summary 中说明 override。
 
 Source: [github.com/VoltAgent/awesome-design-md](https://github.com/VoltAgent/awesome-design-md)
 
 ## Reference Material Priority
 
-When source code and a screenshot are both available for a reference UI: read the code. Source files contain exact token values; screenshots require guessing. Reconstruct from what is written, not what is visible.
+当 reference UI 同时有 source code 和 screenshot：读 code。Source files 包含精确 token values；screenshots 需要猜。根据写出来的内容重建，不要根据看起来的内容猜。
 
-When only a URL is provided: fetching it returns extracted text only, with no layout information. For visual references ("make it look like X"), ask for a screenshot rather than inferring visual design from stripped HTML.
+当只提供 URL：fetching 只返回 extracted text，没有 layout information。对于 visual references（"make it look like X"），请用户提供 screenshot，不要从 stripped HTML 推断 visual design。
 
 ## DESIGN.md Scaffold (Optional, Production UIs)
 
-For a multi-page or production UI, emit a short `DESIGN.md`-style summary before writing the first component. This forces enumeration of decisions that would otherwise be left implicit and lets the user correct direction early. The nine sections:
+对于 multi-page 或 production UI，写第一个 component 前，先输出简短 `DESIGN.md`-style summary。这会强迫枚举本来会被隐含处理的 decisions，让用户能早期纠正方向。九个 sections：
 
-1. **Visual Theme and Atmosphere** - mood, density, design philosophy in 2-3 sentences
-2. **Color Palette and Roles** - semantic name + value + functional role for each color token
-3. **Typography Rules** - font family, size scale, weight scale, line-height, letter-spacing; a table if more than 4 levels
-4. **Component Stylings** - buttons (all states), cards (if used), inputs, navigation; describe each with states (default, hover, active, disabled)
-5. **Layout Principles** - spacing scale, grid columns, whitespace philosophy
-6. **Depth and Elevation** - shadow system or background-color-step system; describe each level
-7. **Do's and Don'ts** - 5 to 10 guardrails specific to this project, not generic rules
-8. **Responsive Behavior** - breakpoints, how navigation collapses, touch target minimums
-9. **Agent Prompt Guide** - a quick color reference (name: value pairs) + 3 to 5 example component prompts ready to paste into a follow-up request. Prompts must be specific enough to execute without further lookup: every value, every radius, every letter-spacing, every weight inlined. Example standard (values are illustrative, use the project's own tokens): "Create a hero on `{bg-canvas}`, headline at 48px weight 600, line-height 1.00, letter-spacing -0.022em, color `{text-primary}`, CTA at `{accent}` with `{btn-radius}` radius"; that level of specificity, not "hero with primary color and CTA button"
+1. **Visual Theme and Atmosphere** - 2-3 句说明 mood、density、design philosophy
+2. **Color Palette and Roles** - 每个 color token 的 semantic name + value + functional role
+3. **Typography Rules** - font family、size scale、weight scale、line-height、letter-spacing；超过 4 个 levels 时用 table
+4. **Component Stylings** - buttons（所有 states）、cards（如果使用）、inputs、navigation；每项描述 default、hover、active、disabled states
+5. **Layout Principles** - spacing scale、grid columns、whitespace philosophy
+6. **Depth and Elevation** - shadow system 或 background-color-step system；描述每个 level
+7. **Do's and Don'ts** - 5 到 10 条本项目专属 guardrails，不要 generic rules
+8. **Responsive Behavior** - breakpoints、navigation 如何 collapse、touch target minimums
+9. **Agent Prompt Guide** - quick color reference（name: value pairs）+ 3 到 5 个可直接粘贴到 follow-up request 的 example component prompts。Prompts 必须具体到不需要再查资料：每个 value、radius、letter-spacing、weight 都 inline。示例标准（values 仅示意，使用项目自己的 tokens）："Create a hero on `{bg-canvas}`, headline at 48px weight 600, line-height 1.00, letter-spacing -0.022em, color `{text-primary}`, CTA at `{accent}` with `{btn-radius}` radius"；需要这种具体程度，而不是 "hero with primary color and CTA button"
 
-For a single component or quick prototype, skip this. The three-line thesis in SKILL.md is sufficient.
+对于 single component 或 quick prototype，跳过它。SKILL.md 中的 three-line thesis 已足够。
 
 ## Pre-Handoff Checklist: Strategic Omissions
 
-These are the items most frequently missing from AI-generated UIs because they require intentional product thinking, not visual judgment. Run through them before every handoff.
+这些是 AI-generated UIs 最常缺失的 items，因为它们需要 intentional product thinking，而不仅是 visual judgment。每次 handoff 前检查：
 
-- [ ] **Custom 404 page**: a generic framework 404 is a broken experience. Build a branded page with a clear path back (home link, search, or most-used nav items).
-- [ ] **Back navigation**: every page reachable by user action must have a clear, functional path back. Dead-end pages (detail views, confirmation screens, modal-only flows) are UX failures.
-- [ ] **Form client-side validation**: email fields validate format before submit; required fields show inline errors; error messages appear adjacent to the field, not only at form top.
-- [ ] **Skip-to-content link**: a visually hidden `<a href="#main-content">Skip to main content</a>` as the first focusable element in the document. Required for keyboard accessibility.
-- [ ] **Cookie consent**: if the product operates in the EU or California, cookie consent UI is not optional. Scope the implementation to the jurisdiction.
-- [ ] **Footer Privacy and Terms links**: every product page needs these. Their absence signals "demo", not "product".
+- [ ] **Custom 404 page**：generic framework 404 是破损体验。构建 branded page，并提供清晰返回路径（home link、search 或 most-used nav items）。
+- [ ] **Back navigation**：每个由 user action 到达的 page，都必须有清晰且可用的返回路径。dead-end pages（detail views、confirmation screens、modal-only flows）是 UX failures。
+- [ ] **Form client-side validation**：email fields submit 前验证 format；required fields 显示 inline errors；error messages 靠近 field 出现，不只在 form top。
+- [ ] **Skip-to-content link**：document 中第一个 focusable element 是 visually hidden `<a href="#main-content">Skip to main content</a>`。这是 keyboard accessibility 的必需项。
+- [ ] **Cookie consent**：如果 product 在 EU 或 California 运营，cookie consent UI 不是可选项。按 jurisdiction 限定 implementation scope。
+- [ ] **Footer Privacy and Terms links**：每个 product page 都需要这些。缺失会传达 "demo"，不是 "product"。
 
-These are not visual polish items. They are the difference between a demo and a shippable product.
+这些不是 visual polish。它们区分 demo 和 shippable product。
 
 ## AI Slop Test
 
-Would a stranger glancing at the first viewport say "an AI made this" immediately? If yes, the committed direction was not committed enough. The usual culprits: reflex font, default purple accent, centered hero with generic card grid beneath. Fix the typography, the color system, or the layout until the answer flips.
+陌生人看一眼 first viewport，会不会立刻说 "an AI made this"？如果会，说明 committed direction 不够 committed。常见罪魁祸首：reflex font、default purple accent、centered hero 和下方 generic card grid。修 typography、color system 或 layout，直到答案翻转。
 
 ## Brand Preset Flow
 
-For well-known brands (Linear, Stripe, Claude, Vercel, Apple, Tesla, Notion, Figma, Airbnb, Spotify, and ~56 others catalogued in `awesome-design-md`): ask the user whether to pull the curated preset via `npx getdesign@latest add <brand>`. If they approve, run it, read the generated `DESIGN.md` at project root, then do the 3-property decomposition against that file rather than from memory. The preset is a starting point, not a direction: the user still names the aesthetic precisely, and the reflex-font blocklist and absolute bans still win on any conflict.
+对于 well-known brands（Linear、Stripe、Claude、Vercel、Apple、Tesla、Notion、Figma、Airbnb、Spotify，以及 `awesome-design-md` 中收录的约 56 个其他品牌）：询问用户是否通过 `npx getdesign@latest add <brand>` 拉取 curated preset。如果用户批准，运行它，读取 project root 中生成的 `DESIGN.md`，再基于该文件做 3-property decomposition，而不是从记忆出发。preset 是 starting point，不是 direction：用户仍需要精确命名 aesthetic；reflex-font blocklist 和 absolute bans 在任何冲突中仍然获胜。
 
 ## App Shell Rules
 
 When building a sidebar + main workspace layout (Slack, Linear, Notion class):
-- Decorative backgrounds default to off
-- Surface hierarchy uses background-color steps and shadow only
+- Decorative backgrounds 默认 off
+- Surface hierarchy 只使用 background-color steps 和 shadow
 - All interactive elements get `active:scale-95`
-- Button radius is consistent within each component type (pick one: pill, square, or one fixed value, do not mix)
-- Commit to a named radius scale before the first component (see Border radius system above)
+- Button radius 在每个 component type 内保持一致（从 pill、square 或一个 fixed value 中选一个，不要混用）
+- 第一个 component 前先 commit to a named radius scale（见上方 Border radius system）
 
 ## Options Guide
 
-When asked for design options, give at least 3 variations spread across genuinely different dimensions:
+当用户要求 design options 时，至少给 3 个 variations，并且它们要分布在真正不同的 dimensions 上：
 
-- **Dimensions to vary**: visual density, typographic personality, color temperature, layout structure, motion character, amount of decoration, level of abstraction
-- **Mix approaches**: one option that follows existing conventions closely, one that remixes the brand DNA in a new way, one that is deliberately unexpected
-- **Progress from basic to bold**: the first option is safe and understandable; later options push further
-- Three options that differ only by accent color are not three variations. Vary the layout, the typeface, the motion, the surface treatment.
+- **Dimensions to vary**：visual density、typographic personality、color temperature、layout structure、motion character、decoration amount、abstraction level
+- **Mix approaches**：一个 option 严格跟随 existing conventions；一个用新方式 remix brand DNA；一个 deliberately unexpected
+- **Progress from basic to bold**：第一个 option safe 且易懂；后面的 options 推得更远
+- 只在 accent color 上不同的三个 options，不是三个 variations。要变化 layout、typeface、motion、surface treatment。
 
 ---
 

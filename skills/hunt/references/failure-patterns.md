@@ -1,120 +1,120 @@
 # Failure Pattern Reference
 
-Use this when a bug has repeated, a first fix did not hold, or the symptom smells like runtime state rather than local code syntax.
+当 bug 反复出现、第一次 fix 没撑住，或 symptom 更像 runtime state 而不是 local code syntax 时使用。
 
 ## Stale Verifier Or Tool Cache
 
-Signals: verifier output points at deleted temp worktrees, old generated files, or paths outside the current repo; rerunning after a clean checkout changes the file path but not the current code.
+Signals：verifier output 指向已删除 temp worktrees、旧 generated files，或 current repo 外的 paths；clean checkout 后 rerun 会改变 file path，但 current code 不变。
 
-Checks:
-- Confirm the reported path exists.
-- Clear the tool cache only after proving the path is stale.
-- Re-run the same verifier from the current repo root.
+Checks：
+- 确认 reported path 存在。
+- 只有证明 path stale 后，才 clear tool cache。
+- 从 current repo root 重新运行同一个 verifier。
 
 ## Worker Queue Or DB Boundary
 
-Signals: UI says work is running but no worker processes it; logs show scheduler activity but no queued row; retry fixes one item but not the pipeline.
+Signals：UI 显示 work is running，但没有 worker 处理；logs 显示 scheduler activity，但没有 queued row；retry 能修一个 item，但修不了 pipeline。
 
-Checks:
-- Trace request -> enqueue -> worker pickup -> persistence -> UI refresh.
-- Inspect queue rows or job state directly.
-- Add a regression test around the enqueue boundary, not only the worker body.
+Checks：
+- Trace request -> enqueue -> worker pickup -> persistence -> UI refresh。
+- 直接 inspect queue rows 或 job state。
+- 在 enqueue boundary 周围添加 regression test，不只测 worker body。
 
 ## Generated Rebuild Boundary
 
-Signals: source changed but generated output, app bundle, CLI artifact, archive, checksum, or release package still contains old behavior.
+Signals：source 已改变，但 generated output、app bundle、CLI artifact、archive、checksum 或 release package 仍包含旧 behavior。
 
-Checks:
-- Identify the source-to-artifact rule.
-- Verify the build system watches the source path.
-- Inspect the generated artifact contents, not just the source diff.
+Checks：
+- 识别 source-to-artifact rule。
+- 验证 build system 会 watch source path。
+- Inspect generated artifact contents，不只看 source diff。
 
 ## Guard Lifetime Race
 
-Signals: permission, auth, or state guard looks correct locally but a delayed callback, app relaunch, or alternate entry point bypasses it.
+Signals：permission、auth 或 state guard 本地看起来正确，但 delayed callback、app relaunch 或 alternate entry point 绕过它。
 
-Checks:
-- Trace guard creation, retention, invalidation, and every alternate entry point.
-- Verify cold launch, warm launch, deep link/file open, and retry paths when applicable.
-- Prefer explicit durable state over transient flags when the guard must survive relaunch.
+Checks：
+- Trace guard creation、retention、invalidation，以及每个 alternate entry point。
+- 适用时验证 cold launch、warm launch、deep link/file open 和 retry paths。
+- 当 guard 必须 survive relaunch 时，优先 explicit durable state，而不是 transient flags。
 
 ## Atomic Temp Filename
 
-Signals: concurrent runs collide, cleanup removes the wrong file, or a partially written output is observed.
+Signals：concurrent runs 冲突、cleanup 删除了错误文件，或观察到 partially written output。
 
-Checks:
-- Use unique temp directories or atomic rename.
-- Keep cleanup scoped to files created by the current run.
-- Test two concurrent or back-to-back runs when the tool supports it.
+Checks：
+- 使用 unique temp directories 或 atomic rename。
+- cleanup 只限 current run 创建的 files。
+- tool 支持时，测试两个 concurrent 或 back-to-back runs。
 
 ## Path, Cwd, Or Symlink Escape
 
-Signals: an operation intended for one root touches a sibling directory, follows a symlink unexpectedly, or behaves differently from another working directory.
+Signals：本应作用于一个 root 的 operation 触碰 sibling directory、意外 follow symlink，或在另一个 working directory 中表现不同。
 
-Checks:
-- Resolve and compare canonical roots before writing or deleting.
-- Reject paths outside the allowed root after symlink resolution.
-- Reproduce from a non-default cwd and through any UI entry point that supplies paths.
+Checks：
+- 写入或删除前 resolve 并 compare canonical roots。
+- symlink resolution 后 reject allowed root 外的 paths。
+- 从 non-default cwd，以及任何会 supply paths 的 UI entry point 复现。
 
 ## CLI Effect Scope Drift
 
-Signals: preview, dry-run, size, count, or report output is computed from one predicate, but execution mutates a broader or different set.
+Signals：preview、dry-run、size、count 或 report output 由一个 predicate 计算，但 execution mutate 了更宽或不同的 set。
 
-Checks:
-- Trace display, dry-run, and mutation predicates to the same source of truth.
-- Compare planned paths or records with executor input in a regression test.
-- Assert partial failures report the exact skipped and completed items.
+Checks：
+- 把 display、dry-run 和 mutation predicates trace 到同一个 source of truth。
+- 在 regression test 中比较 planned paths 或 records 与 executor input。
+- Assert partial failures 会报告 exact skipped 和 completed items。
 
 ## CLI Wrapper Or PATH Drift
 
-Signals: source-tree invocation works, but the installed command, package wrapper, PATH shim, completion, or package-manager install path runs old code or a different binary.
+Signals：source-tree invocation 能工作，但 installed command、package wrapper、PATH shim、completion 或 package-manager install path 跑的是旧 code 或另一个 binary。
 
-Checks:
-- Inspect built package contents, shebang, executable bit, and wrapper target.
-- Reproduce through a temp prefix or package-manager install path, not only from source.
-- Check PATH order and use absolute system-tool paths where wrappers should not intercept.
+Checks：
+- Inspect built package contents、shebang、executable bit 和 wrapper target。
+- 通过 temp prefix 或 package-manager install path 复现，不只从 source 复现。
+- 检查 PATH order；当 wrappers 不应 intercept 时，使用 absolute system-tool paths。
 
 ## Interactive Stdin Or TTY Hang
 
-Signals: CI stalls, spinner never finishes, a subprocess reads from the script body, or an auth prompt appears in non-interactive mode.
+Signals：CI stalls、spinner 永远不结束、subprocess 从 script body 读取，或 auth prompt 在 non-interactive mode 出现。
 
-Checks:
-- Reproduce with stdin redirected and with TTY/non-TTY paths separated.
-- Add test-mode or no-auth guards around real prompts and system changes.
-- Stub external prompt tools through PATH when timeout wrappers exec real binaries.
+Checks：
+- stdin redirected 时复现，并分离 TTY/non-TTY paths。
+- 在 real prompts 和 system changes 周围添加 test-mode 或 no-auth guards。
+- 当 timeout wrappers exec real binaries 时，通过 PATH stub external prompt tools。
 
 ## Signal Or Partial-Failure Mapping
 
-Signals: cancel, timeout, SIGINT, or SIGTERM is reported as success or as a normal business failure; temp files, locks, or operation logs make retries look complete.
+Signals：cancel、timeout、SIGINT 或 SIGTERM 被报告成 success 或 normal business failure；temp files、locks 或 operation logs 让 retries 看起来 complete。
 
-Checks:
-- Classify interrupted execution separately from success and expected validation failures.
-- Assert temp cleanup, lock release, and operation-log state after interruption.
-- Test retry and idempotency after a partial write.
+Checks：
+- 把 interrupted execution 与 success 和 expected validation failures 分开分类。
+- Assert interruption 后的 temp cleanup、lock release 和 operation-log state。
+- 测试 partial write 后的 retry 和 idempotency。
 
 ## CLI Stream Contract Regression
 
-Signals: automation breaks after human logs, progress output, JSON shape, stdout/stderr routing, or exit-code behavior changes.
+Signals：human logs、progress output、JSON shape、stdout/stderr routing 或 exit-code behavior 改变后 automation broken。
 
-Checks:
-- Assert exit code, stdout, and stderr separately in CLI tests.
-- Keep human diagnostics off stdout for machine-readable modes.
-- Snapshot or parse JSON/schema output and include non-interactive coverage.
+Checks：
+- 在 CLI tests 中分别 assert exit code、stdout 和 stderr。
+- 对 machine-readable modes，把 human diagnostics 从 stdout 移开。
+- Snapshot 或 parse JSON/schema output，并包含 non-interactive coverage。
 
 ## Snapshot Rebuild Drops Carried Field
 
-Signals: live data shows up at the data source and on the wire but a downstream view sees it empty; the field has a default value (`var x: [T] = []`, `var y: Int? = nil`) that lets memberwise init compile without it; the symptom appears only on the path where the snapshot is rebuilt (icon resolution, decoration, redaction), not on a fresh fetch.
+Signals：live data 在 data source 和 wire 上可见，但 downstream view 看到空值；field 有 default value（`var x: [T] = []`、`var y: Int? = nil`），让 memberwise init 即使漏传也能 compile；symptom 只出现在 snapshot rebuild path（icon resolution、decoration、redaction），fresh fetch 上不出现。
 
-Checks:
-- Trace whether every code path that constructs the snapshot type passes the field. The Swift compiler does not warn on default-value omission in memberwise init.
-- Add a unit test that fetches the snapshot, runs the rebuild path, and asserts the carried field equals the input.
-- Prefer `with(...)` mutating helpers or `inout` mutation over fresh memberwise init when only one field is changing.
+Checks：
+- Trace 每个构造 snapshot type 的 code path 是否传入该 field。Swift compiler 不会警告 memberwise init 中漏掉 default-value field。
+- 添加 unit test：fetch snapshot，运行 rebuild path，并 assert carried field 等于 input。
+- 当只改变一个 field 时，优先 `with(...)` mutating helpers 或 `inout` mutation，而不是 fresh memberwise init。
 
 ## Multi-Sample Command Cold Start
 
-Signals: a CLI tool that takes `-l N` / `--samples N` / `--repeat N` returns one block of zeros and one block of real data; aggregating all blocks yields zeros; only the second sample carries real measurements.
+Signals：某个接受 `-l N` / `--samples N` / `--repeat N` 的 CLI tool 返回一个 zeros block 和一个 real data block；聚合所有 blocks 会得到 zeros；只有第二个 sample 携带 real measurements。
 
-Checks:
-- Read the tool's man page for cold-start semantics. `top -l 2`, `iostat -d 2`, `vm_stat 1 2`, etc. all share this shape.
-- Slice the output to the latest sample (`.suffix(perSampleSize)` on parsed lines, or look for the second instance of the header row).
-- When in doubt, raise `-l` to 3 and confirm sample 2 and 3 agree; sample 1 stays zero.
+Checks：
+- 阅读 tool 的 man page，确认 cold-start semantics。`top -l 2`、`iostat -d 2`、`vm_stat 1 2` 等都有这种 shape。
+- 把 output 切到 latest sample（对 parsed lines 用 `.suffix(perSampleSize)`，或寻找第二次出现的 header row）。
+- 不确定时，把 `-l` 提到 3，确认 sample 2 和 3 一致；sample 1 保持 zero。
