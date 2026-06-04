@@ -1,14 +1,14 @@
-# Public Reply Shape (maintainer, issue or PR)
+# Public Reply Shape（maintainer, issue or PR）
 
-Reusable by both Triage Mode and Ship / Release Follow-through. Default to this shape unless `AGENTS.md` or `CLAUDE.md` in the target repo contradicts it.
+Triage Mode 和 Ship / Release Follow-through 都复用此 shape。除非 target repo 中的 `AGENTS.md` 或 `CLAUDE.md` 与它冲突，否则默认使用此 shape。
 
-1. Resolve `@<login>` from `gh issue view` / `gh pr view --json author` before posting.
-2. **Language:** Match the **opener's** language when it is Chinese or English. If the opener used Japanese or Korean, use English for the maintainer reply unless project docs override.
-3. Open with `@<login>` and **at most one** short thanks (`感谢反馈`, `thank you for the report`, etc.). Do **not** add closing thanks stacks (`再次感谢`, `Thanks again`, long courtesy endings).
-4. One or two short paragraphs: factual reason, what shipped or what is blocked, no ceremony.
-5. Always give a **next step tied to releases or verification**: next App Store or GitHub release, nightly upgrade command, cache path to clear once, or exactly what info is still needed.
-6. Prefer **editing** an existing maintainer comment (`PATCH /repos/{owner}/{repo}/issues/comments/{comment_id}`) when updating wording; avoid delete plus repost unless the old text must disappear from history.
+1. posting 前，从 `gh issue view` / `gh pr view --json author` resolve `@<login>`。
+2. **Language:** 当 opener 使用中文或英文时，匹配 **opener's** language。如果 opener 使用日文或韩文，除非 project docs override，否则 maintainer reply 使用英文。
+3. 以 `@<login>` 开头，并且**最多一个**简短 thanks（`感谢反馈`、`thank you for the report` 等）。不要添加 closing thanks stacks（`再次感谢`、`Thanks again`、长 courtesy endings）。
+4. 一到两个短 paragraphs：factual reason、what shipped 或 what is blocked，不要 ceremony。
+5. 始终给一个**绑定 releases 或 verification 的 next step**：next App Store 或 GitHub release、nightly upgrade command、只需 clear 一次的 cache path，或仍需要的 exact info。
+6. 更新 wording 时，优先 **editing** existing maintainer comment（`PATCH /repos/{owner}/{repo}/issues/comments/{comment_id}`）；除非 old text 必须从 history 消失，否则避免 delete plus repost。
 
 ## When closing
 
-Close only when the fix is shipped, already available in the latest release, the report is invalid, the report is a duplicate, or the maintainer explicitly asked for closure. Otherwise leave open with the next-release acknowledgement.
+只有当 fix 已 shipped、已在 latest release 可用、report invalid、report duplicate，或 maintainer 明确要求 closure 时，才 close。否则保持 open，并给 next-release acknowledgement。

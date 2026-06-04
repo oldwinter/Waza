@@ -2,42 +2,42 @@
 
 ## Common Default Traps
 
-Before submitting, check whether any of the following slipped in without intention:
+提交前检查以下内容是否无意滑入：
 
-- A purple or blue gradient over white as the hero background
-- A three-part hero: large headline, one-line subtext, two CTA buttons side by side
-- A grid of cards with identical rounded corners, identical drop shadows, identical padding
-- A top navigation bar with logo left, links center, primary action far right
-- Sections that alternate between white and `#f9f9f9`
-- A centered icon or illustration sitting above a heading above a paragraph
-- A four-column footer with equal-weight columns
+- 白底上的紫色或蓝色 gradient 作为 hero background
+- 三段式 hero：large headline、one-line subtext、两个 side by side CTA buttons
+- 一组 cards 拥有 identical rounded corners、identical drop shadows、identical padding
+- top navigation bar：logo left、links center、primary action far right
+- Sections 在 white 和 `#f9f9f9` 之间交替
+- 居中的 icon 或 illustration 放在 heading 和 paragraph 上方
+- equal-weight columns 的 four-column footer
 
-Any of these can appear if they serve the design intentionally. They cannot appear by default.
+如果它们有意服务 design，可以出现。不能默认出现。
 
-Final test: if you swapped in completely different content and the layout still made sense without changes, you built a template, not a design. Redo it.
+Final test：如果换入完全不同的 content 后 layout 不改仍然说得通，你构建的是 template，不是 design。重做。
 
 ## Absolute Bans (CSS-Pattern Level)
 
 | Pattern | Why | Rewrite |
 |---|---|---|
-| `border-left` or `border-right` wider than 1px as a section accent | The single most overused design touch in admin UIs | Use a colored dot, a short horizontal rule, a background swatch, or a typographic weight shift |
-| `background-clip: text` gradient text | Decorative and illegible in high-contrast mode | Use a solid brand color or typographic weight for emphasis |
-| `backdrop-filter: blur` glassmorphism as default card surface | Expensive on low-power devices; overused | Use elevated surfaces via background color steps and `box-shadow` |
-| Purple-to-blue gradients or cyan-on-dark accent systems | The canonical AI design palette; communicates nothing about the brand | Pick a palette from the brand words via OKLCH rules |
-| Generic rounded-rect card with `box-shadow` as the default container | Template thinking | Default to cardless sections; only add card treatment when content type requires it |
-| Modals as lazy escape for overflow UI | Interrupts flow and breaks browser back navigation | Inline expand, detail panel, or dedicated route; modals only when action truly requires focus-lock |
-| `transition: all` or animating width/height/padding/margin | Forces browser into layout recalculation on every frame | List exact properties; use `grid-template-rows: 0fr to 1fr` for height reveals |
+| `border-left` 或 `border-right` 宽于 1px 作为 section accent | admin UIs 中最过度使用的 design touch | 使用 colored dot、short horizontal rule、background swatch 或 typographic weight shift |
+| `background-clip: text` gradient text | 纯 decorative，且在 high-contrast mode 下 illegible | 使用 solid brand color 或 typographic weight 强调 |
+| `backdrop-filter: blur` glassmorphism 作为 default card surface | 对低功耗设备昂贵，且过度使用 | 通过 background color steps 和 `box-shadow` 构建 elevated surfaces |
+| Purple-to-blue gradients 或 cyan-on-dark accent systems | 典型 AI design palette，不传达任何 brand 信息 | 根据 brand words 通过 OKLCH rules 选择 palette |
+| Generic rounded-rect card with `box-shadow` 作为 default container | Template thinking | 默认 cardless sections；只有 content type 需要时才添加 card treatment |
+| Modals as lazy escape for overflow UI | 打断 flow，破坏 browser back navigation | Inline expand、detail panel 或 dedicated route；只有 action 真正需要 focus-lock 时才用 modals |
+| `transition: all` 或 animate width/height/padding/margin | 强迫 browser 每帧 layout recalculation | 列出 exact properties；height reveals 使用 `grid-template-rows: 0fr to 1fr` |
 
 ## AI Slop Test
 
-Would a stranger glancing at the first viewport say "an AI made this" immediately? If yes, the committed direction was not committed enough. Usual culprits: reflex font, default purple accent, centered hero with generic card grid beneath. Fix the typography, color system, or layout until the answer flips.
+陌生人扫一眼 first viewport，会不会立刻说 "an AI made this"？如果会，committed direction 不够坚决。常见 culprits：reflex font、default purple accent、centered hero 下方接 generic card grid。修 typography、color system 或 layout，直到答案翻转。
 
 ## Content Authenticity
 
-Placeholder copy that looks real but is not real breaks the illusion. Apply these rules before handoff.
+看似真实但并不真实的 placeholder copy 会打破 illusion。handoff 前应用这些 rules。
 
-**Sample data:** no generic names (John Doe, Jane Smith), no generic company names (Acme Corp, TechCorp), no Lorem Ipsum. Use organic numbers: `99.94%` not `99.99%`, `$99.00` not `$100.00`.
+**Sample data:** 不用 generic names（John Doe、Jane Smith），不用 generic company names（Acme Corp、TechCorp），不用 Lorem Ipsum。使用 organic numbers：`99.94%` 而不是 `99.99%`，`$99.00` 而不是 `$100.00`。
 
-**UI copy:** sentence case on all headings, no exclamation marks on success states, never "Oops!" on errors. Banned words: Elevate, Seamless, Unleash, Delve, Tapestry, Game-changer, Next-Gen.
+**UI copy:** 所有 headings 使用 sentence case；success states 不用 exclamation marks；errors 里绝不使用 "Oops!"。Banned words：Elevate、Seamless、Unleash、Delve、Tapestry、Game-changer、Next-Gen。
 
-**Placeholders:** when a component is unavailable, use a labeled placeholder (grey rectangle, monogram wordmark, dashed border). Never draw illustrative imagery with inline SVG.
+**Placeholders:** component 不可用时，使用 labeled placeholder（grey rectangle、monogram wordmark、dashed border）。绝不用 inline SVG 绘制 illustrative imagery。

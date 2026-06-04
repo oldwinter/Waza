@@ -1,46 +1,46 @@
 ---
 name: check
-description: "Reviews code diffs, PRs, issue queues, release readiness, commits, pushes, publishing, and project audits. Use when users ask review/看看代码/合并前/看看issue/PR/release/push or to implement an approved plan, with safety gates for dirty and untracked worktrees. Not for exploring ideas, debugging root causes, or prose review."
+description: "审查 code diffs、PRs、issue queues、release readiness、commits、pushes、publishing 和 project audits。Use when users ask review/看看代码/合并前/看看issue/PR/release/push，或需要实施 approved plan 时使用，并对 dirty 和 untracked worktrees 设置 safety gates。Not for exploring ideas, debugging root causes, or prose review."
 when_to_use: "review, 看看代码, 检查一下, 有没有问题, 是否需要优化, 合并前, 继续优化, 优化代码, 看看issue, 看看PR, release, publish, push, release reaction, GitHub reaction, 发布, 提交, 关闭issue, 发布表情, release表情, close issue, issue close, review my code, check changes, before merge, before release, code review, code-review, audit, project audit, 项目体检, 项目评分, 给项目打分, 深入分析项目代码, 评估项目质量, 代码质量评分, scorecard, linus review, rate this codebase, score this project"
 dispatch_intent: "Code review, before merge, release gates, generated artifacts, safety sinks, publish/push/reaction follow-through, triage issues/PRs, project-wide code-quality audit scorecard"
 ---
 
-# Check: Review Before You Ship
+# Check: Ship 前先 Review
 
 Prefix your first line with 🥷 inline, not as its own paragraph.
 
-> Note: `/review` is a built-in Anthropic plugin command for PR review. Waza uses `/check` (or the alias `code-review`) instead. Do not re-trigger `/review` from within this skill.
+> Note：`/review` 是 Anthropic 内置的 PR review plugin command。Waza 改用 `/check`（或 alias `code-review`）。不要在此 skill 内重新触发 `/review`。
 
-Read the diff, find the problems, fix what can be fixed safely, ask about the rest. Done means verification ran in this session and passed.
+读取 diff，找出问题，安全可修的直接修，其余询问。Done 表示 verification 已在本 session 中运行并通过。
 
 ## Outcome Contract
 
-- Outcome: a review, release decision, or maintainer action grounded in the current diff, project context, and live evidence.
-- Done when: findings, fixes, shipped state, or blockers are stated with the commands, artifacts, or remote state that prove them.
-- Evidence: worktree status, diff, public project docs, manifests, CI, package contents, release or registry state, and current command output.
-- Output: concise findings first, then verification and shipped-state summary when applicable.
+- Outcome:基于 current diff、project context 和 live evidence 的 review、release decision 或 maintainer action。
+- Done when:findings、fixes、shipped state 或 blockers 都带有能证明它们的 commands、artifacts 或 remote state。
+- Evidence:worktree status、diff、public project docs、manifests、CI、package contents、release 或 registry state，以及 current command output。
+- Output:先给 concise findings；适用时再给 verification 和 shipped-state summary。
 
 ## Worktree Safety Preflight
 
-Before any review, triage, ship, release, or PR operation, read the current worktree with:
+任何 review、triage、ship、release 或 PR operation 前，用以下命令读取 current worktree：
 
 ```bash
 git status --short --branch -uall
 ```
 
-Treat modified, staged, and untracked files as user work. You may read them and include them in the review surface, but you must not move, hide, overwrite, clean, or discard them without explicit user approval in the current turn.
+把 modified、staged 和 untracked files 当成用户工作。可以读取它们并纳入 review surface，但没有当前 turn 的 explicit user approval，不得 move、hide、overwrite、clean 或 discard。
 
-Do not run these commands as default review or PR setup: `git switch`, `git checkout`, `git reset --hard`, `git clean`, `git stash -u`, `git stash --include-untracked`, `git stash -a`, `git stash --all`, or `gh pr checkout`. If a branch change or cleanup is genuinely required, stop and ask for that exact operation.
+不要把这些命令作为 default review 或 PR setup 运行：`git switch`、`git checkout`、`git reset --hard`、`git clean`、`git stash -u`、`git stash --include-untracked`、`git stash -a`、`git stash --all` 或 `gh pr checkout`。如果确实需要 branch change 或 cleanup，停止并请求该 exact operation。
 
-Do not "protect" user work by moving untracked files, generated files, screenshots, or local scratch files into `/tmp` or another holding directory. Moving someone else's WIP out of the checkout is the same class of interference as stashing it. If a clean tree is required for generation, packaging, or verification, use a separate worktree from a known commit and copy only the artifact or patch you own back into the current checkout.
+不要通过把 untracked files、generated files、screenshots 或 local scratch files 移到 `/tmp` 或其他 holding directory 来“保护”用户工作。把别人的 WIP 移出 checkout 与 stash 它属于同类干扰。如果 generation、packaging 或 verification 需要 clean tree，从 known commit 创建 separate worktree，并只把你拥有的 artifact 或 patch 拷回 current checkout。
 
-For commit or push follow-through in a dirty or multi-agent checkout, record `git rev-parse HEAD` before staging. Re-read `git status --short --branch -uall` and `git rev-parse HEAD` immediately before commit and again before push. If HEAD moved, unknown commits appeared, or the worktree changed outside your intended files, stop and report the mismatch instead of rebasing, recommitting, or pushing.
+在 dirty 或 multi-agent checkout 中做 commit 或 push follow-through 时，staging 前记录 `git rev-parse HEAD`。commit 前立即重读 `git status --short --branch -uall` 和 `git rev-parse HEAD`，push 前再读一次。如果 HEAD moved、出现 unknown commits，或 worktree 在 intended files 外发生变化，停止并报告 mismatch，不要 rebase、recommit 或 push。
 
-For PR inspection, prefer commands that do not switch the current working tree: `gh pr view`, `gh pr diff`, `git fetch origin pull/<n>/head:refs/tmp/pr-<n>`, and `git merge-tree`.
+PR inspection 优先使用不会切换 current working tree 的 commands：`gh pr view`、`gh pr diff`、`git fetch origin pull/<n>/head:refs/tmp/pr-<n>` 和 `git merge-tree`。
 
 ## Mode Picker
 
-Pick the mode that matches the user's intent, then read that section in full. Modes layer on top of the shared review surface (Scope, Hard Stops, Autofix, Specialist Review, Verification, Sign-off) further down.
+选择匹配用户 intent 的 mode，然后完整阅读该 section。Modes 会叠加到下方共享 review surface（Scope、Hard Stops、Autofix、Specialist Review、Verification、Sign-off）之上。
 
 | User intent | Mode |
 |---|---|
@@ -52,29 +52,29 @@ Pick the mode that matches the user's intent, then read that section in full. Mo
 | "audit", "项目体检", "项目评分", "给项目打分", "深入分析项目代码", "scorecard", "linus review" | [Project Audit](#project-audit-mode) |
 | Document, PDF, prose review | Delegate to `/write` (see [Document Review](#document-review)) |
 
-Before any mode, run [Project Context Extraction](#project-context-extraction) and (if memory is in scope) [Durable Context Preflight](#durable-context-preflight).
+进入任何 mode 前，先运行 [Project Context Extraction](#project-context-extraction)，如果 memory 在 scope 内，再运行 [Durable Context Preflight](#durable-context-preflight)。
 
 ## Plan Execution Mode
 
-Activate when the user's message starts with "Implement the following plan", "按计划实施", "按照计划", "整", "可以干", "直接改" followed by a plan body, or links to a `/think` output.
+当用户消息以 "Implement the following plan"、"按计划实施"、"按照计划"、"整"、"可以干"、"直接改" 开头且后面跟 plan body，或链接到 `/think` output 时激活。
 
-In this mode, do not run a code review. Instead:
+在这个 mode 中，不运行 code review。改为：
 
-1. State which plan is being executed (first heading or summary line).
-2. Check for obvious repo drift: run `git status --short --branch -uall` and skim any changed files that contradict the plan. If drift makes the plan unsafe, name the specific conflict and stop.
-3. Work through each plan item as a to-do. Mark each complete as you go.
-4. After all items are done, run the project's verification command.
-5. Transition automatically into Ship mode if the project context or current thread indicates review-then-ship.
+1. 说明正在执行哪个 plan（first heading 或 summary line）。
+2. 检查明显 repo drift：运行 `git status --short --branch -uall`，skim 任何与 plan 冲突的 changed files。如果 drift 让 plan 不安全，命名 specific conflict 并停止。
+3. 把每个 plan item 当成 to-do 逐项推进。完成一个标记一个。
+4. 所有 items 完成后，运行项目 verification command。
+5. 如果 project context 或 current thread 表明 review-then-ship，自动 transition into Ship mode。
 
 ## Default Continuation (review-then-ship)
 
-When the project's `AGENTS.md` or the current thread explicitly asks to "commit after review", "ship if green", or equivalent, transition directly from review to the Ship flow after a clean review. Do not ask again. State "proceeding to ship" before acting.
+当项目 `AGENTS.md` 或 current thread 明确要求 "commit after review"、"ship if green" 或等价动作时，clean review 后直接从 review transition 到 Ship flow。不要再次询问。行动前说明 "proceeding to ship"。
 
 ## Project Context Extraction
 
-This is Waza's public, standalone code-review capability. It should not depend on private machine paths or unpublished project instructions.
+这是 Waza 的 public、standalone code-review capability。它不应依赖 private machine paths 或 unpublished project instructions。
 
-Before reviewing, extract project constraints from repository context:
+review 前，从 repository context 中提取 project constraints：
 
 1. Read the diff and identify changed languages, frameworks, manifests, generated outputs, release files, and CI workflows.
 2. Inspect public project files only as needed: README, AGENTS/CLAUDE instructions when present, package manifests, lockfiles, build configs, test configs, workflow files, and release notes.
@@ -82,7 +82,7 @@ Before reviewing, extract project constraints from repository context:
 4. Apply the stricter rule when project context and this skill overlap.
 5. If project docs or CI name a verification command, prefer that over auto-detection.
 
-For the context shape, see `references/project-context.md`.
+context shape 见 `references/project-context.md`。
 
 For release or maintainer work, also fill the Release Gate 2.0 matrix from `references/project-context.md`. It covers review base, dirty/staged/untracked state, latest tag, origin sync, version fields, generated artifacts, package/archive contents, release assets, registry/appcast/CI, and public issue/PR state. Missing matrix evidence is a blocker for a "ready to release" claim.
 
@@ -94,25 +94,25 @@ For `/check`, private task constraints are `decision`, `preference`, and `princi
 
 ## Get the Diff
 
-Get the full diff between the current branch and the base branch. If unclear, ask. If already on the base branch, ask which commits to review.
+获取 current branch 与 base branch 之间的 full diff。如果不清楚，询问。如果已经在 base branch 上，询问要 review 哪些 commits。
 
 ## Triage Mode
 
-Activate when the user mentions: issue, PR, "review all", triage, "batch", or "批量处理". Skip the diff flow and run this instead.
+当用户提到 issue、PR、"review all"、triage、"batch" 或 "批量处理" 时激活。跳过 diff flow，改运行此 mode。
 
-**Action-first rule:** Items with a clear disposition (already fixed, duplicate, already released) get acted on immediately without analysis paragraphs. When analyzing screenshots or images, state what you see and the suggested action in one message. Only ask the user when the disposition is genuinely ambiguous.
+**Action-first rule：** 有清晰 disposition 的 items（already fixed、duplicate、already released）直接行动，不写 analysis paragraphs。分析 screenshots 或 images 时，在一条消息里说明你看到什么和 suggested action。只有 disposition 真的 ambiguous 时才询问用户。
 
-**Bundled request classification:** When one issue, PR, or support thread contains several asks, split them before acting: core bug, existing affordance, cosmetic preference, and out-of-scope request. Fix or close only the validated core bug; answer existing affordances with the current path; defer or decline cosmetic and out-of-scope asks instead of treating the whole report as a to-do list.
+**Bundled request classification：** 当一个 issue、PR 或 support thread 包含多个 asks，行动前先拆分：core bug、existing affordance、cosmetic preference 和 out-of-scope request。只修复或关闭 validated core bug；用 current path 回答 existing affordances；defer 或 decline cosmetic 和 out-of-scope asks，不要把整份 report 当成 to-do list。
 
-**Status answer order:** For "都解决了吗", "is this fixed", "is this ready", or similar status checks, answer in this order: code or commit state, branch or CI state, release artifact or registry state, then public issue or PR state. Do not collapse fixed-on-main, available in pre-release, next stable release, and already shipped.
+**Status answer order：** 对 "都解决了吗"、"is this fixed"、"is this ready" 或类似 status checks，按这个顺序回答：code 或 commit state、branch 或 CI state、release artifact 或 registry state、public issue 或 PR state。不要把 fixed-on-main、available in pre-release、next stable release 和 already shipped 混成一种状态。
 
 **Flow:** First identify the project's issue/PR host from public context. For GitHub projects, pull open items with `gh issue list -R <repo> --state open --limit 20` and `gh pr list -R <repo> --state open`. For non-GitHub projects, use the platform CLI/API named by the project docs or user request; if none exists, stop and report the missing integration instead of pretending GitHub commands apply. For each item, check if a fix already shipped: `git log --oneline <latest-tag>..HEAD | grep -i "<keyword>"`. If shipped: close with note. If merged but unreleased: reply "已修复，等下一个版本 release" and close. If no fix: analyze and act. Fix now if possible (`fix: closes #N` commit); when the target project documents a nightly, beta, or pre-release channel that already contains the fix, reply with that exact upgrade path and close; for valid-but-unreleased items acknowledge and leave open; for invalid items give one-two sentence reason and close.
 
-Before final conclusions in a live queue, refresh the issue/PR list once more and re-read any item that changed during the run. If evidence is incomplete, hold the item instead of closing it on a guess.
+在 live queue 中给 final conclusions 前，再 refresh 一次 issue/PR list，并重读 run 期间发生变化的 item。如果 evidence 不完整，hold 住 item，不要靠猜测关闭。
 
 **PR handling:** If the PR direction is accepted but the patch needs changes, prefer pushing the maintainer's fixes to the contributor's PR branch and then merging the PR. Check `maintainerCanModify` first, then confirm the push remote, target branch, and current HEAD immediately before pushing so you do not overwrite contributor work or push maintainer fixes to the wrong repository. If branch edits are not allowed, ask the contributor to enable maintainer edits or push the needed revision; only fall back to a separate maintainer commit when timing or release safety requires it, and say so in the PR. Close without merging only when the direction is rejected, unsafe, no longer needed, or explicitly not part of the project's scope. Do not silently absorb an accepted PR into `main` and close it.
 
-**Public reply shape:** load `references/public-reply.md` for the full template (mention, single thanks, factual paragraphs, next-release step, editing rules, closure criteria). Ship Mode uses the same template; the file is the single source.
+**Public reply shape：** 加载 `references/public-reply.md` 获取完整 template（mention、single thanks、factual paragraphs、next-release step、editing rules、closure criteria）。Ship Mode 使用同一 template；该文件是 single source。
 
 **Sign-off line (append to standard sign-off):**
 ```
@@ -121,22 +121,22 @@ triage:           N reviewed, N closed, N deferred
 
 ## Release Worthiness Analysis
 
-Activate when the user asks "深入分析 X 是不是值得发新版本", "is this worth a new release", "值不值得发版", or similar.
+当用户询问 "深入分析 X 是不是值得发新版本"、"is this worth a new release"、"值不值得发版" 或类似问题时激活。
 
-1. Run `git log <last-tag>..HEAD --oneline` (find last tag with `git tag --sort=-version:refname | head -1`).
-2. Count and classify commits: feat (new feature), fix (bug fix), chore/docs/refactor (internal).
-3. Output:
-   - **Commit summary**: N feat, N fix, N chore since last release
-   - **Verdict**: release / skip (one line)
-   - **Recommended version bump**: patch (fixes only), minor (feat present), major (breaking change)
-   - **Key risk**: one sentence on the biggest risk in this batch
-4. If verdict is "release", offer to transition into Ship mode.
+1. 运行 `git log <last-tag>..HEAD --oneline`，用 `git tag --sort=-version:refname | head -1` 找 last tag。
+2. 统计并分类 commits：feat（new feature）、fix（bug fix）、chore/docs/refactor（internal）。
+3. Output：
+   - **Commit summary**：自 last release 以来 N feat、N fix、N chore
+   - **Verdict**：release / skip（一行）
+   - **Recommended version bump**：patch（fixes only）、minor（feat present）、major（breaking change）
+   - **Key risk**：一句话说明这一批最大的 risk
+4. 如果 verdict 是 "release"，提出可以 transition into Ship mode。
 
 ## Ship / Release Follow-through
 
-Activate when the user asks to commit, tag, release, publish, push, reply on an issue/PR, or close an issue after a change is ready.
+当用户在 change ready 后要求 commit、tag、release、publish、push、reply on an issue/PR 或 close an issue 时激活。
 
-This mode extends review; it does not skip review. Before any public or irreversible action:
+这个 mode 扩展 review，不跳过 review。任何 public 或 irreversible action 前：
 
 1. Extract release rules from public project context: README, manifests, CI workflows, release notes, package scripts, changelogs, and explicit user instructions in the current thread.
 2. Fill the Release Gate 2.0 matrix from `references/project-context.md`: review base, dirty/staged/untracked state, latest tag, origin sync, version fields, generated artifacts, package/archive contents, release assets, registry/appcast/CI, and public issue/PR state.
@@ -150,7 +150,7 @@ This mode extends review; it does not skip review. Before any public or irrevers
 
 ### Reworked Or Cancelled Release Gate
 
-Activate this gate when a release candidate was cancelled, a preview or beta had repeated bug-fix churn, or the user asks whether a delayed release is finally safe.
+当 release candidate 被取消、preview 或 beta 反复 bug-fix churn，或用户询问 delayed release 是否终于 safe 时，激活此 gate。
 
 1. Lock the review base to the last public stable tag or release artifact, then review through current `HEAD`. Do not limit the review to recent commits or the latest local diff.
 2. Record the exact base, `HEAD`, dirty state, origin sync, version fields, generated artifacts, release notes, package contents, CI, and remote distribution state. If any state changes mid-review, refresh the range and rerun the fast gates.
@@ -158,11 +158,11 @@ Activate this gate when a release candidate was cancelled, a preview or beta had
 4. Output two release decisions, not one: whether the preview or beta can keep taking user testing, and whether stable release prep can start.
 5. Every conclusion must name blockers, deferrable maintenance, commands that ran, and runtime or user-smoke coverage. Source tests alone cannot prove a reworked UI/native release ready.
 
-End with the concrete shipped state: commit hash, tag, release URL, registry/version result, pushed branch, release asset state, release reaction state, issue/PR state, and any remaining blockers. Omit fields that do not apply.
+以 concrete shipped state 结束：commit hash、tag、release URL、registry/version result、pushed branch、release asset state、release reaction state、issue/PR state，以及任何 remaining blockers。省略不适用字段。
 
 ## Project Audit Mode
 
-Activate when the user asks for a project-wide code-quality scorecard: "audit", "项目体检", "代码质量评分", "scorecard", "linus 风格 review". Distinct from Default Review (PR/diff scoped) and Triage (issue batching). Single-pass project-wide quality assessment.
+当用户要求 project-wide code-quality scorecard 时激活："audit"、"项目体检"、"代码质量评分"、"scorecard"、"linus 风格 review"。它不同于 Default Review（PR/diff scoped）和 Triage（issue batching），是 single-pass project-wide quality assessment。
 
 **Flow**
 
@@ -215,33 +215,33 @@ Top 3 highest-leverage moves
 3. ...
 ```
 
-Stop after the report unless the user asks for follow-up implementation. Audit mode does not modify files in the target repo.
+除非用户要求 follow-up implementation，报告后停止。Audit mode 不修改 target repo 中的 files。
 
 ## Scope
 
-Measure the diff and classify depth:
+测量 diff 并分类 depth：
 
 | Depth | Criteria | Reviewers |
 |-------|----------|-----------|
-| **Quick** | Under 100 lines, 1-5 files | Base review only |
-| **Standard** | 100-500 lines, or 6-10 files | Base + conditional specialists |
-| **Deep** | 500+ lines, 10+ files, or touches auth/payments/data mutation | Base + all specialists + adversarial pass |
+| **Quick** | 100 行以内，1-5 个文件 | 仅 Base review |
+| **Standard** | 100-500 行，或 6-10 个文件 | Base + conditional specialists |
+| **Deep** | 500+ 行、10+ 个文件，或触碰 auth/payments/data mutation | Base + all specialists + adversarial pass |
 
-State the depth before proceeding.
+继续前说明 depth。
 
 ## Did We Build What Was Asked?
 
-Before reading code, check scope drift: do the diff and the stated goal match? Label: **on target** / **drift** / **incomplete**.
+读代码前检查 scope drift：diff 与 stated goal 是否匹配？标记为 **on target** / **drift** / **incomplete**。
 
-Also check surgical traceability: every changed file and every new public surface must trace back to the user's stated goal. If a file, dependency, config knob, abstraction, generated artifact, workflow permission, or release behavior cannot be explained in one sentence from the request, label it drift until proven necessary.
+同时检查 surgical traceability：每个 changed file 和每个 new public surface 都必须能追溯到用户 stated goal。如果某个 file、dependency、config knob、abstraction、generated artifact、workflow permission 或 release behavior 无法用一句话从请求解释，先标记为 drift，直到证明必要。
 
-Drift signals (examples, not exhaustive -- any one is enough to label drift):
-- A changed file has no connection to the stated goal
-- The diff includes pure refactoring (renames, formatting, restructuring) when the goal was a bug fix or feature
-- A new dependency appears that the goal did not mention
-- Code unrelated to the goal was deleted or commented out
-- A new abstraction or helper was introduced that is not required by the goal
-- A maintainability, review, or cleanup change quietly adds user-visible UI, default config, workflow permissions, or release behavior
+Drift signals（examples，不穷尽，任一项足以标记 drift）：
+- changed file 与 stated goal 没有关联
+- 当 goal 是 bug fix 或 feature 时，diff 包含 pure refactoring（renames、formatting、restructuring）
+- 出现 goal 未提到的新 dependency
+- 与 goal 无关的 code 被删除或注释
+- 引入 goal 不需要的新 abstraction 或 helper
+- maintainability、review 或 cleanup change 悄悄添加 user-visible UI、default config、workflow permissions 或 release behavior
 
 ## Pattern-Fix Completeness
 
@@ -251,13 +251,13 @@ When the diff fixes one instance of a class-of-bug (a missing validation, a wron
 
 When a diff touches a CLI entrypoint, installer, completion, config/env handling, package wrapper, or a mutating command such as cleanup, update, uninstall, migration, or cache removal, fill the CLI Command Surface from `references/project-context.md` before sign-off.
 
-Check command contract and installed-runtime behavior, not just library tests: help/version, subcommands/flags, exit codes, stdout/stderr, JSON/schema output, TTY/non-interactive paths, env/config precedence, shebang/executable bit, PATH shim, and package-manager install path when applicable.
+检查 command contract 和 installed-runtime behavior，不只看 library tests：help/version、subcommands/flags、exit codes、stdout/stderr、JSON/schema output、TTY/non-interactive paths、env/config precedence、shebang/executable bit、PATH shim，以及适用时的 package-manager install path。
 
 For mutating CLI commands, also run the Safety Sink Review: dry-run or confirmation path, operation log or rollback story, retry/idempotency, signal/partial-failure handling, and test-mode guards for auth prompts or real system changes. For cleanup, uninstall, prune, reset, or cache-removal commands, add two checks before approval: can a normal user verify each selected item is safe, and is the deleted content locally rebuildable rather than a downloaded dependency or user data? If either answer is no, require narrower matching, explicit user selection, or leave the item visible but non-destructive.
 
 ## Hard Stops (fix before merging)
 
-Examples, not exhaustive -- flag any diff that could cause irreversible harm if merged unreviewed.
+Examples，不穷尽。任何未 review 合并后可能造成 irreversible harm 的 diff 都要标记。
 
 - **No unverified claims.** Do not write "I verified X", "I ran Y", "tests pass", or "this fixes Z" unless the shell output is in this turn's transcript. If you reason about behavior without running, say "based on reading the code" instead of "I verified". Every verification claim in the sign-off must point to a command that actually ran in this session.
 - **Re-read before citing source-of-truth facts.** Before writing a line number, dirty-file count, branch ahead/behind state, fallback behavior, locale coverage, or release artifact state into a handoff or review report, re-read the source in this turn (`git status`, `git diff`, file `Read`, `rg`, command output). Earlier chat context, prior agent's notes, and your own recall from a hundred turns ago are stale by default; restating "the catalog uses en fallback" or "the file is at line 310" without checking has been the recurring failure mode in long sessions. Cite the verification path inline (`per current Read of <file>` / `per `git status` this turn`) so reviewers know which facts are anchored.
@@ -278,28 +278,28 @@ Examples, not exhaustive -- flag any diff that could cause irreversible harm if 
 
 ## Finding Quality Gate
 
-Before writing any finding into the report, run this gate:
+把任何 finding 写入 report 前，先运行这个 gate：
 
-**Pre-report self-check (four questions, every finding must pass):**
-1. Can I cite the exact file:line?
-2. Can I describe the specific input or state that triggers the bad outcome?
-3. Have I read the upstream callers / downstream consumers, not just the function in isolation?
-4. Is the severity defensible? Would a senior reviewer raise this at this level in a real PR?
+**Pre-report self-check（四个问题，每个 finding 都必须通过）：**
+1. 我能否 cite exact file:line？
+2. 我能否描述触发 bad outcome 的 specific input 或 state？
+3. 我是否读过 upstream callers / downstream consumers，而不是只孤立看 function？
+4. severity 是否 defensible？senior reviewer 会在真实 PR 中以这个级别提出它吗？
 
-If any answer is "no", drop the finding or downgrade it to advisory. Vague findings train the reader to ignore real ones.
+如果任何答案是 "no"，drop finding 或 downgrade to advisory。Vague findings 会训练读者忽略真正的问题。
 
-**A clean review is a valid review.** Do not manufacture findings to justify the invocation. Zero findings with a stated review surface is a complete output. Padding the report with low-confidence noise is a worse outcome than reporting nothing.
+**Clean review 是 valid review。** 不要为了证明 invocation 有价值而制造 findings。带 stated review surface 的 zero findings 是 complete output。用 low-confidence noise 填充 report 比什么都不报更糟。
 
-**HIGH and CRITICAL require three pieces of evidence:**
+**HIGH 和 CRITICAL 需要三条 evidence：**
 1. The exact file:line where the bug lives.
 2. The specific trigger: what input, state, or sequence produces the bad outcome.
 3. Why existing guards (validation, type system, upstream catch, framework default) do not already prevent it.
 
-Cannot supply all three? Downgrade to MEDIUM, or drop. "This *might* break under some condition" is not a HIGH.
+三条凑不齐？Downgrade to MEDIUM，或 drop。"This *might* break under some condition" 不是 HIGH。
 
 ## Knowledge Sync
 
-After reviewing the diff, check whether it introduces invariants not yet captured in project docs:
+review diff 后，检查它是否引入尚未记录到 project docs 的 invariants：
 
 - New safety gate or path-guard rule → AGENTS.md
 - New UI constraint (layout rule, animation, overlay registration) → `.claude/rules/*.md`
@@ -309,7 +309,7 @@ After reviewing the diff, check whether it introduces invariants not yet capture
 
 ### Snapshot Report Routing
 
-Treat review reports, scorecards, and diagnostic snapshots as evidence, not as source-of-truth docs. Before approving one:
+把 review reports、scorecards 和 diagnostic snapshots 当成 evidence，不是 source-of-truth docs。批准前：
 
 1. Re-read the current diff or repo surface named by the report. If the claim is stale, exclude the report from the commit or rewrite it into a stable rule.
 2. Keep project-specific commands, paths, protected areas, release rituals, and safety constraints in that project's public context. Do not promote them into Waza.
@@ -319,9 +319,9 @@ If found, either apply the doc update as `safe_auto` (when the invariant is clea
 
 ## Specialist Review (Standard and Deep only)
 
-Load `references/persona-catalog.md` to determine which specialists activate. Launch all activated specialists in parallel via the environment's agent or sub-agent facility when available, passing the full diff. If no parallel reviewer facility exists, run the specialist passes sequentially in the same session.
+加载 `references/persona-catalog.md` 判断哪些 specialists 激活。有环境 agent 或 sub-agent facility 时，把 full diff 传入并并行启动所有 activated specialists。如果没有 parallel reviewer facility，在同一 session 中顺序运行 specialist passes。
 
-Merge findings: when two specialists flag the same code location, keep the higher severity and note cross-reviewer agreement. Findings on different code locations are never duplicates even if they share a theme.
+合并 findings：两个 specialists 标记同一 code location 时，保留更高 severity，并注明 cross-reviewer agreement。不同 code locations 上的 findings 即使 theme 相同，也不是 duplicates。
 
 ## Autofix Routing
 
@@ -332,7 +332,7 @@ Merge findings: when two specialists flag the same code location, keep the highe
 | `manual` | Requires judgment: architecture, behavior changes, security tradeoffs | Present in sign-off |
 | `advisory` | Informational only | Note in sign-off |
 
-Apply all `safe_auto` fixes first. Batch all `gated_auto` into one confirmation block. Never ask separately about each one.
+先应用所有 `safe_auto` fixes。把所有 `gated_auto` 合并成一个 confirmation block。绝不要逐个询问。
 
 ## Adversarial Pass (Deep only)
 
@@ -340,15 +340,15 @@ Apply all `safe_auto` fixes first. Batch all `gated_auto` into one confirmation 
 
 ## Platform Operations
 
-Use the platform tool that matches the project. For GitHub projects, prefer `gh` or the available GitHub integration and confirm CI passes before merging. For non-GitHub projects, derive the CLI/API from public project docs or the user's explicit platform context; do not force GitHub commands onto other hosts.
+使用与项目匹配的 platform tool。GitHub projects 优先使用 `gh` 或可用 GitHub integration，并在 merging 前确认 CI passes。Non-GitHub projects 从 public project docs 或用户明确 platform context 推导 CLI/API；不要把 GitHub commands 强套到其他 hosts。
 
 ## Verification
 
-Run `bash scripts/run-tests.sh` from this skill directory, or the project's known verification command from the target repository. Paste the full output.
+从此 skill directory 运行 `bash scripts/run-tests.sh`，或在 target repository 中运行项目 known verification command。粘贴完整 output。
 
-If the script exits non-zero or prints `(no test command detected)`: halt. Do not claim done. Ask the user for the verification command before proceeding. If the user also cannot provide one, document this explicitly in the sign-off as `verification: none -- no command available` and flag it as a structural gap, not a pass.
+如果 script 以 non-zero 退出或打印 `(no test command detected)`：halt。不要 claim done。继续前询问用户 verification command。如果用户也无法提供，在 sign-off 中明确记录为 `verification: none -- no command available`，并把它标记为 structural gap，不是 pass。
 
-For bug fixes: a regression test that fails on the old code must exist before the fix is done.
+对 bug fixes：必须存在一个在 old code 上失败的 regression test，fix 才算 done。
 
 ## Gotchas
 
@@ -363,7 +363,7 @@ For bug fixes: a regression test that fails on the old code must exist before th
 
 ## Document Review
 
-For document, PDF, white paper, or prose review, route to `/write` (Document Review Mode). `/check` handles code diffs and release artifacts only.
+对 document、PDF、white paper 或 prose review，route to `/write`（Document Review Mode）。`/check` 只处理 code diffs 和 release artifacts。
 
 ## Sign-off
 

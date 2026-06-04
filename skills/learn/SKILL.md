@@ -1,130 +1,130 @@
 ---
 name: learn
-description: "Runs a six-phase research workflow that turns unfamiliar domains, source bundles, or collected material into publish-ready output. Use when users ask 学习一下/深入研究/研究一下/整理成文章/deep dive/compile sources or need one coherent reference from many inputs. Not for quick lookups or single-file reads."
+description: "运行六阶段 research workflow，把 unfamiliar domains、source bundles 或 collected material 转成 publish-ready output。Use when users ask 学习一下/深入研究/研究一下/整理成文章/deep dive/compile sources，或需要从多个输入得到一份 coherent reference 时使用。Not for quick lookups or single-file reads."
 when_to_use: "学习一下, 深入研究, 研究一下, 整理成文章, 把这批材料整理, 一站式参考, 一篇就够, 整理成长文, research, deep dive, help me understand, compile sources, unfamiliar domain"
 dispatch_intent: "Deep research, unfamiliar domain, compile sources into output"
 ---
 
-# Learn: From Raw Materials to Published Output
+# Learn: 从原始材料到可发布产出
 
 Prefix your first line with 🥷 inline, not as its own paragraph.
 
-Collect, organize, translate, explain, structure. Support the user's thinking; do not replace it.
+收集、组织、翻译、解释、结构化。支持用户思考，不替代用户思考。
 
 ## Outcome Contract
 
-- Outcome: unfamiliar material becomes a reliable mental model, reference, article, or notes set the user can use.
-- Done when: primary sources are collected or supplied, contradictions are handled explicitly, and the final structure teaches the topic without hiding uncertainty.
-- Evidence: source URLs or files, fetched content, notes from digestion, outline decisions, and self-review against the requested output.
-- Output: research notes, outline, publish-ready draft, or canonical reference, matching the chosen mode.
+- Outcome:unfamiliar material 变成用户可用的 reliable mental model、reference、article 或 notes set。
+- Done when:primary sources 已收集或由用户提供，contradictions 被明确处理，final structure 能教清 topic 且不隐藏 uncertainty。
+- Evidence:source URLs 或 files、fetched content、digestion notes、outline decisions，以及针对 requested output 的 self-review。
+- Output:research notes、outline、publish-ready draft 或 canonical reference，与 chosen mode 匹配。
 
-**Boundary**: single URL that only needs fetching belongs in `/read`. A single URL that needs summary or analysis can use `/read` as the fetch step, but the final answer should satisfy the user's requested summary or analysis. `/learn` is for multi-source research that produces a new structured output.
+**Boundary**: 只需要 fetch 的 single URL 属于 `/read`。需要 summary 或 analysis 的 single URL 可以把 `/read` 作为 fetch step，但 final answer 应满足用户要求的 summary 或 analysis。`/learn` 用于 multi-source research，并产出新的 structured output。
 
 ## Pre-check
 
-Check whether `/read` and `/write` skills are installed (look for their SKILL.md in the skills directories). Warn if missing, do not block:
-- `/read` missing -- Phase 1 fetch falls back to native `WebFetch` / `curl`; coverage on paywalled, JS-heavy, and Chinese-platform pages degrades.
-- `/write` missing -- Phase 5 AI-pattern stripping falls back to manual scan. Phases 1-4 are unaffected.
+检查 `/read` 和 `/write` skills 是否已安装（在 skills directories 中查找它们的 SKILL.md）。缺失时 warning，但不 block：
+- `/read` missing -- Phase 1 fetch fallback 到 native `WebFetch` / `curl`；paywalled、JS-heavy 和 Chinese-platform pages 的 coverage 会下降。
+- `/write` missing -- Phase 5 AI-pattern stripping fallback 到 manual scan。Phases 1-4 不受影响。
 
 ## Choose Mode
 
-Ask the user to confirm the mode, using the environment's native question or approval mechanism if it has one:
+请用户确认 mode；如果环境有 native question 或 approval mechanism，使用它：
 
 | Mode | Goal | Entry | Exit |
 |------|------|-------|------|
-| **Deep Research** | Understand a domain well enough to write about it | Phase 1 | Phase 6: publish-ready draft |
-| **Quick Reference** | Build a working mental model fast, no article planned | Phase 2 | Phase 2: notes only |
-| **Write to Learn** | Already have materials, force understanding through writing | Phase 3 | Phase 6: publish-ready draft |
-| **Canonical Article** | One article that covers a topic so thoroughly readers need nothing else | Phase 1 | Phase 6: single authoritative reference |
+| **Deep Research** | 充分理解一个 domain，达到能写作的程度 | Phase 1 | Phase 6: publish-ready draft |
+| **Quick Reference** | 快速建立 working mental model，不计划写文章 | Phase 2 | Phase 2: notes only |
+| **Write to Learn** | 已有 materials，通过写作强迫理解 | Phase 3 | Phase 6: publish-ready draft |
+| **Canonical Article** | 一篇文章彻底覆盖 topic，让读者不需要其他资料 | Phase 1 | Phase 6: single authoritative reference |
 
-If unsure, suggest Quick Reference.
+如果不确定，建议 Quick Reference。
 
 ## Canonical Article Mode
 
-Activate when: "一篇就够", "一站式参考", "整理成长文", "目的是大家只需要看这篇就好了", or the user wants a single authoritative reference on a topic.
+当出现这些触发时激活："一篇就够"、"一站式参考"、"整理成长文"、"目的是大家只需要看这篇就好了"，或用户想要某个 topic 的 single authoritative reference。
 
-Goal: after reading the article, no one should need to search for anything else on this topic.
+Goal：读完文章后，没有人需要再搜索这个 topic 的其他内容。
 
-Additional requirements on top of standard Deep Research:
-- Every major sub-topic must have its own section; nothing left as a footnote
-- Include worked examples, not just principles
-- Cover common mistakes and how to avoid them
-- Add a "Further Reading" section with the 3-5 sources that go deepest; flag which ones are the best starting points
+在 standard Deep Research 之上的 additional requirements：
+- 每个 major sub-topic 必须有自己的 section；不要把内容留成 footnote
+- 包含 worked examples，不只是 principles
+- 覆盖 common mistakes 以及如何避免
+- 添加 "Further Reading" section，列 3-5 个最深入 sources，并标记哪些是 best starting points
 - Phase 6 self-review must confirm: "Could a reader implement/understand this from this article alone?"
 
 ## Phase 1: Collect
 
-Gather primary sources only: papers that introduced key ideas, official lab/product blogs, posts from builders, canonical "build it from scratch" repositories. Not summaries. Not explainers.
+只收集 primary sources：提出 key ideas 的 papers、official lab/product blogs、builders 写的 posts、canonical "build it from scratch" repositories。不要 summaries，不要 explainers。
 
-Three ordered steps per source -- no shortcuts, no merging:
+每个 source 三个有序 steps，不 shortcut，不 merge：
 
-1. **Discover** -- use an installed search plugin (e.g., PipeLLM) to map the landscape, then deep-search the 2-3 most promising sub-topics. No plugin: use the environment's native web search. Output is a URL list; do not fetch content here.
-2. **Fetch** -- every URL goes through `/read` when available. `/read` owns the proxy cascade, paywall detection, and platform routing (WeChat, Feishu, PDF, GitHub). Native fetch tools and raw `curl` silently fail on JS-heavy or paywalled sites and skip all of that. If `/read` is missing (Pre-check warned), fall back to native fetch and accept reduced coverage.
-3. **File** -- tell `/read` the research project's source directory when one exists. If no directory was specified, let `/read` use a per-session temp directory and return the saved path. Move or index saved files into sub-topic directories after fetch returns. Move, don't refetch.
+1. **Discover** -- 使用已安装的 search plugin（例如 PipeLLM）map landscape，然后 deep-search 最有希望的 2-3 个 sub-topics。没有 plugin 时，使用 environment 的 native web search。Output 是 URL list；此处不要 fetch content。
+2. **Fetch** -- 可用时，每个 URL 都通过 `/read`。`/read` 负责 proxy cascade、paywall detection 和 platform routing（WeChat、Feishu、PDF、GitHub）。Native fetch tools 和 raw `curl` 在 JS-heavy 或 paywalled sites 上会静默失败，并跳过这些机制。如果 `/read` 缺失（Pre-check 已 warning），fallback 到 native fetch，并接受 reduced coverage。
+3. **File** -- research project 有 source directory 时，把它告诉 `/read`。如果没有指定 directory，让 `/read` 使用 per-session temp directory 并返回 saved path。fetch 返回后，把 saved files move 或 index 到 sub-topic directories。Move，不要 refetch。
 
-Target: 5-10 sources for a blog post, 15-20 for a deep technical survey.
+Target：blog post 5-10 个 sources，deep technical survey 15-20 个 sources。
 
 ## Phase 2: Digest
 
-Work through the materials. For each piece: read it fully, keep what is good, cut what is not. At the end of this phase, cut roughly half of what was collected.
+逐份处理 materials。每一份：完整阅读，保留好的，剪掉不好的。本 phase 结束时，大约砍掉已收集内容的一半。
 
-For key claims, ask before including in the outline:
+把 key claims 放入 outline 前，先问：
 - Does this idea appear in at least two different contexts from the same source?
 - Can this framework predict what the source would say about a new problem?
 - Is this specific to this source, or would any expert in the field say the same thing?
 
-Generic wisdom is not worth distilling. Passes two or three: belongs in the outline. Passes one: background material. Passes zero: cut it.
+Generic wisdom 不值得 distill。通过两到三项：属于 outline。通过一项：background material。零项：cut it。
 
-When two sources contradict on a factual claim, note both positions and the evidence each gives. Do not silently pick one.
+当两个 sources 在 factual claim 上冲突，记录双方 positions 和各自 evidence。不要静默选择一个。
 
 ### Conversation Or Review Distillation
 
-When the input is a recent conversation, project review, scorecard, or diagnostic report, treat it as raw material:
+当 input 是 recent conversation、project review、scorecard 或 diagnostic report 时，把它当作 raw material：
 
-- Prefer already-distilled summaries, memory entries, and review outputs first; open raw transcripts only to verify a disputed detail or recover the exact source of a repeated pattern.
-- Build a candidate matrix before editing durable guidance: source/project, repeated failure, transferable rule, target layer, evidence count, and redaction risk. Promote only candidates with cross-source support or a repeated failure in the same project family.
-- Extract repeated workflow failures, invariants, and verifier surfaces.
-- Drop dated line numbers, current-score framing, private paths, one-machine setup, and repo-specific commands unless the output is explicitly for that same repo.
-- Map each durable lesson to its target layer: project docs, shared rules, skill references, or deterministic scripts.
-- Prefer references or existing skill sections for adaptive workflow guidance; use scripts only for deterministic checks that can fail reliably without project-specific context.
-- Keep evidence snippets only as notes for yourself; do not paste raw conversation history into the final artifact.
+- 优先使用 already-distilled summaries、memory entries 和 review outputs；只有为了 verify disputed detail 或恢复 repeated pattern 的 exact source，才打开 raw transcripts。
+- 编辑 durable guidance 前，先构建 candidate matrix：source/project、repeated failure、transferable rule、target layer、evidence count 和 redaction risk。只提升具有 cross-source support，或在同一 project family 中 repeated failure 的 candidates。
+- 提取 repeated workflow failures、invariants 和 verifier surfaces。
+- 丢弃 dated line numbers、current-score framing、private paths、one-machine setup 和 repo-specific commands，除非 output 明确用于同一个 repo。
+- 把每条 durable lesson 映射到 target layer：project docs、shared rules、skill references 或 deterministic scripts。
+- adaptive workflow guidance 优先使用 references 或 existing skill sections；scripts 只用于能在没有 project-specific context 时可靠 fail 的 deterministic checks。
+- evidence snippets 只作为自己的 notes；不要把 raw conversation history 粘进 final artifact。
 
 ## Phase 3: Outline
 
-Write the outline for the article. For each section: note the source materials it draws from. If a section has no sources, either it does not belong or a source needs to be found first.
+为文章写 outline。对每个 section：注明它 draws from 哪些 source materials。如果 section 没有 sources，要么它不该存在，要么需要先找 source。
 
-Do not start Phase 4 until the outline is solid.
+outline solid 前不要开始 Phase 4。
 
 ## Phase 4: Fill In
 
-Work through the outline section by section. If a section is hard to write, the mental model is still weak there: return to Phase 2 for that sub-topic. The outline may change, and that is fine.
+逐个 section 推进 outline。如果某个 section 难写，说明这里的 mental model 仍然薄弱：回到该 sub-topic 的 Phase 2。outline 可以变化，这没问题。
 
-Stall signals (any one means the mental model is incomplete for this section):
-- You have rewritten the opening sentence three or more times without settling
-- The section relies on a single source and you cannot cross-check the claim
-- You need a new source that was not collected in Phase 1
-- The paragraph makes a claim you could not explain to someone out loud
+Stall signals（任一项都表示该 section 的 mental model 不完整）：
+- opening sentence 已重写三次或更多，仍无法定稿
+- section 依赖 single source，且你无法 cross-check claim
+- 需要 Phase 1 没有 collected 的 new source
+- paragraph 提出的 claim 你无法对别人当场解释清楚
 
-When stalled: return to Phase 2 for that sub-topic, not for the whole article.
+stalled 时：回到该 sub-topic 的 Phase 2，不是整篇文章。
 
 ## Phase 5: Refine
 
-Pass the draft with a specific brief:
-- Remove redundant and verbose passages without changing meaning or voice
-- Flag places where the argument does not flow
-- Identify gaps: concepts used before they are explained, claims needing sources
+用 specific brief 处理 draft：
+- 在不改变 meaning 或 voice 的前提下，移除 redundant 和 verbose passages
+- 标出 argument 不顺的地方
+- 识别 gaps：先使用后解释的 concepts、需要 sources 的 claims
 
-Do not summarize sections the user has not written. Do not draft new sections from scratch. Edits only.
+不要 summarize 用户尚未写出的 sections。不要从零 draft new sections。只做 edits。
 
 Then strip AI patterns from the draft. If `/write` is installed, invoke it. If not, do it manually: scan for filler phrases, binary contrasts, dramatic fragmentation, and overused adverbs. Cut them without changing meaning.
 
 ## Phase 6: Self-review and Publish Readiness
 
-The user reads the entire article linearly before publishing. Not with AI. Mark everything that feels off, fix it, read again. Two passes minimum.
+发布前，用户要线性读完整篇文章。不要用 AI 读。标出所有感觉不对的地方，修掉，再读。至少两遍。
 
-When it reads clean from start to finish, the draft is ready for the user to publish.
+当它从头到尾读起来 clean，draft 就 ready for the user to publish。
 
-**After the user confirms the article is ready to publish, stop.** Do not upload, post, distribute, or perform any publish action unless explicitly asked.
+**用户确认 article ready to publish 后，停止。** 除非明确要求，不要 upload、post、distribute 或执行任何 publish action。
 
 ## Gotchas
 

@@ -6,7 +6,7 @@
 
 触发词到技能的路由表。Claude Code 通过每个 SKILL.md 的 `description` 自动匹配，这份文档是给人看的集中索引，也是 `scripts/verify_skills.py` 的校验依据。改 SKILL.md 的适用范围时，同步改这里。
 
-> **Read the skill file before acting.** 两个技能都可能匹配时，两个都读。它们设计成可串联（例：`/think` → 实现 → `/check`）。
+> **行动前先读 skill 文件。** 两个技能都可能匹配时，两个都读。它们设计成可串联（例：`/think` → 实现 → `/check`）。
 
 ## 按工作流阶段分路
 

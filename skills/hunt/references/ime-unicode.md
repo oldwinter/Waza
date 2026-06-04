@@ -1,13 +1,13 @@
 # IME / Unicode Debugging Reference
 
-Recurring patterns in Tauri and native macOS apps. Check these before forming a hypothesis.
+Tauri 和 native macOS apps 中的 recurring patterns。形成 hypothesis 前先检查这些。
 
 ## IME State Desync
 
 **Symptom**: Latin characters appear correctly but CJK input is dropped, doubled, or committed at the wrong time.
 
 **Cause candidates**:
-- Input method switch mid-composition: the IME commits the preedit with a stale target, then the new mode processes the same keystrokes again.
+- Input method switch mid-composition：IME 用 stale target commit preedit，然后 new mode 又处理同一批 keystrokes。
 - `keydown` handler consuming events during active composition: check `event.isComposing` before acting on `keydown`/`keyup`. If `isComposing` is true, defer the action until `compositionend`.
 - Webview + native frame split focus: in Tauri, the webview and the native window title bar can hold focus simultaneously. A click on a native control during IME composition triggers a focus-out, committing incomplete preedit text.
 

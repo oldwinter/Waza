@@ -1,6 +1,6 @@
 ## Chinese Anti-AI Patterns
 
-Applies to all Chinese output in every session: check replies, hunt diagnostics, think plans, issue/PR comments, and any other Chinese text. These are deterministic rules; no judgment needed.
+适用于每个 session 中的所有中文输出：check replies、hunt diagnostics、think plans、issue/PR comments，以及任何其他中文文本。这些是 deterministic rules，不需要判断。
 
 ### 禁止的高频 AI 中文模式
 

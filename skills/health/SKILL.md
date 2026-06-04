@@ -1,6 +1,6 @@
 ---
 name: health
-description: "Runs a budget-aware agent-assisted engineering health audit for instruction/config drift, hooks/MCP, verifier surfaces, and AI maintainability. Use when users ask 检查claude/检查codex/检查pi/配置检查/健康度 or report agents ignoring instructions, missing validation, or code becoming hard to maintain. Not for debugging code or reviewing PRs."
+description: "针对 instruction/config drift、hooks/MCP、verifier surfaces 和 AI maintainability 运行 budget-aware agent-assisted engineering health audit。Use when users ask 检查claude/检查codex/检查pi/配置检查/健康度，或报告 agents 忽略 instructions、missing validation、code 变得难维护时使用。Not for debugging code or reviewing PRs."
 when_to_use: "检查claude, 检查codex, 检查pi, Codex 配置, Pi 配置, AGENTS.md, config.toml, agent instructions, 健康度, 配置检查, 配置对不对, AI coding 腐化, 代码变烂, 维护性, 上下文混乱, 验证缺失, 验证命令失真, Claude ignoring instructions, Pi coding agent, check config, settings not working, audit config"
 dispatch_intent: "Codex/Claude/Pi ignoring instructions, agent config audit, hooks/MCP broken, health token usage, AI coding code rot, hotspot ownership, unclear context, missing verification, stale verifier output"
 ---
@@ -9,24 +9,24 @@ dispatch_intent: "Codex/Claude/Pi ignoring instructions, agent config audit, hoo
 
 Prefix your first line with 🥷 inline, not as its own paragraph.
 
-Audit the current project's agent setup and AI coding maintainability against this framework:
+按这个 framework 审计当前项目的 agent setup 和 AI coding maintainability：
 `agent config → instruction surfaces → tools/runtime → verifiers → maintainability`
 
-Find violations. Identify the misaligned layer. Calibrate to project complexity only.
+找出 violations。识别 misaligned layer。只按 project complexity 校准。
 
 ## Outcome Contract
 
-- Outcome: a budget-aware health report that separates agent configuration risk from AI maintainability risk.
-- Done when: each finding names the misaligned layer, the concrete evidence, and a copy-pasteable action or diagnostic command.
-- Evidence: collected health script output, tracked project instructions, runtime config summaries, verifier logs, hooks/MCP surfaces, and live probes when needed.
-- Output: prioritized findings with status, impact, and next action, or a clear clean bill with residual risk.
+- Outcome:一份 budget-aware health report，区分 agent configuration risk 与 AI maintainability risk。
+- Done when: 每个 finding 都命名 misaligned layer、concrete evidence，以及可 copy-paste 的 action 或 diagnostic command。
+- Evidence: collected health script output、tracked project instructions、runtime config summaries、verifier logs、hooks/MCP surfaces，以及需要时的 live probes。
+- Output: 带 status、impact 和 next action 的 prioritized findings，或带 residual risk 的 clear clean bill。
 
-Two lanes share one report:
+两条 lanes 共用一份 report：
 
-- **Agent config health**: Codex/Claude/Pi instruction drift, permissions, hooks, MCP, skills, and memory supply chain.
-- **AI maintainability health**: project context surface, verifier wrapper, generated-artifact checks, hotspot ownership, and stale or misleading durable docs.
+- **Agent config health**：Codex/Claude/Pi instruction drift、permissions、hooks、MCP、skills 和 memory supply chain。
+- **AI maintainability health**：project context surface、verifier wrapper、generated-artifact checks、hotspot ownership，以及 stale 或 misleading durable docs。
 
-**Output language:** Check in order: (1) project agent instructions (`AGENTS.md` before runtime-specific files); (2) global agent instructions; (3) user's recent language; (4) English.
+**Output language:** 按顺序检查：(1) project agent instructions（`AGENTS.md` before runtime-specific files）；(2) global agent instructions；(3) user recent language；(4) English。
 
 **Budget posture:** Start with the summary audit. Escalate automatically when the user asks for a deep, full, complete, thorough, "深入", "完整", "彻底", or "继续跑完" audit, when the user explicitly mentions AI coding code rot, Codex/Claude config drift, unclear context, missing verification, verifier output that points at stale paths, or "代码变烂", when current project instructions or remembered user preference says to run deep health checks by default, when the project is Complex, or when the summary pass exposes a critical ambiguity that cannot be resolved locally. Otherwise do not read full conversation extracts or launch inspector subagents. Tell the user before escalating because deep health audits can consume significant token quota.
 
@@ -38,7 +38,7 @@ For `/health`, audit expectations are `decision`, `preference`, and `principle` 
 
 ## Step 0: Assess project tier
 
-Pick one. Apply only that tier's requirements.
+选一个 tier。只应用该 tier 的 requirements。
 
 
 | Tier         | Signal                                  | What's expected                                |
@@ -50,7 +50,7 @@ Pick one. Apply only that tier's requirements.
 
 ## Step 1: Collect data
 
-Run the collection script in summary mode first. Do not interpret yet.
+先以 summary mode 运行 collection script。暂时不要 interpret。
 
 ```bash
 # Resolve collect-data.sh from canonical locations (no personal home-dir paths).
@@ -69,26 +69,26 @@ fi
 bash "$HEALTH_SCRIPT"
 ```
 
-Sections may show `(unavailable)` when tools are missing:
+tools missing 时，sections 可能显示 `(unavailable)`：
 
 - `jq` missing → conversation sections unavailable
 - `python3` missing → MCP/hooks/allowedTools sections unavailable
 - `settings.local.json` absent → hooks/MCP may be unavailable (normal for global-only setups)
 
-Treat `(unavailable)` as insufficient data, not a finding. Do not flag those areas.
+把 `(unavailable)` 视为 insufficient data，不是 finding。不要 flag 这些 areas。
 
-The collector includes both runtime-specific and agent-agnostic surfaces:
+collector 同时包含 runtime-specific 和 agent-agnostic surfaces：
 
 - `AGENT CONFIG SUMMARY` / `AGENT CONFIG DETAIL` for Codex, Claude, Pi, and project instruction files.
 - `AI MAINTAINABILITY SUMMARY` / `AI MAINTAINABILITY DETAIL` for project shape, verification surface, hotspot ownership, wrappers, and doc links.
 
 ## Step 1b: MCP Live Check
 
-Test every MCP server: call one harmless tool per server. Record `live=yes/no` with error detail. Respect `enabled: false` (skip without flagging). For API keys, only check if the env var is set (`echo $VAR | head -c 5`), never print full keys.
+测试每个 MCP server：每个 server 调用一个 harmless tool。记录 `live=yes/no` 和 error detail。尊重 `enabled: false`（skip，不 flag）。对 API keys，只检查 env var 是否 set（`echo $VAR | head -c 5`），绝不 print full keys。
 
 ## Security Baseline Checks
 
-Run these on every audit, regardless of tier. They are the floor, not the ceiling.
+每次 audit 都运行这些 checks，不管 tier。它们是 floor，不是 ceiling。
 
 **Deny-list floor.** Apply this only when the project or runtime exposes agent permission settings, hook settings, MCP settings, allowed/denied tools, or a documented autonomous-agent launcher. In that case, the settings should deny, at minimum: credential and key directories (SSH, cloud providers, GPG, gh CLI), secret files (`.env`, `credentials*`, `secrets*`), pipe-to-shell installers (`curl ... | bash`, `wget ... | sh`), and outbound shells (`ssh`, `scp`, `nc`). Report this as one concise WARN with the missing categories and suggested fix; let the reviewer fill in exact local paths from the environment. If no agent settings surface exists, report the deny-list as not applicable rather than a failure.
 
@@ -96,7 +96,7 @@ Run these on every audit, regardless of tier. They are the floor, not the ceilin
 
 ## Memory and Skill Supply Chain
 
-Treat agent memory and third-party skills as supply-chain artifacts. They run with the user's privileges.
+把 agent memory 和 third-party skills 视为 supply-chain artifacts。它们以用户 privileges 运行。
 
 **Memory hygiene.** Audit the project's long-term agent memory store for secrets, tokens, or credentials (Critical), and for entries written by untrusted runs (subagent invoked on attacker-controlled input, /loop iteration over external content); recommend rotation after such runs. For high-risk one-off runs (untrusted PDFs, uncontrolled scraping, third-party scripts), recommend disabling memory persistence for that session entirely.
 
@@ -104,9 +104,9 @@ Treat agent memory and third-party skills as supply-chain artifacts. They run wi
 
 ## Long-Running Agent Stop Conditions
 
-For projects that use `/loop`, autonomous agents, or any long-running agent flow, the project must define explicit stop conditions. An agent that never stops is a budget and safety incident waiting to happen.
+对使用 `/loop`、autonomous agents 或任何 long-running agent flow 的项目，必须定义 explicit stop conditions。永不停止的 agent 是尚未发生的 budget 和 safety incident。
 
-Audit for these four hard stop signals; flag the absence of each as a Structural finding:
+审计这四个 hard stop signals；缺少任一项都作为 Structural finding flag：
 
 1. **No progress across two consecutive checkpoints.** Same files touched, same errors logged, no new commits/tests/output. Recommend killing the loop and surfacing the state, not retrying.
 2. **Repeated identical failure.** Same stack trace, same error message, same failed assertion three times in a row means the hypothesis is wrong; more attempts will not help.
@@ -117,7 +117,7 @@ The stop conditions should live in tracked project docs (`AGENTS.md`, the loop's
 
 ## Step 2: Analyze
 
-Confirm the tier. Then route:
+确认 tier。然后 route：
 
 - **Simple:** Analyze locally. No subagents.
 - **Standard:** Analyze locally from the summary output. Do not launch subagents by default. If the user asks for a deep/full/thorough audit, or if local analysis cannot classify a security/control issue, escalate to deep mode and explain the likely token cost.
@@ -141,25 +141,25 @@ Confirm the tier. Then route:
   Action: <exact command or edit to fix>
 ```
 
-`Action:` must be copy-pasteable. Never write "investigate X" or "consider Y". If the fix is unknown, name the diagnostic command.
+`Action:` 必须 copy-pasteable。绝不要写 "investigate X" 或 "consider Y"。如果 fix unknown，命名 diagnostic command。
 
 ### [!] Critical -- fix now
 
-Rules violated, dangerous allowedTools, MCP overhead >12.5%, security findings, leaked credentials.
+Rules violated、dangerous allowedTools、MCP overhead >12.5%、security findings、leaked credentials。
 
 Example:
 
 - [!] `settings.local.json` committed to git (exposes MCP tokens)
-Why: leaked token enables remote code execution via installed MCP servers
+Why: leaked token 会通过 installed MCP servers 启用 remote code execution
 Action: `git rm --cached .claude/settings.local.json && echo '.claude/settings.local.json' >> .gitignore`
 
 ### [~] Structural -- fix soon
 
-Agent instructions in the wrong layer, missing hooks, oversized descriptions, verifier gaps.
+Agent instructions 位于 wrong layer、missing hooks、oversized descriptions、verifier gaps。
 
 **Codex/Claude/Pi instruction drift.** Use `AGENT CONFIG SUMMARY` first. Report a Structural finding when `AGENTS.md` and runtime-specific files both contain substantial guidance without delegation, when Codex `config.toml` lacks trust for the current project, when Pi settings or package metadata point at missing skill roots, when project agent instructions are missing, or when runtime-specific instructions contradict the shared project source of truth. Also report when important rules live only in ignored or private local instruction overlays but the tracked/public docs lack them; those overlays are private context, not durable project source of truth. Do not print raw config values. Secrets, tokens, keys, and passwords must appear only as `[REDACTED]`.
 
-Quick check from the project root:
+从 project root 运行 quick check：
 
 ```bash
 bash skills/health/scripts/check-agent-context.sh . summary
@@ -185,7 +185,7 @@ Layering rule: project-specific commands, app names, artifact names, and release
 
 **Missing stable verifier wrapper.** If the repo exposes multiple verification commands through CI, scripts, or manifests but `Makefile` has no `check`, `test`, or `verify` target, report a Structural `WARN`. This is an AI-maintainability gap because agents need one stable default entrypoint, not because the project is broken.
 
-Quick check from the project root:
+从 project root 运行 quick check：
 
 ```bash
 bash skills/health/scripts/check-maintainability.sh . summary
@@ -197,7 +197,7 @@ For deep audits:
 bash skills/health/scripts/check-maintainability.sh . deep
 ```
 
-Keep actions concrete and non-invasive: add or fix the smallest useful instruction surface, add one executable validation command, document hotspot ownership and tests, split only when the boundary is already clear, or repair the broken reference. Do not propose broad rewrites from the script output alone.
+保持 actions concrete 且 non-invasive：添加或修复 smallest useful instruction surface，添加一个 executable validation command，记录 hotspot ownership 和 tests，只在 boundary 已清晰时 split，或 repair broken reference。不要仅凭 script output 提出 broad rewrites。
 
 **Broken doc references.** Scan `AGENTS.md`, `CLAUDE.md`, `.claude/rules/*.md`, and every `.claude/skills/*/SKILL.md` for references shaped like `@<path>`, `~/.claude/rules/<name>.md`, `~/.claude/skills/<name>/`, `docs/<name>.md`, or `references/<name>.md`. For each match, check that the target exists on disk. Report every "referenced but missing" pointer with the source file and line.
 
@@ -205,9 +205,9 @@ Common offenders:
 - A project-level rule references a global rule file that was never created (e.g. `~/.claude/rules/swift.md`).
 - A `CLAUDE.md` uses an `@AGENTS.md` placeholder but the actual `AGENTS.md` is missing or empty.
 - A skill body references `references/<name>.md` but only `references/<name>-v2.md` exists.
-- A rule file references a deleted skill path.
+- rule file 引用了 deleted skill path。
 
-Quick check from the project root:
+从 project root 运行 quick check：
 
 ```bash
 bash skills/health/scripts/check-doc-refs.sh .
@@ -217,41 +217,41 @@ The checker resolves `@...` and `docs/...` from the project root, expands `~`, r
 
 Report missing references as Structural findings, not Critical, unless the missing file is named as a hard dependency (e.g. `release.md` for the project's release skill).
 
-**Broken Markdown references.** In deep mode, `check-maintainability.sh` also scans repository Markdown links. Report these as Structural findings when they point to missing local files, especially design, security, release, or handoff docs that agents may follow during future work.
+**Broken Markdown references。** 在 deep mode 中，`check-maintainability.sh` 也会扫描 repository Markdown links。当它们指向 missing local files 时，报告为 Structural findings，尤其是 agents 未来工作中可能遵循的 design、security、release 或 handoff docs。
 
-**Stale verifier cache output.** If validation output points at a deleted temp worktree or non-existent `/tmp` / `/private/tmp` file, parse the captured log with:
+**Stale verifier cache output。** 如果 validation output 指向已删除 temp worktree 或不存在的 `/tmp` / `/private/tmp` 文件，用以下命令解析 captured log：
 
 ```bash
 bash skills/health/scripts/check-verifier-output.sh . <log-file>
 ```
 
-Only use this script for existing command output supplied by the user or generated during the current audit. Do not run project tests just to feed this checker. Known actions include `golangci-lint cache clean`, `go clean -cache -testcache`, and `npm cache verify`; unknown tools get a diagnostic rerun action.
+只对用户提供的 existing command output，或当前 audit 期间生成的 output 使用此 script。不要为了 feed this checker 而运行 project tests。Known actions 包括 `golangci-lint cache clean`、`go clean -cache -testcache` 和 `npm cache verify`；unknown tools 给 diagnostic rerun action。
 
 ### [-] Incremental -- nice to have
 
-Outdated items, global vs local placement, context hygiene, stale allowedTools entries.
+Outdated items、global vs local placement、context hygiene、stale allowedTools entries。
 
 ---
 
-If no issues: `All relevant checks passed. Nothing to fix.`
+如果没有 issues：`All relevant checks passed. Nothing to fix.`
 
 ## Non-goals
 
-- Never auto-apply fixes without confirmation.
-- Never apply complex-tier checks to simple projects.
-- Never act as a heavy lint, typecheck, duplication, or architecture-rewrite substitute; `/health` reports maintainability guardrails and concrete next actions only.
+- 没有 confirmation，绝不 auto-apply fixes。
+- 绝不把 complex-tier checks 应用到 simple projects。
+- 绝不充当 heavy lint、typecheck、duplication 或 architecture-rewrite substitute；`/health` 只报告 maintainability guardrails 和 concrete next actions。
 
 ## Gotchas
 
 
 | What happened                                                               | Rule                                                                                                                                                                                                                                                                                           |
 | --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Missed the local override                                                   | Always read `settings.local.json` too; it shadows the committed file                                                                                                                                                                                                                           |
-| Subagent timeout reported as MCP failure                                    | MCP failures come from the live probe, not data collection                                                                                                                                                                                                                                     |
-| Reported issues in wrong language                                           | Honor CLAUDE.md Communication rule first                                                                                                                                                                                                                                                       |
-| Flagged intentionally noisy hook as broken                                  | Ask before calling a hook "broken"                                                                                                                                                                                                                                                             |
-| Hook seemed not to fire, but it did -- a later UI element rendered above it | Hook firing order is not visual order. Before re-editing the hook config: (a) confirm with `--debug` or by piping output, (b) check whether a diff dialog, permission prompt, or other UI element rendered on top and pushed the hook output offscreen, (c) only then suspect the hook itself. |
-| `/health` burned too much quota on first run                                | Stay in summary mode first. Full conversation extracts and inspector subagents are deep-audit tools, not the default path for Standard projects.                                                                                                                                                 |
-| Treated missing specs/docs as a failure                                     | Decision artifacts are optional by default. Escalate missing docs/specs only when the tier, active handoff risk, or user request makes them necessary.                                                                                                                                           |
-| Treated an ignored AGENTS/CLAUDE file as durable project truth              | Report whether the rule is tracked and distributed. Local overlays can inform the audit, but durable fixes belong in public repo docs or shipped skill/rule files.                                                                                                                               |
-| Treated a review scorecard as maintainability documentation                 | Scorecards are snapshots. Extract the invariant and verification path, then remove or archive the report instead of calling the score itself a durable rule.                                                                                                                                     |
+| Missed the local override                                                   | 也要读取 `settings.local.json`；它会 shadow committed file                                                                                                                                                                                                                                      |
+| Subagent timeout reported as MCP failure                                    | MCP failures 来自 live probe，不来自 data collection                                                                                                                                                                                                                                            |
+| Reported issues in wrong language                                           | 优先遵守 CLAUDE.md Communication rule                                                                                                                                                                                                                                                           |
+| Flagged intentionally noisy hook as broken                                  | 把 hook 称为 "broken" 前先询问                                                                                                                                                                                                                                                                   |
+| Hook seemed not to fire, but it did -- a later UI element rendered above it | Hook firing order 不是 visual order。重新编辑 hook config 前：(a) 用 `--debug` 或 piping output 确认，(b) 检查 diff dialog、permission prompt 或其他 UI element 是否渲染在上层并把 hook output 推出屏幕，(c) 然后才怀疑 hook 本身。 |
+| `/health` burned too much quota on first run                                | 先 stay in summary mode。Full conversation extracts 和 inspector subagents 是 deep-audit tools，不是 Standard projects 的 default path。                                                                                                                                                         |
+| Treated missing specs/docs as a failure                                     | Decision artifacts 默认 optional。只有 tier、active handoff risk 或 user request 让它们必要时，才升级 missing docs/specs。                                                                                                                                                                      |
+| Treated an ignored AGENTS/CLAUDE file as durable project truth              | 报告 rule 是否 tracked 和 distributed。Local overlays 可以 inform audit，但 durable fixes 应放在 public repo docs 或 shipped skill/rule files。                                                                                                                                                  |
+| Treated a review scorecard as maintainability documentation                 | Scorecards 是 snapshots。提取 invariant 和 verification path，然后 remove 或 archive report，不要把 score 本身称为 durable rule。                                                                                                                                                               |

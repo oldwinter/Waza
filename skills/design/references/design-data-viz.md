@@ -1,34 +1,34 @@
 # Design Reference: Data Visualization
 
-Load this only when the surface is a dashboard, analytics view, chart-heavy interface, or any number-dense data display. Marketing pages, landing pages, and generic component work do not need it.
+只有当 surface 是 dashboard、analytics view、chart-heavy interface，或任何 number-dense data display 时才加载本文件。Marketing pages、landing pages 和 generic component work 不需要它。
 
 ## Dashboard defaults
 
-Dashboards are utility surfaces: orient the user, show status, enable action. No hero sections, no marketing copy. Every element must earn its place by answering a question the user has.
+Dashboards 是 utility surfaces：帮助用户定位、显示 status、支持 action。不要 hero sections，不要 marketing copy。每个 element 都必须回答用户的某个问题，才配占据位置。
 
-- Primary layout: status summary at top, detail below; or sidebar filters + main chart area.
-- Whitespace: tighter than marketing pages; users scan, not read. Use generous column spacing, not generous row height.
-- Number density: many numbers on screen at once is not a problem. Crowding without alignment is. Use `font-variant-numeric: tabular-nums` for all numeric columns. Right-align numbers. Left-align labels.
+- Primary layout：顶部 status summary，下方 detail；或 sidebar filters + main chart area。
+- Whitespace：比 marketing pages 更紧；用户是 scan，不是 read。使用 generous column spacing，不要 generous row height。
+- Number density：屏幕上同时出现很多 numbers 不是问题。没有 alignment 的 crowding 才是问题。所有 numeric columns 使用 `font-variant-numeric: tabular-nums`。Numbers right-align，labels left-align。
 
 ## Chart selection
 
 | Use case | Chart type |
 |---|---|
-| Comparing values across categories | Bar chart (horizontal if labels are long) |
-| Trend over time | Line chart; avoid bars for time series with many points |
-| Part-whole relationships | Treemap (6+ segments) or stacked bar; pie only for 2-4 segments |
-| Distribution | Histogram or box plot; never pie chart |
-| Correlation | Scatter plot; do not use line chart |
+| Comparing values across categories | Bar chart（labels 长时用 horizontal） |
+| Trend over time | Line chart；points 很多的 time series 避免用 bars |
+| Part-whole relationships | Treemap（6+ segments）或 stacked bar；pie 只用于 2-4 segments |
+| Distribution | Histogram 或 box plot；绝不要 pie chart |
+| Correlation | Scatter plot；不要用 line chart |
 
-Pie charts with more than 4 segments communicate nothing. Use a treemap or ranked list instead.
+超过 4 个 segments 的 pie charts 基本不传达信息。改用 treemap 或 ranked list。
 
 ## Number-dense interfaces
 
-- `font-variant-numeric: tabular-nums` on every number column so digits align vertically.
-- Right-align all numbers; left-align all text labels. Mixed alignment in the same column is always wrong.
-- Subtle row separators: `1px` line at `rgba(0,0,0,0.06)` (light) or `rgba(255,255,255,0.05)` (dark). Alternating row backgrounds only if the table is very wide (12+ columns).
-- Column spacing: at least `16px` between adjacent columns; more between logically distinct groups.
+- 每个 number column 都使用 `font-variant-numeric: tabular-nums`，让 digits 垂直对齐。
+- 所有 numbers right-align；所有 text labels left-align。同一 column 中 mixed alignment 永远不对。
+- Subtle row separators：`1px` line，light 使用 `rgba(0,0,0,0.06)`，dark 使用 `rgba(255,255,255,0.05)`。只有 table 很宽（12+ columns）时才使用 alternating row backgrounds。
+- Column spacing：相邻 columns 至少 `16px`；逻辑上不同的 groups 之间留更多。
 
 ## Using a product as a benchmark
 
-When the user references a product for visual benchmark ("make it feel like Grafana" / "similar to Linear analytics"): extract 3-5 concrete data-visualization-specific properties from that product, not general aesthetic properties. Useful properties: chart color palette (exact values), grid line weight and opacity, axis label size and color, tooltip border-radius and shadow, empty-state treatment. Do not extract "minimal" or "clean" as properties; those are not actionable.
+当用户引用某个 product 作为 visual benchmark（"make it feel like Grafana" / "similar to Linear analytics"）时：从该 product 提取 3-5 个 concrete data-visualization-specific properties，而不是 general aesthetic properties。可用 properties：chart color palette（exact values）、grid line weight and opacity、axis label size and color、tooltip border-radius and shadow、empty-state treatment。不要提取 "minimal" 或 "clean" 作为 properties；它们不可执行。
