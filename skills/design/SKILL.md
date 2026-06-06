@@ -143,6 +143,7 @@ Flow:
 | 用重设计整个 surface 来修 visual polish | 先定位 concrete visual delta，再做最小 material、opacity、geometry 或 typography change 解决它 |
 | 添加 setting 或更响亮 control 来解决 UI noise | 先移除 misleading affordance 或选择 quiet default |
 | 英文看着没问题，localized text overflowed | handoff 前测试 long words 和 localized strings，尤其是 buttons、tabs、nav 和 compact cards 内部 |
+| 依赖 `...` truncation 让 text 塞进 fixed-width slot | 改为保证 fit：压缩 format、限制到完整 segments，或 hard-trim 且不显示 glyph。Metric 和 label footers 绝不能 tail-truncate 成 ellipsis |
 
 ## Aesthetic Review
 

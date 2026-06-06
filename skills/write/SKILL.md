@@ -1,7 +1,7 @@
 ---
 name: write
-description: "重写并 polish 中文或英文 prose，为 drafts、docs、release notes、launch copy 和 social posts 保留 intent，同时移除 AI-like wording。Use when users ask 帮我写/改稿/润色/去AI味/写一段/审稿/tweet/rewrite/proofread 时使用。Not for code comments, commit messages, or inline docs."
-when_to_use: "帮我写, 改稿, 润色, 去AI味, 写一段, 审稿, 文档review, check this document, 推特, twitter, X推文, tweet, social post, 连贯性, 段落连贯, draft, edit text, proofread, sound natural, polish, rewrite"
+description: "重写并 polish 中文或英文 prose，移除 AI-like wording，并 review product localization copy；为 drafts、docs、release notes、launch copy 和 social posts 保留 intent。Use when users ask 帮我写/改稿/润色/去AI味/写一段/审稿/本地化文案/tweet/rewrite/proofread 时使用。Not for code comments, commit messages, or inline docs."
+when_to_use: "帮我写, 改稿, 润色, 去AI味, 写一段, 审稿, 文档review, 本地化文案, 多语言文案, i18n copy, localization copy, check this document, 推特, twitter, X推文, tweet, social post, 连贯性, 段落连贯, draft, edit text, proofread, sound natural, polish, rewrite"
 dispatch_intent: "Writing, editing prose, polish, release notes, launch/social copy, remove AI tone"
 ---
 
@@ -25,6 +25,7 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 3. **Language detected from the text being edited**，不要根据用户 command 判断：
    - Contains Chinese characters + release notes or social post mode → load `references/write-zh-release-notes.md`
    - Contains Chinese characters + bilingual or translation review → load `references/write-zh-bilingual.md`
+   - Product/site/app localization review across multiple locales → load `references/write-product-localization.md`; also load `references/write-zh-bilingual.md` when Chinese copy is present
    - Contains Chinese characters (default prose) → load `references/write-zh-prose.md` (quick rules); load `references/write-zh.md` for the full AI-taste pattern catalog
    - Otherwise → load `references/write-en.md`
 
@@ -56,6 +57,20 @@ See [rules/durable-context.md](../../rules/durable-context.md) for when to read 
 **English in Chinese documents**: 标记 unexplained English，建议 translation 或补充 context。
 
 **Bilingual pairs**: 确认 EN 和 CN versions 传达相同 meaning；标记 translation loss。
+
+## Product Localization Review Mode
+
+触发时机："本地化文案"、"多语言文案"、"localization copy"、"i18n copy"、product/site/app strings、release feed copy、runtime catalog，或用户询问 localized copy 是否 native。
+
+加载 `references/write-product-localization.md`。如果 Chinese 是 locales 之一，也加载 `references/write-zh-bilingual.md`。
+
+默认 workflow：
+
+1. 先拆分 surfaces：release feed、website pages、docs/help、runtime strings、legal/privacy copy 和 generated pages 可能有不同的 locale coverage 和 source files。
+2. 保留 factual structure：versions、dates、links、item order、placeholders 和 product behavior 固定不变，除非用户要求修改。
+3. 按 locale artifacts review，不只按 English meaning review。Missing accents、ASCII fallbacks、literal possessives、stale locale paths，以及机械 plural 或 apostrophe errors 都是一等问题。
+4. 大范围 cleanup 后，再做一轮 replacement damage 检查。generated output 检查前，不要信任 accent sweeps 或 glossary replacements。
+5. 用户要求 implement 时，patch source localization files 并 rebuild generated pages。只要求 review 时，按 surface 和 severity 分组返回 findings。
 
 ## Release Note Template Mode
 

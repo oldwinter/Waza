@@ -23,7 +23,7 @@ rules="$ROOT/rules/anti-patterns.md"
 
 grep -q '## Worktree Safety Preflight' "$skill"
 grep -q 'git status --short --branch -uall' "$skill"
-grep -q 'Treat modified, staged, and untracked files as user work' "$skill"
+grep -q '把 modified、staged 和 untracked files 当成用户工作' "$skill"
 
 for forbidden in \
   'git switch' \

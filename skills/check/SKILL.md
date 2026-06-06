@@ -261,6 +261,7 @@ Examples，不穷尽。任何未 review 合并后可能造成 irreversible harm 
 
 - **No unverified claims.** Do not write "I verified X", "I ran Y", "tests pass", or "this fixes Z" unless the shell output is in this turn's transcript. If you reason about behavior without running, say "based on reading the code" instead of "I verified". Every verification claim in the sign-off must point to a command that actually ran in this session.
 - **Re-read before citing source-of-truth facts.** Before writing a line number, dirty-file count, branch ahead/behind state, fallback behavior, locale coverage, or release artifact state into a handoff or review report, re-read the source in this turn (`git status`, `git diff`, file `Read`, `rg`, command output). Earlier chat context, prior agent's notes, and your own recall from a hundred turns ago are stale by default; restating "the catalog uses en fallback" or "the file is at line 310" without checking has been the recurring failure mode in long sessions. Cite the verification path inline (`per current Read of <file>` / `per `git status` this turn`) so reviewers know which facts are anchored.
+- **String-matching on captured output?** When a diff branches on, greps, or classifies an error message or command output, verify what that string actually holds at runtime before approving. A subprocess spawned with `stdio: 'inherit'` (or any uncaptured pipe) streams its diagnostics to the terminal, not into `error.message` -- which then contains only the command line. Such a matcher silently matches the command, not the output: it can pass tests, fire on the wrong token, or be dead in production while looking correct. Probe the real `error.message` (a one-line repro) instead of assuming, and prefer driving behavior off a structured fact the caller already holds (build target, exit code) over re-parsing a string.
 - **Destructive auto-execution**: any task marked "safe" or "auto-run" that modifies user-visible state (history files, config, preferences, installed software) must require explicit confirmation.
 - **Release artifacts missing**: verify every artifact listed in release notes, release templates, or project workflows exists and has been uploaded before declaring done.
 - **Generated artifact drift**: if source changes require generated or bundled outputs, verify the output was regenerated and included.
@@ -323,6 +324,8 @@ If found, either apply the doc update as `safe_auto` (when the invariant is clea
 
 合并 findings：两个 specialists 标记同一 code location 时，保留更高 severity，并注明 cross-reviewer agreement。不同 code locations 上的 findings 即使 theme 相同，也不是 duplicates。
 
+Treat each specialist finding as a claim to verify, not a fact to act on. Before routing a finding to Autofix or sign-off, re-read the cited code this turn and confirm it is real and live: not already handled elsewhere, not consistent-by-design, not a latent-only risk labeled as a live bug. Parallel reviewers over-report from name-based inference and partial context; drop or downgrade what dissolves on direct read, and cite the verification path.
+
 ## Autofix Routing
 
 | Class | Definition | Action |
@@ -349,6 +352,8 @@ If found, either apply the doc update as `safe_auto` (when the invariant is clea
 如果 script 以 non-zero 退出或打印 `(no test command detected)`：halt。不要 claim done。继续前询问用户 verification command。如果用户也无法提供，在 sign-off 中明确记录为 `verification: none -- no command available`，并把它标记为 structural gap，不是 pass。
 
 对 bug fixes：必须存在一个在 old code 上失败的 regression test，fix 才算 done。
+
+In a dirty or multi-agent checkout, a passing local build or test run is not proof your change is sound: unrelated WIP already in the tree can supply missing symbols, mask a break, or fail for reasons unrelated to you. Verify in isolation -- `git worktree add --detach <known-good-commit>`, `git apply` only the diff of the files you own, then build/test there. The clean isolated pass is the real signal; the contaminated local pass is not.
 
 ## Gotchas
 

@@ -118,3 +118,12 @@ Checks：
 - 阅读 tool 的 man page，确认 cold-start semantics。`top -l 2`、`iostat -d 2`、`vm_stat 1 2` 等都有这种 shape。
 - 把 output 切到 latest sample（对 parsed lines 用 `.suffix(perSampleSize)`，或寻找第二次出现的 header row）。
 - 不确定时，把 `-l` 提到 3，确认 sample 2 和 3 一致；sample 1 保持 zero。
+
+## Aggregation Key Variant
+
+Signals：count、log roll-up、event tally 或 per-category breakdown 少了一些 entries；missing items 共享某个 trait（system-derived path、localized string、prefixed command name）；base-form key 匹配，但 derived variant（`<base>-system`、suffix、prefix）被静默丢掉。
+
+Checks：
+- 添加 category 前，grep 产生这类 key 的每个 write site，枚举真实 variants，而不只是 base form。
+- 用 `hasPrefix` / regex / explicit variant list 匹配，不要只对 base key 做 exact equality。
+- 为每个 known variant 添加 fixture row，让未来逃过 matcher 的新 key shape 让 test fail，而不是让 aggregate 悄悄变短。

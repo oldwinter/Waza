@@ -1,7 +1,7 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "waza",
-  "description": "Personal skill collection for Claude Code and Codex: think, check, hunt, design, read, write, learn, and health for agent config and AI maintainability audits.",
+  "description": "Personal skill collection for Claude Code, Codex, Antigravity, OpenCode, and Pi: think, check, hunt, design, read, write, learn, and health for agent config and AI maintainability audits.",
   "owner": {
     "name": "Tw93",
     "email": "hitw93@gmail.com"
@@ -101,7 +101,7 @@
     },
     {
       "name": "waza-write",
-      "description": "重写并 polish 中文或英文 prose，为 drafts、docs、release notes、launch copy 和 social posts 保留 intent，同时移除 AI-like wording。Use when users ask 帮我写/改稿/润色/去AI味/写一段/审稿/tweet/rewrite/proofread 时使用。Not for code comments, commit messages, or inline docs.",
+      "description": "重写并 polish 中文或英文 prose，移除 AI-like wording，并 review product localization copy；为 drafts、docs、release notes、launch copy 和 social posts 保留 intent。Use when users ask 帮我写/改稿/润色/去AI味/写一段/审稿/本地化文案/tweet/rewrite/proofread 时使用。Not for code comments, commit messages, or inline docs.",
       "version": "3.27.0",
       "category": "development",
       "source": "./skills/write",

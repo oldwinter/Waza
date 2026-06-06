@@ -103,9 +103,14 @@ copy_repo "$tmpdir/repo8"
 python3 -c "
 from pathlib import Path
 p = Path('$tmpdir/repo8/skills/read/SKILL.md')
-t = p.read_text()
-t = t.replace(' Use when users ask 看这个链接/读一下/read this/check this URL.', '')
-p.write_text(t)
+lines = p.read_text().splitlines()
+for i, line in enumerate(lines):
+    if line.startswith('description: '):
+        lines[i] = 'description: \"Fetches URLs and PDFs for reading tasks while preserving source-grounded output. Not for local text files already in the repo.\"'
+        break
+else:
+    raise SystemExit('description line not found')
+p.write_text('\n'.join(lines) + '\n')
 "
 if (cd "$tmpdir/repo8" && python3 scripts/verify_skills.py --root . >"$tmpdir/usewhen.out" 2>"$tmpdir/usewhen.err"); then
   echo "verify-skills should reject descriptions without Use when trigger cues"; exit 1

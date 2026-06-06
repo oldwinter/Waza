@@ -62,6 +62,23 @@ npx skills add tw93/Waza -a codex -g -y
 
 只安装单个 skill 可使用 `npx skills add tw93/Waza --skill think -a codex -g -y`。Codex sessions 可以按名称调用已安装的 skills，也可以链接到 `npx skills path tw93/Waza` 显示的已安装 `SKILL.md` 路径。
 
+**Antigravity**
+
+```bash
+npx skills add tw93/Waza -a antigravity -g -y
+npx skills add tw93/Waza -a antigravity-cli -g -y
+```
+
+桌面应用使用 `antigravity`，终端 agent 使用 `antigravity-cli`。两者都会通过 skills installer 使用 Waza 标准的 `skills/<name>/SKILL.md` 布局。
+
+**OpenCode**
+
+```bash
+npx skills add tw93/Waza -a opencode -g -y
+```
+
+安装后，OpenCode 会通过原生 skill tool 加载 Waza。当任务匹配 `think`、`design`、`check`、`hunt`、`write`、`learn`、`read` 或 `health` 时，按名称调用对应 skill。
+
 **Claude Code plugin marketplace**（单 skill 条目需要 Claude Code v2.1.143+）
 
 ```bash
