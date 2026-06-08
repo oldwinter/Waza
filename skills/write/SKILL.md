@@ -18,6 +18,17 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 - Evidence:supplied text、target audience、project style references、release 或 product state，以及 requested language。
 - Output:只输出 edited prose，除非用户要求 notes、variants 或 review comments。
 
+## Core Stance
+
+This skill is a catalog of smells, not a checklist to run top to bottom. Use it to recognize AI taste, then make judgment calls. The reference files (especially `write-zh.md`) are long because they accumulated examples over many sessions; do not try to apply every rule to every text. Applying more rules is not doing a better job.
+
+- **Over-editing is failure, equal to under-editing.** If a sentence is already natural, clear, and stable, leave it. Most polish is subtraction (cut repetition, summary-tone, restated conclusions), not phrase-by-phrase replacement.
+- **The author's voice wins.** Keep the author's existing colloquial words, cadence, and stance. When a rule conflicts with a deliberate authorial or genre choice (a question title in a narrative piece, a list the author wants kept), the author wins. Rules are defaults, not laws.
+- **Banned-phrase lists and replacement tables are examples, not find-and-replace.** A flagged word that reads naturally in context stays. Match the smell, not the string.
+- **Prefer fewer, stronger edits.** Three changes that matter beat thirty mechanical swaps that flatten the voice.
+
+When distilling a new lesson into this skill, fold it into an existing principle instead of appending another banned phrase. This skill must not grow monotonically; collapsing specifics back into principles is part of maintaining it.
+
 ## Pre-flight
 
 1. **Text present?** 如果用户只给 instruction，没有给 actual prose to edit，用一句话请用户提供 text。不要继续。
@@ -40,10 +51,25 @@ See [rules/durable-context.md](../../rules/durable-context.md) for when to read 
 ## Hard Rules
 
 - **Meaning first, style second.** 如果移除 AI pattern 会改变作者 intended meaning，保留原文。
-- **No silent restructuring.** 除非明确要求 structural changes，不要 reorganize headings、reorder paragraphs 或 merge sections。Edit in place。
+- **No silent restructuring.** 除非明确要求 structural changes，不要 reorganize headings、reorder paragraphs 或 merge sections。Edit in place。（例外：Long-form Article Mode 把 structural cuts 和 merges 视为 in-scope，因为 structure 才是核心问题；但它仍会先把它们作为 change-points 提出，而不是静默执行。）
 - **Artifact-grounded claims.** 对 launch copy、release notes、social posts、product pages 和 public replies，factual claims 必须 grounded in real source material：current app behavior、runnable artifact、screenshot、product page、release page、changelog、issue/PR 或 user-provided draft。不要把 handoffs、plans、old memory 或 stale screenshots 当成 current product truth；也不要把 concrete product evidence 变成 generic marketing language。
 - **No em-dash.** Chinese 或 English output 中绝不要产生 em-dash（U+2014 `—`）或 en-dash（U+2013 `–`）。Em-dash 是这种 writing style 中最强的 AI-tone fingerprint。用 commas、periods、colons、semicolons 或 parentheses 断开 clauses。compound words 内的 hyphen-minus（`-`）允许存在；可能时替换成 space 或 period。编辑包含 em-dashes 的 draft 时，返回 text 前替换每一个。
-- **Stop after output.** 交付 rewritten text。不要追加 changes list、justification 或 closer。
+- **Stop after output.** 交付 rewritten text。不要追加 changes list、justification 或 closer。（例外：Long-form Article Mode 返回 change-points 供 review，而不是 rewritten blob；见该 mode。）
+
+## Long-form Article Mode
+
+触发时机：编辑超过约 300 行的 Markdown article 或 file，或包含多个 `##` sections 加 tables 和 images 的文件（technical long-reads、blog posts、deep dives）。
+
+长文里，主要问题通常是 structure：同一 checklist 跨 sections 重复、prose 复读刚刚出现的 table、list bloat、整段或整节冗余。Sentence-level AI taste 只是较小的一半。单次 in-place polish 看不到也修不好 structural half，所以普通 `/write` 跑在长文上会像是改了措辞，却保留了臃肿结构。因此这个 mode override 两条 Hard Rules：structural cuts 和 merges 是 in-scope，output 是供 review 的 change-points，而不是 rewritten blob。
+
+Workflow:
+
+1. **Map first, read-only.** 编辑任何内容前，读完整篇文章，列出每个 `##` section、table、list 和 image。标记三类 structural problems：cross-section repetition（同一 checklist / judgment list / core claim 出现在 2+ sections）、table re-reading（某节 prose 逐行复读上方 table）、整节或整段冗余。
+2. **把 cuts 作为 change-points 提出。** 对每个 structural cut 或 merge 展示 before to after，让用户选择 subset。绝不静默删除整节或整段；先确认，因为里面可能有别处没有的 fact（见 `references/write-zh.md` 删段之前先确认信息量）。
+3. **再做 line-level de-AI**，按 section 依据 `references/write-zh.md` 处理。
+4. **Output 是 change-points，不是 blob。** 展示改了什么，方便用户 review 并保留自己的 hand-edits。只有用户说 直接改 / just rewrite 时，才返回完整 rewritten text。
+
+不要 single-pass rewrite 一篇 40k-character article：它会静默覆盖作者手调的 phrasing，也无法作为 diff review。匹配的 content rules 见 `references/write-zh.md` 结构级重复与表格复读（长文专项）。
 
 ## Bilingual Review Mode
 

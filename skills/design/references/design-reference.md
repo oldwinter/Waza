@@ -147,6 +147,16 @@ Reject: Inter, DM Sans, DM Serif Display, DM Serif Text, Outfit, Plus Jakarta Sa
 3. 拒绝这三个。
 4. 从 named foundry（Klim、Commercial Type、Colophon、Grilli Type、OH no Type、Village 等）或具有清晰个性且匹配 brand words 的 open-source option 中选择 typeface。能用一句话解释为什么是这款 typeface。
 
+## CJK & Multilingual Type
+
+When the interface mixes Chinese, Japanese, or Korean with Latin, Latin-only type rules silently break the CJK text. Apply these before handoff:
+
+- **Latin face first, system CJK face after** in the stack, so each script renders with correct glyphs: `font-family: -apple-system, "SF Pro Text", "PingFang SC", "Noto Sans SC", sans-serif;`. Latin runs use the Latin face; Han characters fall through to the CJK face.
+- **Give CJK body text more line-height than Latin**: roughly 1.7–1.8 for reading. Dense Hanzi needs more vertical room than the 1.4–1.5 that suits Latin body copy.
+- **Tag runs with `lang="zh"` / `lang="ja"` / `lang="en"`** so the browser picks the right font and line-breaking. Mixed-language paragraphs break badly without it.
+- **Serif reading modes need an explicit CJK serif fallback.** Most Latin "reading serif" webfonts carry no CJK glyphs, so a serif toggle silently drops Chinese back to a sans and looks broken. Pair them: `"Newsreader", "Songti SC", "Noto Serif SC", serif`.
+- **Do not apply negative letter-spacing to CJK runs.** The display-type tracking rule above is Latin-only; tightening tracking on Hanzi cramps the glyphs and reads as a rendering bug. Scope tracking to `lang="en"` runs.
+
 ## Color System: OKLCH Rules
 
 - 使用 OKLCH，不用 HSL。OKLCH 是 perceptually uniform：相同数值变化会在光谱各处产生相同的感知变化。

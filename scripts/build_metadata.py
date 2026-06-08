@@ -194,19 +194,29 @@ def render_dispatcher(template: str, skills: list[dict]) -> str:
     return pattern.sub(block, template)
 
 
-# Matches both pinned (v3.24.0) and unpinned (main) install URLs so the
-# generator can rewrite either form to the current VERSION.
+# README installer entrypoints should follow the latest GitHub release asset.
+# The downloaded scripts themselves still default WAZA_REF to a release tag, so
+# users get a stable install without README churn on every version bump.
 README_INSTALL_URL_RE = re.compile(
-    r"raw\.githubusercontent\.com/tw93/Waza/(?:main|v\d+\.\d+\.\d+)/scripts/"
+    r"https://raw\.githubusercontent\.com/tw93/Waza/"
+    r"(?:main|v\d+\.\d+\.\d+)/scripts/(setup-(?:rule|statusline)\.sh)"
 )
-README_SWAP_TAG_RE = re.compile(r"swap `v\d+\.\d+\.\d+` for `main`")
+README_SWAP_TAG_RE = re.compile(
+    r"Curl URLs are pinned to the current release tag for reproducibility; "
+    r"swap `v\d+\.\d+\.\d+` for `main` if you want bleeding-edge scripts\."
+)
 WAZA_REF_RE = re.compile(r'WAZA_REF="\$\{WAZA_REF:-(?:main|v\d+\.\d+\.\d+)\}"')
 
 
 def render_readme(current: str, version: str) -> str:
-    pinned = f"raw.githubusercontent.com/tw93/Waza/v{version}/scripts/"
-    current = README_INSTALL_URL_RE.sub(pinned, current)
-    return README_SWAP_TAG_RE.sub(f"swap `v{version}` for `main`", current)
+    current = README_INSTALL_URL_RE.sub(
+        r"https://github.com/tw93/Waza/releases/latest/download/\1", current
+    )
+    return README_SWAP_TAG_RE.sub(
+        "Curl URLs use the latest GitHub release asset. Set `WAZA_REF=main` "
+        "before the command if you want bleeding-edge scripts.",
+        current,
+    )
 
 
 def render_script_ref(current: str, version: str) -> str:
@@ -284,7 +294,7 @@ def main() -> int:
             drift = True
         if readme_actual != readme_rendered:
             print(
-                f"DRIFT: README.md install URLs are not pinned to v{version}.\n"
+                "DRIFT: README.md installer URLs must use latest release assets.\n"
                 f"Run scripts/build_metadata.py (no flags) to regenerate.",
                 file=sys.stderr,
             )
@@ -322,7 +332,7 @@ def main() -> int:
         if drift:
             return 1
         print(f"ok: {target.relative_to(root)} matches generator")
-        print(f"ok: README.md install URLs pinned to v{version}")
+        print("ok: README.md install URLs use latest release assets")
         print(f"ok: package.json pinned to v{version}")
         print(f"ok: installer defaults pinned to v{version}")
         print(f"ok: {dispatcher_target.relative_to(root)} matches generator")
@@ -338,9 +348,9 @@ def main() -> int:
         print(f"ok: package.json already pinned to v{version}")
     if readme_actual != readme_rendered:
         readme.write_text(readme_rendered)
-        print(f"wrote: README.md (pinned install URLs to v{version})")
+        print("wrote: README.md (installer URLs use latest release assets)")
     else:
-        print(f"ok: README.md install URLs already pinned to v{version}")
+        print("ok: README.md install URLs already use latest release assets")
     for script, actual, rendered_script in script_pairs:
         if actual != rendered_script:
             script.write_text(rendered_script)

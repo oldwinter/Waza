@@ -40,13 +40,11 @@ For `/health`, audit expectations are `decision`, `preference`, and `principle` 
 
 选一个 tier。只应用该 tier 的 requirements。
 
-
-| Tier         | Signal                                  | What's expected                                |
-| ------------ | --------------------------------------- | ---------------------------------------------- |
-| **Simple**   | <500 files, 1 contributor, no CI        | CLAUDE.md only; 0-1 skills; hooks optional     |
-| **Standard** | 500-5K files, small team or CI          | CLAUDE.md + 1-2 rules; 2-4 skills; basic hooks |
-| **Complex**  | >5K files, multi-contributor, active CI | Full six-layer setup required                  |
-
+| Tier | Signal | What's expected |
+|---|---|---|
+| **Simple** | <500 files, 1 contributor, no CI | CLAUDE.md only; 0-1 skills; hooks optional |
+| **Standard** | 500-5K files, small team or CI | CLAUDE.md + 1-2 rules; 2-4 skills; basic hooks |
+| **Complex** | >5K files, multi-contributor, active CI | Full six-layer setup required |
 
 ## Step 1: Collect data
 
@@ -86,7 +84,11 @@ collector 同时包含 runtime-specific 和 agent-agnostic surfaces：
 
 测试每个 MCP server：每个 server 调用一个 harmless tool。记录 `live=yes/no` 和 error detail。尊重 `enabled: false`（skip，不 flag）。对 API keys，只检查 env var 是否 set（`echo $VAR | head -c 5`），绝不 print full keys。
 
-## Security Baseline Checks
+## Step 1c: Safety and security checks
+
+These run after collection and before the Step 2 analysis. The first two apply to every audit; the third only to projects with long-running or autonomous agents.
+
+### Security Baseline Checks
 
 每次 audit 都运行这些 checks，不管 tier。它们是 floor，不是 ceiling。
 
@@ -94,7 +96,7 @@ collector 同时包含 runtime-specific 和 agent-agnostic surfaces：
 
 **Environment override surface.** Treat the following as attack surface, report when set in tracked files or shipped settings without a justification comment: API base-URL overrides (redirect all traffic to a third party), auto-trust flags for project-local MCP servers, wildcard tool allowlists (`allowedTools: ["*"]`), and permission-skip flags (`--dangerously-skip-permissions` or equivalents). Print file:line and the key name only; never print secrets.
 
-## Memory and Skill Supply Chain
+### Memory and Skill Supply Chain
 
 把 agent memory 和 third-party skills 视为 supply-chain artifacts。它们以用户 privileges 运行。
 
@@ -102,7 +104,7 @@ collector 同时包含 runtime-specific 和 agent-agnostic surfaces：
 
 **Skill supply chain.** Third-party skills, plugins, and MCP servers run with the user's privileges. For each one not authored in this repo, check: source pinned to a release tag or revision (not `main`, a branch, or a remote git marketplace left tracking its latest head), hook handlers do not write to credential directories, MCP servers have explicit user consent (not auto-trusted by wildcard). Report unpinned sources or unreviewed hook handlers as Structural, not Critical, unless an active exploit signal is present.
 
-## Long-Running Agent Stop Conditions
+### Long-Running Agent Stop Conditions
 
 对使用 `/loop`、autonomous agents 或任何 long-running agent flow 的项目，必须定义 explicit stop conditions。永不停止的 agent 是尚未发生的 budget 和 safety incident。
 
@@ -243,15 +245,14 @@ Outdated items、global vs local placement、context hygiene、stale allowedTool
 
 ## Gotchas
 
-
-| What happened                                                               | Rule                                                                                                                                                                                                                                                                                           |
-| --------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Missed the local override                                                   | 也要读取 `settings.local.json`；它会 shadow committed file                                                                                                                                                                                                                                      |
-| Subagent timeout reported as MCP failure                                    | MCP failures 来自 live probe，不来自 data collection                                                                                                                                                                                                                                            |
-| Reported issues in wrong language                                           | 优先遵守 CLAUDE.md Communication rule                                                                                                                                                                                                                                                           |
-| Flagged intentionally noisy hook as broken                                  | 把 hook 称为 "broken" 前先询问                                                                                                                                                                                                                                                                   |
+| What happened | Rule |
+|---|---|
+| Missed the local override | 也要读取 `settings.local.json`；它会 shadow committed file |
+| Subagent timeout reported as MCP failure | MCP failures 来自 live probe，不来自 data collection |
+| Reported issues in wrong language | 优先遵守 CLAUDE.md Communication rule |
+| Flagged intentionally noisy hook as broken | 把 hook 称为 "broken" 前先询问 |
 | Hook seemed not to fire, but it did -- a later UI element rendered above it | Hook firing order 不是 visual order。重新编辑 hook config 前：(a) 用 `--debug` 或 piping output 确认，(b) 检查 diff dialog、permission prompt 或其他 UI element 是否渲染在上层并把 hook output 推出屏幕，(c) 然后才怀疑 hook 本身。 |
-| `/health` burned too much quota on first run                                | 先 stay in summary mode。Full conversation extracts 和 inspector subagents 是 deep-audit tools，不是 Standard projects 的 default path。                                                                                                                                                         |
-| Treated missing specs/docs as a failure                                     | Decision artifacts 默认 optional。只有 tier、active handoff risk 或 user request 让它们必要时，才升级 missing docs/specs。                                                                                                                                                                      |
-| Treated an ignored AGENTS/CLAUDE file as durable project truth              | 报告 rule 是否 tracked 和 distributed。Local overlays 可以 inform audit，但 durable fixes 应放在 public repo docs 或 shipped skill/rule files。                                                                                                                                                  |
-| Treated a review scorecard as maintainability documentation                 | Scorecards 是 snapshots。提取 invariant 和 verification path，然后 remove 或 archive report，不要把 score 本身称为 durable rule。                                                                                                                                                               |
+| `/health` burned too much quota on first run | 先 stay in summary mode。Full conversation extracts 和 inspector subagents 是 deep-audit tools，不是 Standard projects 的 default path。 |
+| Treated missing specs/docs as a failure | Decision artifacts 默认 optional。只有 tier、active handoff risk 或 user request 让它们必要时，才升级 missing docs/specs。 |
+| Treated an ignored AGENTS/CLAUDE file as durable project truth | 报告 rule 是否 tracked 和 distributed。Local overlays 可以 inform audit，但 durable fixes 应放在 public repo docs 或 shipped skill/rule files。 |
+| Treated a review scorecard as maintainability documentation | Scorecards 是 snapshots。提取 invariant 和 verification path，然后 remove 或 archive report，不要把 score 本身称为 durable rule。 |

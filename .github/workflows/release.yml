@@ -31,7 +31,12 @@ jobs:
         run: make test
       - run: make package
       - name: Upload waza.zip to release
-        run: gh release upload "${{ github.event.release.tag_name }}" dist/waza.zip --clobber
+        run: |
+          gh release upload "${{ github.event.release.tag_name }}" \
+            dist/waza.zip \
+            scripts/setup-rule.sh \
+            scripts/setup-statusline.sh \
+            --clobber
         env:
           GH_TOKEN: ${{ github.token }}
   publish-npm:

@@ -72,11 +72,7 @@
 
 ## Public Replies
 
-- 用与 thread 相同的语言 draft replies。
-- 没有 maintainer approval，不要 post comments、close issues 或 merge PRs。
-- For accepted PRs, prefer updating the contributor branch and merging the PR; close without merge only when the direction is rejected, unsafe, out of scope, or the branch cannot be updated and a maintainer commit is explicitly needed.
-- Default reply shape: `@<user>` + thanks, brief reason/action, then update command, release/version, or next step.
-- Keep shipped-fix replies to 1-2 natural sentences unless the project explicitly uses a longer template.
+完整 reply template 见 `public-reply.md`（language match、`@user` + thanks、factual paragraphs、ship-state line、closure criteria）。它是单一事实源；不要在这里重复规则。
 
 ## Release Follow-through
 

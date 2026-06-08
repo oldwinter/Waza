@@ -656,7 +656,21 @@ def check_readme_install_command(root: Path):
                 f"include {command!r}\n"
                 f"  Waza's documented agent support depends on this exact string."
             )
-    print("ok: README installs nested skills, Pi package, Antigravity, and OpenCode")
+    expected_installers = {
+        "setup-rule": "https://github.com/tw93/Waza/releases/latest/download/setup-rule.sh",
+        "setup-statusline": "https://github.com/tw93/Waza/releases/latest/download/setup-statusline.sh",
+    }
+    for label, url in expected_installers.items():
+        if url not in text:
+            fail(
+                f"README {label.upper()} URL: README.md must include {url!r}\n"
+                f"  Installer snippets should follow the latest release asset "
+                f"without per-release README churn."
+            )
+    print(
+        "ok: README installs nested skills, Pi package, Antigravity, OpenCode, "
+        "and latest installer assets"
+    )
 
 
 def check_release_workflow_npm_surface(root: Path):
@@ -674,6 +688,8 @@ def check_release_workflow_npm_surface(root: Path):
         "github.event.release.tag_name": "checks the GitHub release tag",
         "package.json').pi.skills[0]": "checks Pi package metadata",
         "dist-tags.latest": "confirms the npm latest dist-tag",
+        "scripts/setup-rule.sh": "uploads the rule installer as a latest release asset",
+        "scripts/setup-statusline.sh": "uploads the statusline installer as a latest release asset",
     }
     missing = [label for label, reason in required.items() if label not in text]
     if missing:
@@ -682,7 +698,7 @@ def check_release_workflow_npm_surface(root: Path):
             "must publish and verify @tw93/waza for Pi installs.\n"
             + "\n".join(f"  missing {label!r}: {required[label]}" for label in missing)
         )
-    print("ok: release workflow publishes and verifies npm package")
+    print("ok: release workflow publishes npm package and installer assets")
 
 
 def check_english_coaching_guard(root: Path):

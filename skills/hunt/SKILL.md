@@ -102,7 +102,7 @@ Common triggers:
 
 ## Confirm or Discard
 
-每个 hypothesis 在触碰 fix 前都需要一个 targeted instrument：一行 log、一个 failing assertion，或如果 hypothesis 正确就会失败的最小 test。**instrument 在 fix 前，不在 fix 后。** 最常见的 agent failure mode 是 "I read the code, it looks like X is the cause, let me fix it"，却从未确认 X 在 runtime 是否真的发生。运行 instrument。如果 evidence 与 hypothesis 矛盾，彻底丢弃它，并用刚学到的东西重新定向。不要保留被 evidence 推翻的 hypothesis。
+Instrument-first rule 已在上方 Hard Rules（behavioral/async bugs）中定义；这里说明如何处理它的结果。运行那个在 hypothesis 错误时会失败的 probe，然后读取结果。如果 evidence 与 hypothesis 矛盾，彻底丢弃它，并根据 probe 刚展示的事实重新定向。不要把 fix 叠在被推翻的 hypothesis 上，也不要因为代码 "looks like" 原因就继续保留它。
 
 ## Runtime Evidence Ladder
 

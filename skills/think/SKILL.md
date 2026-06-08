@@ -1,6 +1,6 @@
 ---
 name: think
-description: "在编码前，把粗略想法转成经过验证结构、已获批准且决策完备的计划。Use when users ask 出方案/给方案/深入分析/怎么设计/有没有必要/值不值得/plan this/how should I/should we keep this 时使用。Not for bug fixes or small edits."
+description: "在编码前，把粗略想法转成经过验证结构、已获批准且决策完备的计划。Use when users ask 出方案/给方案/深入分析/怎么设计/有没有必要/值不值得/plan this/how should I/should we keep this，且问题涉及 features、architecture 或 value judgments 时使用。Not for bug fixes or small edits."
 when_to_use: "出方案, 给方案, 深入分析, 怎么设计, 用什么方案, 判断一下, 有没有必要, 值不值得, what's the best approach, plan this, how should I, should we keep this"
 dispatch_intent: "New feature, architecture, how should I design this, value judgment, executable plan, handoff"
 ---
@@ -19,6 +19,14 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 - Done when:goal、success criteria、constraints、chosen approach、rejected tradeoffs、tests 和 handoff steps 足够具体，可以不用重新决策就执行。
 - Evidence:current repo state、project docs、相关时的 live external docs、prior decisions、constraints 和明确的 user preferences。
 - Output:一个 recommended direction，或带 assumptions 与 verification steps 的 handoff plan。
+
+## Durable Context Preflight
+
+See [rules/durable-context.md](../../rules/durable-context.md) for when to read durable context, the read-order budget, and the memory-type mapping (planning constraints, reusable patterns, facts that need re-verification against current state).
+
+For `/think`, planning constraints are `decision`, `preference`, and `principle` entries; current repo state, live docs, logs, tests, and remote state override memory. Lock durable decisions and preferences before asking questions. Do not ask the user to restate an intent that the durable context already establishes unless it is risky, stale, or contradicted by current state.
+
+Before outputting any plan, scan the project's `AGENTS.md`, `CLAUDE.md`, `.claude/rules/*.md`, and any local agent-memory summary if the user pointed at one. If the proposed plan contradicts a "hard rule", "never X", "must Y", or "prefer Z" stated in those files, surface the contradiction in the plan output (one sentence: which rule, which step contradicts it, recommended resolution). Do not silently override the rule. If the rule blocks the plan, stop and ask before continuing.
 
 ## Lightweight Mode
 
@@ -73,14 +81,6 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 - 确认 working path：`pwd` 或 `git rev-parse --show-toplevel`。绝不要假设 `~/project` 和 `~/www/project` 是同一个目录。
 - 如果项目追踪 prior decisions（ADRs、design docs、issue threads），提出方案前先 skim 与问题匹配的部分。没有则跳过。
 - 如果 plan 涉及 default value、env var 或 config field，打开项目的实际 config file，例如 `app.config.json`、`tauri.conf.json`、`package.json`、`.env`，提取 live value。绝不要凭记忆或 docs 引用默认值。
-
-## Durable Context Preflight
-
-See [rules/durable-context.md](../../rules/durable-context.md) for when to read durable context, the read-order budget, and the memory-type mapping (planning constraints, reusable patterns, facts that need re-verification against current state).
-
-对于 `/think`，planning constraints 是 `decision`、`preference` 和 `principle` entries；current repo state, live docs, logs, tests, and remote state override memory。询问问题前先锁定 durable decisions 和 preferences。不要要求用户重述 durable context 已经建立的 intent，除非它有风险、已过期或与 current state 冲突。
-
-输出任何 plan 前，扫描项目的 `AGENTS.md`、`CLAUDE.md`、`.claude/rules/*.md`，以及用户指出的任何 local agent-memory summary。如果 proposed plan 与这些文件中的 "hard rule"、"never X"、"must Y" 或 "prefer Z" 冲突，在 plan output 中暴露 contradiction（一句话：哪条 rule、哪一步冲突、recommended resolution）。不要静默 override rule。如果 rule 阻塞 plan，停止并询问后再继续。
 
 ## Check for Official Solutions First
 

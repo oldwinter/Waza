@@ -52,10 +52,11 @@ make package          # build dist/waza.zip from packaging.allowlist
 - 把 adaptive、judgment-heavy workflows 放进 skills。
 - 把 deterministic checks、lookups 和 table-driven validation 放进 scripts。
 - `rules/anti-patterns.md` 负责跨 skill 的 always-on behavioral guardrails，也就是无论 active skill 是哪个都适用的 AI failure modes。每个 skill 自己的 gotchas 留在各自 `skills/*/SKILL.md` 的 Gotchas table；只有当某个 gotcha 对八个 skills 都完全适用时，才放进 `rules/anti-patterns.md`。
-- 添加或修改 anti-pattern row 前，按 failure mode 比较已有 rows。合并重复概念，不要添加近义词，并让 row wording 足够通用，可以发布到本仓库之外。
+- Catalogs 的职责是合并，不是累积。这适用于 `rules/anti-patterns.md` rows，也适用于每个 reference example list、banned-phrase list 和 replacement table（`skills/write/references/*`、`skills/design/references/*` 等）。添加 row、pattern、banned phrase 或 example 前，先找到它实例化的现有 row 或 principle，并折叠进去；不要追加近义词，也不要为已经在上文表达过的 rule 加第三种编码。措辞要足够通用，可以发布到本仓库之外。Reference file 如果在 numbered pattern 下重复列出已经覆盖的 items，那是 drift，不是 coverage。
 - skill description、trigger 或 scope 改变时，同步更新 `skills/RESOLVER.md`。
 - 每个 `description` 都要足够具体，便于 automatic routing。
 - 写 skill entrypoints 时 outcome-first：说清目标结果、什么算完成、哪些约束和证据重要、最终回答或 artifact 应该长什么样。详细流程放到 mode sections 和 references。
+- 八个 `SKILL.md` 要保持同一套 skeleton，读起来像一个 set：第一行是 `🥷` 加一句 tagline，然后是 Outcome Contract；会读 memory 的 skills 紧接着放 Durable Context Preflight；再放 modes、must-obey list、Gotchas 和 Output。同一个概念在各 skills 中只用一个名字（skill 的 must-obey constraints 叫 `Hard Rules`；`Hard Stops` 是 check 里单独的 merge-blocker list）。Tables 保持紧凑的 `| a | b |`，不要手工对齐；numbered step sequence 要连续，side-checks 放在某一步下面，不要插在两个步骤之间。
 - 避免把无关 workflows 混在一个宽泛 skill 里。
 - 八个 skills 是硬上限。不要提出第 9 个 skill，也不要拆分现有 skill。Behavior additions 应落在 `references/`、`rules/`、`scripts/` 或 `rules/anti-patterns.md`，不要新增 skill。
 - Waza 保留通用程序员能力。Project-specific constraints 应从公开 repository context 或用户提供的 task context 中提取。
@@ -82,9 +83,12 @@ make package          # build dist/waza.zip from packaging.allowlist
 - 可执行程序保持为真实文件，不要写成 shell scripts 或 Makefile recipes 里的 heredocs。Shell wrappers 可以委托给 Python helpers，但大逻辑应放在可 import 的 `.py` 文件里，并有 `py_compile` coverage。
 - Smoke tests 放在 `tests/test_*.sh`；`Makefile` 应发现并运行它们，不要嵌入大段 test bodies。
 - 避免 hidden runtime dependencies。如果某个 script 需要非 stdlib Python package、external CLI 或 network resolver，在 CI/docs 中声明，并添加一个缺失时会失败的 smoke test。
+- Shipped skill scripts（`skills/*/scripts/`）必须保持 self-contained：只 import standard library，并能从任意 target project 运行。不要把看起来共享的 helpers（file walks、parsers）抽到 root `scripts/` module。那个 module 只用于 dev/CI，不在 `packaging.allowlist` 中；import 它会把 standalone shipped tool 绑定到 install layout，可能破坏 `npx skills add` installs。两个 shipped scripts 之间有良性重复是正确 tradeoff；如果 drift 重要，就在原地对齐副本，不要共享 module。
 - 会 fetch remote content 的 installer scripts 必须默认指向 release tag。只有显式 bleeding-edge override 才使用 `WAZA_REF=main`。
 - One-off review reports、scorecards 或 diagnostic snapshots 不属于 durable docs。把 stable rule 提取到 `AGENTS.md`、`CLAUDE.md`、`rules/`、`skills/*/references/` 或 verifier script，然后丢弃 report。
 - Project case studies 是输入，不是 Waza policy。只提升可迁移 workflow rule；project-specific commands、paths、release rituals 和 safety constraints 留在该项目的 public context 中。
+- 提炼 lesson 时去掉 provenance。Rule 之所以值得保留，是因为它能预防什么，而不是因为它来自哪个 incident。删掉 "this came from a 615-line / 40k-char article" 或 "from one real review round" 这类 framing；留下 rule，丢掉 origin story。Source artifact 的 metrics 永远不是 load-bearing。
+- Self-governing files 必须 collapse，不只是 append。当文件自己的 header 禁止 monotonic growth（例如 `rules/anti-patterns.md` 和 `skills/write/references/write-zh.md`）时，要执行它：把 new specifics 折叠回 existing principles，并删除 re-indexes，不要把 header 当装饰。
 - Local-only instruction overlays 不是 durable source of truth。如果某条 rule 必须指导未来 contributors 或 packaged agents，就放到 tracked public docs 或 shipped skill/rule files。
 - Local review 和 health checks 必须覆盖 modified、staged 和 untracked files。New helpers、tests、references 和 packaging allowlists 在提交前都是 review surface 的一部分。
 

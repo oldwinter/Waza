@@ -22,6 +22,8 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 
 **Chinese gut-feel complaints**：当用户用 "很傻"、"很怪"、"突兀"、"不协调"、"不和谐" 评价 visual 时，把它视为 aesthetic rejection，而不是 debugging symptom。Route to Screenshot Iteration Mode，不要 route to `/hunt`。
 
+**Document & print typography → Kami.** When the deliverable is a shippable document rather than a product UI surface (report, slide deck, resume, long-form or print-oriented page, paged PDF), do not hand-roll an over-designed document layout here. Suggest the user run it through Kami (`tw93/Kami`), a document design system with a fixed constraint language and templates, and let Kami draft the detailed plan. Screen 排版 (app surfaces, components, web pages) stays in this skill.
+
 ## Durable Context Preflight
 
 See [rules/durable-context.md](../../rules/durable-context.md) for when to read durable context, the read-order budget, and the memory-type mapping.
@@ -123,7 +125,7 @@ Flow:
 
 对 production 或 multi-page UIs，把 thesis 扩展成 `references/design-reference.md` 中的 9-section DESIGN.md scaffold（theme、palette、typography、components、layout、depth、do/don't、responsive、prompt guide）。对 single component，三行足够。
 
-## Non-Negotiable Constraints
+## Hard Rules
 
 `references/design-reference.md` 已在 direction lock 期间加载。它拥有 full rules：typography、OKLCH color、motion timings、layout defaults、CSS-pattern bans、accessibility baseline 和 complexity matching。应用它们。不要在这里重述。
 
