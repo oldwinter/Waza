@@ -16,9 +16,11 @@ Waza 是面向 engineering workflows 的 skill collection。仓库包含八个 s
 - `skills/*/scripts/` - 确定性的 helper scripts。
 - `rules/` - install 和 validation flows 使用的共享 writing/behavior rules。`rules/durable-context.md` 是共享 Durable Context Preflight preamble；六个带 optional memory context 的 skills 会在自己的 preflight section 链接到它。
 - `.claude-plugin/marketplace.json` - **generated**。编辑 `VERSION` 或每个 skill 的 `SKILL.md` frontmatter 后运行 `make regenerate`；不要手工编辑。
+- `.agents/plugins/marketplace.json` - **generated** Codex repo marketplace。它让 Codex 在 plugin install 时指向 `plugins/waza`；不要手工编辑。
+- `plugins/waza/` - **generated** Codex plugin tree。它镜像 `skills/`、`rules/` 和 `plugins/waza/.codex-plugin/plugin.json`；编辑 source files 后运行 `make regenerate`。
 - `packaging.allowlist` - 打进 `waza.zip` 的路径 default-deny 清单。新的 shippable assets 必须显式加入这里；其他内容都会被排除。
 - `.github/workflows/` - public test 和 release automation。`release.yml` 会先运行 `make test` 再运行 `make package`，让 tagged commit 经过与 PR 相同的 suite。
-- `scripts/build_metadata.py` - marketplace.json、README install URLs 和 installer-script `WAZA_REF` 默认值的 codegen。通过 `make regenerate` 运行；CI 用 `make verify-generated` 检查 drift。
+- `scripts/build_metadata.py` - Claude 和 Codex marketplace metadata、README install URLs、Codex plugin mirror files 以及 installer-script `WAZA_REF` 默认值的 codegen。通过 `make regenerate` 运行；CI 用 `make verify-generated` 检查 drift。
 - `scripts/verify_skills.py` - 唯一的 validator entrypoint。覆盖 frontmatter、references、marketplace、resolver、links、table pipes、trigger overlap、rule-file presence、README install string、English coaching guard 和 AI-attribution leak detection。
 - `scripts/package-skill.sh` + `scripts/packaging_filter.py` - 从 `packaging.allowlist` 构建 `dist/waza.zip`。
 - `scripts/setup-rule.sh` + `scripts/setup-statusline.sh` - public install helpers；`WAZA_REF` 默认值由 codegen 固定到当前 release tag。
@@ -94,7 +96,7 @@ make package          # build dist/waza.zip from packaging.allowlist
 
 ## Distribution Rules
 
-- `.claude-plugin/marketplace.json`、`skills/RESOLVER.md` 和每个 `skills/*/SKILL.md` 必须在 skill names、descriptions 和 source paths 上一致。
+- `.claude-plugin/marketplace.json`、`.agents/plugins/marketplace.json`、`plugins/waza/.codex-plugin/plugin.json`、`skills/RESOLVER.md` 和每个 `skills/*/SKILL.md` 必须在 skill names、descriptions、versions 和 source paths 上一致。
 - `npx skills add tw93/Waza` 默认应安装八个 direct coding skills。不要添加 source-root `SKILL.md`，它会阻止 nested skill discovery。
 - Claude Desktop 使用 `scripts/package-skill.sh` 构建的 release ZIP。
 - `scripts/package-skill.sh` 会构建一个 public archive，其中恰好有一个 generated root `SKILL.md`；nested `skills/*/SKILL.md` files 会为 packaged installs inline 进去。
