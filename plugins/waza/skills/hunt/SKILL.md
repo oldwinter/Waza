@@ -1,6 +1,6 @@
 ---
 name: hunt
-description: "针对 errors、crashes、regressions、failing tests、broken behavior 和 screenshot-reported defects，在应用 fix 前先找到 root cause。Use when users ask 排查/报错/崩溃/不工作/回归/判断为什么报错，或说某个东西以前能工作现在失败时使用。Not for code review or new features."
+description: "Find the root cause before applying fixes for errors, crashes, regressions, failing tests, broken behavior, and screenshot-reported defects. Use when users report in any language that something is broken, regressed, failing, crashing, or no longer works. Not for code review or new features."
 when_to_use: "排查, 查查, 报错, 崩溃, 不工作, 不对, 跑不通, 以前是好的, 回归, 截图回归, 判断错误原因, 判断为什么报错, 反复修不好, debug, regression, used to work, broke after update, why broken, not working, what's wrong, fix error, stack trace"
 dispatch_intent: "Error, crash, regression, screenshot-reported defect, test failure, stale cache, runtime boundary, why broken"
 ---

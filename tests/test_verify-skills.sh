@@ -141,20 +141,31 @@ copy_repo "$tmpdir/repo8"
 python3 -c "
 from pathlib import Path
 p = Path('$tmpdir/repo8/skills/read/SKILL.md')
-lines = p.read_text().splitlines()
-for i, line in enumerate(lines):
-    if line.startswith('description: '):
-        lines[i] = 'description: \"Fetches URLs and PDFs for reading tasks while preserving source-grounded output. Not for local text files already in the repo.\"'
-        break
-else:
-    raise SystemExit('description line not found')
-p.write_text('\n'.join(lines) + '\n')
+t = p.read_text()
+t = t.replace(' Use when users ask in any language to read, fetch, check, summarize, quote, cite, convert, or save a URL or PDF.', '')
+p.write_text(t)
 "
 sync_codex_mirror "$tmpdir/repo8"
 if (cd "$tmpdir/repo8" && python3 scripts/verify_skills.py --root . >"$tmpdir/usewhen.out" 2>"$tmpdir/usewhen.err"); then
   echo "verify-skills should reject descriptions without Use when trigger cues"; exit 1
 fi
 grep -q 'DESCRIPTION MISSING USE-WHEN CUE: read' "$tmpdir/usewhen.err"
+
+# Case 8b: public description metadata must stay English-only; multilingual
+# trigger aliases belong in when_to_use.
+copy_repo "$tmpdir/repo8b"
+python3 -c "
+from pathlib import Path
+p = Path('$tmpdir/repo8b/skills/read/SKILL.md')
+t = p.read_text()
+t = t.replace('Use when users ask in any language to read, fetch, check', 'Use when users ask 读一下, fetch, check')
+p.write_text(t)
+"
+sync_codex_mirror "$tmpdir/repo8b"
+if (cd "$tmpdir/repo8b" && python3 scripts/verify_skills.py --root . >"$tmpdir/cjk-desc.out" 2>"$tmpdir/cjk-desc.err"); then
+  echo "verify-skills should reject CJK in public descriptions"; exit 1
+fi
+grep -q 'DESCRIPTION CONTAINS CJK: read' "$tmpdir/cjk-desc.err"
 
 # Case 9: ungrounded routing trigger inside CJK corner brackets 「」 is caught.
 copy_repo "$tmpdir/repo9"

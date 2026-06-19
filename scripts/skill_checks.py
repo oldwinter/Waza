@@ -46,6 +46,7 @@ FORCED_GITHUB_TOOL_RE = re.compile(
     r'for\s+all\s+GitHub\s+interactions,\s+not\s+MCP\s+or\s+raw\s+API)',
     re.IGNORECASE,
 )
+CJK_RE = re.compile(r"[\u3400-\u4dbf\u4e00-\u9fff\uf900-\ufaff]")
 
 DURABLE_CONTEXT_SKILLS = {"think", "check", "hunt", "design", "write", "health"}
 
@@ -404,6 +405,11 @@ def check_description_conformance(skill_descriptions: dict[str, str]):
             fail(
                 f"DESCRIPTION MISSING EXCLUSION CLAUSE: {skill}\n"
                 f"  Must contain a 'Not for ...' clause so the resolver learns when NOT to fire. Got: {clean[:120]!r}"
+            )
+        if CJK_RE.search(clean):
+            fail(
+                f"DESCRIPTION CONTAINS CJK: {skill}\n"
+                f"  Keep public-facing description metadata English-only. Put multilingual trigger phrases in when_to_use."
             )
         print(f"ok: description {skill} ({length} chars)")
 

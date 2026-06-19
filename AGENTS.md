@@ -81,7 +81,7 @@ make package          # build dist/waza.zip from packaging.allowlist
 
 ## Maintainability Invariants
 
-- 当同一 metadata 出现在多个 distribution files 中时，优先用 generation，而不是 drift lint。`VERSION` 和 `skills/*/SKILL.md` frontmatter 是 generated marketplace 和 install metadata 的事实源。
+- 当同一 metadata 出现在多个 distribution files 中时，优先使用 generation，而不是 drift lint。`VERSION` 和 `skills/*/SKILL.md` frontmatter 是 generated marketplace 与 install metadata 的事实源。
 - 可执行程序保持为真实文件，不要写成 shell scripts 或 Makefile recipes 里的 heredocs。Shell wrappers 可以委托给 Python helpers，但大逻辑应放在可 import 的 `.py` 文件里，并有 `py_compile` coverage。
 - Smoke tests 放在 `tests/test_*.sh`；`Makefile` 应发现并运行它们，不要嵌入大段 test bodies。
 - 避免 hidden runtime dependencies。如果某个 script 需要非 stdlib Python package、external CLI 或 network resolver，在 CI/docs 中声明，并添加一个缺失时会失败的 smoke test。
@@ -93,11 +93,14 @@ make package          # build dist/waza.zip from packaging.allowlist
 - Self-governing files 必须 collapse，不只是 append。当文件自己的 header 禁止 monotonic growth（例如 `rules/anti-patterns.md` 和 `skills/write/references/write-zh.md`）时，要执行它：把 new specifics 折叠回 existing principles，并删除 re-indexes，不要把 header 当装饰。
 - Local-only instruction overlays 不是 durable source of truth。如果某条 rule 必须指导未来 contributors 或 packaged agents，就放到 tracked public docs 或 shipped skill/rule files。
 - Local review 和 health checks 必须覆盖 modified、staged 和 untracked files。New helpers、tests、references 和 packaging allowlists 在提交前都是 review surface 的一部分。
+- Runtime install contracts 是 agent surfaces 的 source of truth 的一部分。Marketplace metadata、plugin manifests、generated mirrors 和 package archives 只有在 installed path 能在 clean environment 中工作后，才算完成。
 
 ## Distribution Rules
 
 - `.claude-plugin/marketplace.json`、`.agents/plugins/marketplace.json`、`plugins/waza/.codex-plugin/plugin.json`、`skills/RESOLVER.md` 和每个 `skills/*/SKILL.md` 必须在 skill names、descriptions、versions 和 source paths 上一致。
 - `npx skills add tw93/Waza` 默认应安装八个 direct coding skills。不要添加 source-root `SKILL.md`，它会阻止 nested skill discovery。
+- Codex marketplace entries 必须 resolve 到 `plugins/waza`，不是 repository root。Codex marketplace、plugin manifest 或 plugin mirror changes 后，不只检查 JSON shape，还要验证 isolated install flow。
+- Plugin mirror generation 必须在 generator 和 verifier paths 中过滤 local cache 和 noise files，包括 `__pycache__`、`*.pyc`、`.pytest_cache`、`.ruff_cache`、`.mypy_cache` 和 `.DS_Store`。
 - Claude Desktop 使用 `scripts/package-skill.sh` 构建的 release ZIP。
 - `scripts/package-skill.sh` 会构建一个 public archive，其中恰好有一个 generated root `SKILL.md`；nested `skills/*/SKILL.md` files 会为 packaged installs inline 进去。
 - 不要让 packaged skills 通过个人 home-directory caches 或 machine paths 解析 scripts 或 references。应相对 installed Waza directory 解析。
@@ -107,7 +110,7 @@ make package          # build dist/waza.zip from packaging.allowlist
 
 - Skill behavior changes：运行 `python3 scripts/verify_skills.py` 和相关 smoke target。
 - Packaging changes：运行 `make package` 并检查 generated archive。
-- Marketplace、resolver 或 root dispatcher changes：运行 `python3 scripts/verify_skills.py`，并确认每个 marketplace source 都指向存在的 skill directory。
+- Marketplace、resolver 或 root dispatcher changes：运行 `python3 scripts/verify_skills.py`，并确认每个 marketplace source 都指向存在的 skill directory。对于 Codex plugin changes，还要运行 clean install smoke，例如 `CODEX_HOME=$(mktemp -d) codex plugin marketplace add <repo>`，随后运行 `codex plugin add waza@waza` 和 `codex plugin list`。
 - Non-trivial diffs：release handoff 前运行 review workflow。
 - Documentation-only changes：检查 internal links 和 command names。
 
@@ -117,6 +120,7 @@ make package          # build dist/waza.zip from packaging.allowlist
 - 保持 commits atomic。除非每个文件都是 `make regenerate` 产生的同一批 codegen output，否则一个 commit 触碰超过约 20 个文件时，应拆成 packaging / docs / scripts / per-skill units。
 - Release tags 使用小写 `v{version}`。
 - 发布 release assets 前重建 packaged artifacts。发布前运行 `make package`；CI 应在 published releases 上上传 ZIP。
+- 在说 Waza release ready 或 done 之前，分开证据层：source diff、CI、generated metadata、package contents、GitHub release assets、npm registry/dist-tag state 和 installed-runtime smoke。缺失层是 explicit gaps，不是 implied passes。
 - GitHub release 发布且 assets 已验证后，用 `gh api` 添加所有正向 release reactions：`+1`、`laugh`、`heart`、`hooray`、`rocket` 和 `eyes`。从 tag 解析 release id，向 `repos/<owner>/<repo>/releases/<id>/reactions` POST 每个 reaction，然后重新读取 reactions 确认。
 - **绝不要添加 `-1` 或 `confused` reactions**。这些是负向信号，给自己的 release 添加会显得自我贬低。只添加上面六个正向 reactions。
 

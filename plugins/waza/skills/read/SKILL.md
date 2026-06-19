@@ -1,6 +1,6 @@
 ---
 name: read
-description: "通过 fetching source content 读取 URLs 和 PDFs；普通 read requests 默认返回 concise summaries，用户要求 convert、save、quote、cite 或 feed downstream work 时返回 clean Markdown。Use when users ask 看这个链接/读一下/read this/check this URL 时使用。Not for local text files already in the repo."
+description: "Read URLs and PDFs by fetching source content; plain read requests return concise summaries, while convert, save, quote, cite, or downstream-work requests return clean Markdown. Use when users ask in any language to read, fetch, check, summarize, quote, cite, convert, or save a URL or PDF. Not for local text files already in the repo."
 when_to_use: "any URL or PDF to fetch, 看这个链接, 读一下, 看看这个网页, 抓取网页, read this, check this URL, fetch this page"
 dispatch_intent: "Any URL or PDF to fetch, read this, fetch this page"
 ---

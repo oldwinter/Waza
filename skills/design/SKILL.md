@@ -1,6 +1,6 @@
 ---
 name: design
-description: "为页面、组件、视觉界面、typography 和基于截图的 polish 产出有辨识度、production-grade 的 UI。Use when users ask 设计/做页面/做组件/UI/前端/截图，或说某个 screen 丑、不清晰、不一致、视觉不对时使用。Not for backend logic or data pipelines."
+description: "Create opinionated, production-grade UI for pages, components, visual interfaces, typography, and screenshot-driven polish. Use when users ask in any language for UI, pages, components, frontend work, typography, visual polish from screenshots, or visual quality complaints. Not for backend logic or data pipelines."
 when_to_use: "设计, 做页面, 做组件, 不好看, 不和谐, 不清晰, 很丑, 很怪, 很傻, 突兀, 不协调, 字体, 字形, 排印, 排版, 样式, 前端, UI, 截图, build page, create component, make it look good, style, design, screenshot with visual complaint, typography, font looks wrong"
 dispatch_intent: "UI, component, page, visual interface, frontend, artifact-grounded screenshot aesthetic complaint"
 ---
@@ -74,6 +74,8 @@ Flow:
 - 真实 running product 是 oracle。Product pages、app screenshots、release pages 和 current UI state 覆盖 generic style instincts。
 - 不要把具体 taste feedback 压平成 generic UI adjectives。"More premium" 不是 diagnosis；"caption baseline drifts above the Chinese line" 才是。
 - 如果 screenshot 暴露的是 regression、broken render、timing issue 或 generated asset defect，而不是 taste，route to `/hunt`，并保留 visual evidence。
+
+**Native screenshot handoff。** 对 native apps，一旦你已经证明 app 能 build、run，并且能到达目标 view，就不要为了捕获 final visual proof 反复和 focus、window ordering 或 coordinate-click automation 缠斗。做一次 bounded automation attempt；如果 flaky，命名 exact screen，并请用户提供 screenshot 作为迭代依据。这是 visual QA boundary，不是 build/run verification 的替代品。
 
 **Boundary**：如果 fix 需要改变 3 个或更多 components，或它暴露的是 direction problem 而不是 specific bug，暂停并运行完整 direction lock 后再继续。
 

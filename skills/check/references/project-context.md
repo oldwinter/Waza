@@ -24,6 +24,7 @@
 - Distribution lanes：preview、beta、nightly、stable、App Store 或 registry channels，以及每个 lane 应包含哪些 generated artifacts。
 - CLI command surfaces：entrypoints、subcommands、flags、help/version behavior、exit codes、stdout/stderr contract、TTY 和 non-interactive paths、config/env precedence，以及 installed-runtime checks。
 - diff 引入的 Runtime dependencies：CI/docs 中尚未声明的 Python packages、CLIs、network services、package managers 或 platform tools。
+- Skill、plugin、marketplace 或 package install surfaces：installer default ref、marketplace source path、generated mirror、package allowlist、archive root、executable bits 和 installed-runtime smoke command。
 - Domain-specific safety rules。
 - 必须存在的 Release artifacts。
 - 项目期望的 GitHub release reactions 或其他 public release follow-through。
@@ -57,6 +58,14 @@
 - Runtime shape：TTY vs non-interactive behavior、env/config precedence、completion/manpage 或 shell integration。
 - Install/run proof: built package, temp prefix, PATH shim, shebang/executable bit, or package-manager path checked with `<command>`.
 - Mutating commands：dry-run/confirmation、operation log、rollback/retry behavior、signal/partial-failure handling。
+
+## Skill Or Plugin Install Surface
+
+- User install path: `<package manager / release archive / marketplace entry / plugin id / installer script>`.
+- Source path and generated mirror: `<source dir>` -> `<installed dir>`.
+- Package/archive inclusion: new scripts, references, templates, rules, manifests, and executable bits checked with `<command>`.
+- Isolated install smoke: fresh temp home/config/cache plus `<install command>` and `<list or invoke command>`.
+- Noise filtering: cache files, local logs, screenshots, and temp outputs excluded or intentionally shipped.
 
 ## Project Hard Stops
 
@@ -103,6 +112,7 @@
 | Runtime dependencies | Newly introduced Python packages、CLIs、package managers 和 network tools 已声明，并在 CI 可用 |
 | Generated artifacts | Tracked archives、ignored dist outputs、bundled/minified files、appcasts、installer metadata、checksums 和 site/download copy 已 regenerated 或证明不需要 |
 | Package/archive contents | Built package 已 inspect required files、newly introduced helpers/references 和 missing extras |
+| Installed runtime | 当 diff 改动 installable surfaces 时，已从 clean environment exercise package、skill、plugin、CLI 或 marketplace install |
 | Release assets | GitHub release、appcast、download archive、checksum 或 installer assets 已 download 或 read back，并且验证超过页面文字或文件大小 |
 | Registry/appcast | publish 后已 re-read npm/crates/Homebrew/appcast/App Store 或 equivalent state |
 | CI status | Latest required checks passed，或已命名 blocker |

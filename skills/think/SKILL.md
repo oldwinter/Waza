@@ -1,6 +1,6 @@
 ---
 name: think
-description: "在编码前，把粗略想法转成经过验证结构、已获批准且决策完备的计划。Use when users ask 出方案/给方案/深入分析/怎么设计/有没有必要/值不值得/plan this/how should I/should we keep this，且问题涉及 features、architecture 或 value judgments 时使用。Not for bug fixes or small edits."
+description: "Turn rough ideas into validated, approved, decision-complete plans before coding. Use when users ask in any language for planning, architecture, design direction, feasibility, value judgment, or whether a feature is worth building. Not for bug fixes or small edits."
 when_to_use: "出方案, 给方案, 深入分析, 怎么设计, 用什么方案, 判断一下, 有没有必要, 值不值得, what's the best approach, plan this, how should I, should we keep this"
 dispatch_intent: "New feature, architecture, how should I design this, value judgment, executable plan, handoff"
 ---
@@ -45,6 +45,8 @@ Before outputting any plan, scan the project's `AGENTS.md`, `CLAUDE.md`, `.claud
 说清 evaluation target，以及需要哪类 judgment（value、risk 或 tradeoff）。做 current-state snapshot：它做什么、谁在用、什么依赖它；发表意见前先 grep 和 read。
 
 对于 product pivot、commercialization 或 business-direction requests，先框定 market、user、distribution、willingness-to-pay 和 maintenance burden，再提出技术方案。不要默认 open source，不要默认 implementation 优先，也不要把 business judgment 藏在 technical plan 里。
+
+**Commercial readiness gate.** When the judgment is whether a product, paid feature, launch, or version is chargeable, evaluate chargeability before implementation. Check delivery and update path, first-run activation/onboarding, payment/license/trial boundary, privacy and network promises, headline-feature reliability and honest degradation, support/refund triggers, competitor wedge, and solo-maintainer maintenance burden. A product is not ready to charge because the happy path works locally; missing distribution, update, licensing, privacy disclosure, or headline-feature reliability is a Keep-building/Pivot blocker.
 
 **Output format (Kill/Keep/Pivot):**
 
