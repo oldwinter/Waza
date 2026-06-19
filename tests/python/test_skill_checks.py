@@ -88,6 +88,19 @@ def test_description_starting_with_article_rejected(capsys):
     assert "STARTS WITH ARTICLE" in capsys.readouterr().err
 
 
+def test_description_rejects_cjk_triggers(capsys):
+    with pytest.raises(SystemExit):
+        check_description_conformance(
+            {
+                "x": (
+                    "Reviews code changes. Use when users ask 看看代码 or need "
+                    "release review. Not for debugging runtime failures."
+                )
+            }
+        )
+    assert "DESCRIPTION CONTAINS CJK" in capsys.readouterr().err
+
+
 # ---- check_outcome_contract ----------------------------------------------
 
 
