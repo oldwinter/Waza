@@ -55,6 +55,8 @@ make package          # build dist/waza.zip from packaging.allowlist
 - 把 deterministic checks、lookups 和 table-driven validation 放进 scripts。
 - `rules/anti-patterns.md` 负责跨 skill 的 always-on behavioral guardrails，也就是无论 active skill 是哪个都适用的 AI failure modes。每个 skill 自己的 gotchas 留在各自 `skills/*/SKILL.md` 的 Gotchas table；只有当某个 gotcha 对八个 skills 都完全适用时，才放进 `rules/anti-patterns.md`。
 - Catalogs 的职责是合并，不是累积。这适用于 `rules/anti-patterns.md` rows，也适用于每个 reference example list、banned-phrase list 和 replacement table（`skills/write/references/*`、`skills/design/references/*` 等）。添加 row、pattern、banned phrase 或 example 前，先找到它实例化的现有 row 或 principle，并折叠进去；不要追加近义词，也不要为已经在上文表达过的 rule 加第三种编码。措辞要足够通用，可以发布到本仓库之外。Reference file 如果在 numbered pattern 下重复列出已经覆盖的 items，那是 drift，不是 coverage。
+- no-op test 会逐句修剪 skill prose：一行只有在相对模型默认行为确实改变行为时才值得保留。重新教一个有能力模型本来就会做的事（例如对已经 thorough 的 agent 说 `be thorough`）就是 no-op，只会消耗 context，却什么都没表达；删除整句，不要只删几个词。拿不准某行是不是默认行为时，先假定它是默认行为并删掉。
+- Leading words 会把被反复陈述的品质压缩成一个模型已经会联想到的 pretrained token：`fast, deterministic, low-overhead` 可以变成一个 `tight` loop；`a repro you trust` 可以变成会在 bug 上 `red` 的 loop。一个 token 能锚定整片行为区域，比展开三连词更锋利、更省 token。当某个 skill 三次表达同一种品质时，就把那段压缩成一个 leading word。
 - skill description、trigger 或 scope 改变时，同步更新 `skills/RESOLVER.md`。
 - 每个 `description` 都要足够具体，便于 automatic routing。
 - 写 skill entrypoints 时 outcome-first：说清目标结果、什么算完成、哪些约束和证据重要、最终回答或 artifact 应该长什么样。详细流程放到 mode sections 和 references。
