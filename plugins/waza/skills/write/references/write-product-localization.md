@@ -12,7 +12,7 @@
 
 ## High-Signal Failure Patterns
 
-- **Chinese**：literal possessives，比如 plain "Mac" 或 "本机" 就够时却写成 "你的 Mac" 或 "你的设备"；结果句更自然时仍使用机器输出式动词，比如 "检测到"；punctuation 混用；已经有稳定中文对应词的 English words。
+- **Chinese**：literal possessives，比如 plain "Mac" 或 "本机" 就够时却写成 "你的 Mac" 或 "你的设备"；结果句更自然时仍使用机器输出式动词，比如 "检测到"；punctuation 混用；已经有稳定中文对应词的 English words。字符级半角/全角 punctuation 和 CJK/Latin spacing 由 `check_punctuation.py` 检查；这里保留 locale voice 的判断。
 - **Traditional Chinese**：把 Mainland phrasing 直接复制到 Traditional copy；stale locale URLs；对目标 audience 来说过于大陆化或过口语的词。
 - **Japanese**：English noun compounds 翻得过紧；项目 style 需要时，product terms 周围缺少 spaces；UI strings 听起来像 manual 而不是 Mac app。
 - **Korean**：platform terms 不一致，尤其是 menu bar / menu item wording；过于字面化的第二人称句子。

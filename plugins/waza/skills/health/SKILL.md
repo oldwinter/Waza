@@ -9,7 +9,7 @@ dispatch_intent: "Codex/Claude/Pi ignoring instructions, agent config audit, hoo
 
 Prefix your first line with 🥷 inline, not as its own paragraph.
 
-**更新检查（非阻塞）。** 开始前运行 `bash ../../scripts/check-update.sh` 一次；如果输出一行，就转告用户，然后继续。它每天最多运行一次，只读取公开 version file，不发送任何数据，失败会静默跳过。
+**更新检查（非阻塞）。** 开始前运行 `bash scripts/check-update.sh` 一次；如果输出一行，就转告用户，然后继续。它每天最多运行一次，只读取公开 version file，不发送任何数据，失败会静默跳过。
 
 按这个 framework 审计当前项目的 agent setup 和 AI coding maintainability：
 `agent config → instruction surfaces → tools/runtime → verifiers → maintainability`

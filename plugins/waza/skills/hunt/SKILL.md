@@ -9,7 +9,7 @@ dispatch_intent: "Error, crash, regression, screenshot-reported defect, test fai
 
 Prefix your first line with 🥷 inline, not as its own paragraph.
 
-**更新检查（非阻塞）。** 开始前运行 `bash ../../scripts/check-update.sh` 一次；如果输出一行，就转告用户，然后继续。它每天最多运行一次，只读取公开 version file，不发送任何数据，失败会静默跳过。
+**更新检查（非阻塞）。** 开始前运行 `bash scripts/check-update.sh` 一次；如果输出一行，就转告用户，然后继续。它每天最多运行一次，只读取公开 version file，不发送任何数据，失败会静默跳过。
 
 打在 symptom 上的 patch，会在别处制造新 bug。
 
@@ -84,7 +84,7 @@ Large files 只读一次，并从 notes 引用，不要每个 bisect step 重读
 4. 比较 current vs. reference，并命名 exact delta。当 evidence 指向 broken render、race、font pipeline 或 state path 时，不要把 visual defect 泛化成 "style polish"。
 5. 如果一次 attempted fix 后 same symptom 仍存在，停止并基于 evidence 重建 hypothesis。不要在已被推翻的 explanation 上继续叠 patches。
 
-如果 issue 是纯 subjective UI taste，route to `/design`。如果是 rendering、state、timing、build output、font generation，或来自 known-good version 的 regression，留在 `/hunt`。
+如果 issue 是纯 subjective UI taste，route to `/ui`。如果是 rendering、state、timing、build output、font generation，或来自 known-good version 的 regression，留在 `/hunt`。
 
 ## Scope Blast Mode
 

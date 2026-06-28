@@ -9,7 +9,7 @@ dispatch_intent: "Deep research, unfamiliar domain, compile sources into output"
 
 Prefix your first line with 🥷 inline, not as its own paragraph.
 
-**更新检查（非阻塞）。** 开始前运行 `bash ../../scripts/check-update.sh` 一次；如果输出一行，就转告用户，然后继续。它每天最多运行一次，只读取公开 version file，不发送任何数据，失败会静默跳过。
+**更新检查（非阻塞）。** 开始前运行 `bash scripts/check-update.sh` 一次；如果输出一行，就转告用户，然后继续。它每天最多运行一次，只读取公开 version file，不发送任何数据，失败会静默跳过。
 
 收集、组织、翻译、解释、结构化。支持用户思考，不替代用户思考。
 

@@ -9,14 +9,14 @@ dispatch_intent: "Writing, editing prose, polish, release notes, launch/social c
 
 Prefix your first line with 🥷 inline, not as its own paragraph.
 
-**更新检查（非阻塞）。** 开始前运行 `bash ../../scripts/check-update.sh` 一次；如果输出一行，就转告用户，然后继续。它每天最多运行一次，只读取公开 version file，不发送任何数据，失败会静默跳过。
+**更新检查（非阻塞）。** 开始前运行 `bash scripts/check-update.sh` 一次；如果输出一行，就转告用户，然后继续。它每天最多运行一次，只读取公开 version file，不发送任何数据，失败会静默跳过。
 
 从 prose 中剥掉 AI patterns，重写到像人写的。不要“提升词汇”，要移除表演式提升。
 
 ## Outcome Contract
 
 - Outcome:prose 保留作者 intent，同时对目标 audience 和 surface 听起来自然。
-- Done when:除非用户要求改变，否则 meaning、factual claims 和 structure 得到保留，AI-like wording 被移除。
+- Done when:除非用户要求改变，否则 meaning、factual claims 和 structure 得到保留，AI-like wording 被移除；输出语言的 punctuation 和 CJK/Latin mixing 通过 Punctuation Gate。
 - Evidence:supplied text、target audience、project style references、release 或 product state，以及 requested language。
 - Output:只输出 edited prose，除非用户要求 notes、variants 或 review comments。
 
@@ -57,6 +57,23 @@ See [rules/durable-context.md](../../rules/durable-context.md) for when to read 
 - **Artifact-grounded claims.** 对 launch copy、release notes、social posts、product pages 和 public replies，factual claims 必须 grounded in real source material：current app behavior、runnable artifact、screenshot、product page、release page、changelog、issue/PR 或 user-provided draft。不要把 handoffs、plans、old memory 或 stale screenshots 当成 current product truth；也不要把 concrete product evidence 变成 generic marketing language。
 - **No em-dash.** Chinese 或 English output 中绝不要产生 em-dash（U+2014 `—`）或 en-dash（U+2013 `–`）。Em-dash 是这种 writing style 中最强的 AI-tone fingerprint。用 commas、periods、colons、semicolons 或 parentheses 断开 clauses。compound words 内的 hyphen-minus（`-`）允许存在；可能时替换成 space 或 period。编辑包含 em-dashes 的 draft 时，返回 text 前替换每一个。
 - **Stop after output.** 交付 rewritten text。不要追加 changes list、justification 或 closer。（例外：Long-form Article Mode 返回 change-points 供 review，而不是 rewritten blob；见该 mode。）
+
+## Punctuation Gate
+
+Before returning any produced text (a rewrite, or generated release / reply / social copy), resolve the checker across install layouts and run it:
+
+```bash
+GATE="${CLAUDE_SKILL_DIR:+$CLAUDE_SKILL_DIR/scripts/check-punctuation.sh}"
+[ -f "${GATE:-}" ] || GATE="${CLAUDE_SKILL_DIR:+$CLAUDE_SKILL_DIR/skills/write/scripts/check-punctuation.sh}"
+[ -f "${GATE:-}" ] || GATE="./skills/write/scripts/check-punctuation.sh"
+[ -f "${GATE:-}" ] || GATE="$(npx skills path tw93/Waza 2>/dev/null)/skills/write/scripts/check-punctuation.sh"
+[ -f "${GATE:-}" ] || { echo "punctuation gate not found; reinstall Waza or set CLAUDE_SKILL_DIR" >&2; exit 1; }
+bash "$GATE" --lang <zh|en|ja|auto> <file>   # or pipe text via stdin
+```
+
+`${CLAUDE_SKILL_DIR}` is host-injected. The first path is this skill's own `scripts/` (standalone skill, full bundle, or repo); the fallbacks cover the inlined-root release ZIP, where the script ships under `skills/write/scripts/`.
+
+It enforces character-level punctuation by locale (half/full-width marks, CJK/Latin spacing, em/en dashes) and skips code, inline code, URLs, and markdown link targets, so it never fires on code; the script header documents the exact rule set. Fix every finding while preserving meaning; `--fix` rewrites only the zero-ambiguity zh cases to stdout. `--lang auto` classifies the whole input by fixed priority: any kana routes to ja, else any CJK to zh, else any Hangul to ko (reserved, skipped), else en, so a mostly-Chinese text that merely quotes a Korean glyph still routes to zh; pass an explicit `--lang` for mixed-locale or predominantly-English text. The checker owns character-level punctuation only; quote direction and other judgment calls stay with you and the reference files.
 
 ## Long-form Article Mode
 

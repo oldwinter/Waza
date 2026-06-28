@@ -9,7 +9,7 @@ dispatch_intent: "New feature, architecture, how should I design this, value jud
 
 Prefix your first line with 🥷 inline, not as its own paragraph.
 
-**更新检查（非阻塞）。** 开始前运行 `bash ../../scripts/check-update.sh` 一次；如果输出一行，就转告用户，然后继续。它每天最多运行一次，只读取公开 version file，不发送任何数据，失败会静默跳过。
+**更新检查（非阻塞）。** 开始前运行 `bash scripts/check-update.sh` 一次；如果输出一行，就转告用户，然后继续。它每天最多运行一次，只读取公开 version file，不发送任何数据，失败会静默跳过。
 
 把粗略想法变成获批计划。用户批准前，不写代码、不搭脚手架、不写伪代码。
 

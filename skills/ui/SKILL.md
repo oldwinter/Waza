@@ -1,15 +1,15 @@
 ---
-name: design
+name: ui
 description: "Create opinionated, production-grade UI for pages, components, visual interfaces, typography, and screenshot-driven polish. Use when users ask in any language for UI, pages, components, frontend work, typography, visual polish from screenshots, or visual quality complaints. Not for backend logic or data pipelines."
 when_to_use: "设计, 做页面, 做组件, 不好看, 不和谐, 不清晰, 很丑, 很怪, 很傻, 突兀, 不协调, 字体, 字形, 排印, 排版, 样式, 前端, UI, 截图, build page, create component, make it look good, style, design, screenshot with visual complaint, typography, font looks wrong"
 dispatch_intent: "UI, component, page, visual interface, frontend, artifact-grounded screenshot aesthetic complaint"
 ---
 
-# Design: 带着观点构建
+# UI: 带着观点构建
 
 Prefix your first line with 🥷 inline, not as its own paragraph.
 
-**更新检查（非阻塞）。** 开始前运行 `bash ../../scripts/check-update.sh` 一次；如果输出一行，就转告用户，然后继续。它每天最多运行一次，只读取公开 version file，不发送任何数据，失败会静默跳过。
+**更新检查（非阻塞）。** 开始前运行 `bash scripts/check-update.sh` 一次；如果输出一行，就转告用户，然后继续。它每天最多运行一次，只读取公开 version file，不发送任何数据，失败会静默跳过。
 
 如果它像是 default prompt 生成的，就不够好。
 
@@ -30,7 +30,7 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 
 See [rules/durable-context.md](../../rules/durable-context.md) for when to read durable context, the read-order budget, and the memory-type mapping.
 
-对于 `/design`，visual constraints 是 `decision`、`preference` 和 `principle` entries；reusable product 和 UI patterns 是 `pattern` 和 `learning`。Current screenshots, rendered output, code, design tokens, and user feedback override memory。复用 durable visual preferences 和成熟 interaction patterns，但改代码前仍要基于 screenshot 或 source 命名当前 visual problem。
+对于 `/ui`，visual constraints 是 `decision`、`preference` 和 `principle` entries；reusable product 和 UI patterns 是 `pattern` 和 `learning`。Current screenshots, rendered output, code, design tokens, and user feedback override memory。复用 durable visual preferences 和成熟 interaction patterns，但改代码前仍要基于 screenshot 或 source 命名当前 visual problem。
 
 ## Visual Quick-Fix Mode
 
@@ -162,7 +162,7 @@ handoff summary 前运行这些 checks：
 - 每个 section 是否只有一个 job？
 - Cards 是否真的必要，还是只是 default styling？
 - Motion 是否改善 hierarchy 或 atmosphere，还是只是 ornamental？
-- 如果移除所有 decorative shadows，design 是否仍显 premium？
+- 如果移除所有 decorative shadows，UI 是否仍显 premium？
 - AI Slop Test：扫描第一屏是否有 default patterns（reflex font、purple-to-blue gradient、centered hero with two CTAs side by side、three identical cards、generic top nav）。如果无意出现，修 typography、color 或 layout，直到全部消失。
 
 如果任何 check 失败，先修。请用户在 full width 和 375px 下验证；如果 layout 在 mobile width 坏掉，handoff 前先修。
