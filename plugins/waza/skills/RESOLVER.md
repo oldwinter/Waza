@@ -31,7 +31,7 @@
 | 触发 | 技能 |
 |------|------|
 | 报错 / 崩溃 / 测试失败 / 行为异常 / "为什么不工作" / 以前是好的 / 回归 / 截图回归 / 反复修不好 / stale cache / 队列或生成物边界 | `skills/hunt/SKILL.md` |
-| Claude/Codex 忽略指令 / hook 失灵 / MCP 异常 / Codex 配置 / AGENTS.md / config.toml / agent instructions / 配置审计 / health 消耗 token / AI coding 腐化 / 代码变烂 / 维护性 / hotspot ownership / 上下文混乱 / 验证缺失 / 验证命令失真 | `skills/health/SKILL.md` |
+| Claude/Codex/Pi 忽略指令 / hook 失灵 / MCP 异常 / Codex 配置 / Pi 配置 / AGENTS.md / config.toml / agent instructions / 配置审计 / health 消耗 token / AI coding 腐化 / 代码变烂 / 维护性 / hotspot ownership / 上下文混乱 / 验证缺失 / 验证命令失真 | `skills/health/SKILL.md` |
 
 ### Content（内容进出）
 
@@ -55,7 +55,8 @@
 7. **长文产出 vs 润色**：从零到成稿 → `/learn`；已有稿子要改 → `/write`。
 8. **判断 vs 调试**："判断一下" + 报错/异常/不工作 → `/hunt`（诊断问题）；"判断一下" + 有没有必要/该不该保留/值不值得 → `/think` Evaluation Mode（价值判断）。
 9. **继续优化 vs 调试**："继续优化" / "优化代码" 不含报错或异常现象 → `/check`（代码质量改善）；有具体报错或回归 → `/hunt`。
-10. **兜底**：两个都模糊时读两个 SKILL.md 的 "Not for" 段，用排除法；还是模糊就问用户。
+10. **需求包 vs issue 队列**：两个技能都有 Triage Mode。对象是还没实施的一批诉求/截图（判断接受与否）→ `/think` Triage Mode；对象是仓库里已存在的 issue/PR（处置、回复、关闭）→ `/check` Triage Mode。
+11. **兜底**：两个都模糊时读两个 SKILL.md 的 "Not for" 段，用排除法；还是模糊就问用户。
 
 ## Chaining（常见串联）
 

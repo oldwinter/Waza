@@ -64,6 +64,20 @@ Interior logs（tight loops 或 low-level helpers 内）通常是 noise，除非
 
 如果 adding a log 改变 behavior，把它当成 timing、lifecycle 或 concurrency problem 的 evidence。不要把它 dismiss 成 "just logging side effects"。
 
+## Runner-Only Failures
+
+When a script fails only under a specific runner (make target, CI job, test harness, cron) but passes standalone, do not edit the script with debug hacks you might forget to remove. Inject tracing from the outside via the environment the runner already passes through:
+
+```bash
+# xtrace-env.sh: sourced by every non-interactive bash via BASH_ENV
+exec 19>>/path/to/persistent/xtrace.log
+export BASH_XTRACEFD=19
+export PS4='+ [$0:$LINENO] '
+set -x
+```
+
+Run the failing pipeline as `BASH_ENV=/path/to/xtrace-env.sh make test` (or the runner's equivalent). Every bash the runner spawns appends `file:line`-stamped traces to one persistent file, surviving the runner's temp-dir cleanup, so the exact dying line is on record even when the failure needs the full pipeline to reproduce. Guard the injection with a sentinel variable if nested shells would re-source it, and delete the env file when done.
+
 ## Removing Logs
 
 Root cause 确认后：

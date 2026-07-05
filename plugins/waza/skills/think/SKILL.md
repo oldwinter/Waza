@@ -9,7 +9,7 @@ dispatch_intent: "New feature, architecture, how should I design this, value jud
 
 Prefix your first line with 🥷 inline, not as its own paragraph.
 
-**更新检查（非阻塞）。** 开始前运行 `bash scripts/check-update.sh` 一次；如果输出一行，就转告用户，然后继续。它每天最多运行一次，只读取公开 version file，不发送任何数据，失败会静默跳过。
+**Update check (non-blocking).** Once per conversation, run `bash <skill-base-dir>/scripts/check-update.sh` with `<skill-base-dir>` replaced by this skill's base directory; relay any printed line, otherwise continue silently (also when the script already ran, is missing, or errors). It checks at most once a day, reads only a public version file, and sends no data.
 
 把粗略想法变成获批计划。用户批准前，不写代码、不搭脚手架、不写伪代码。
 
@@ -24,9 +24,9 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 
 ## Durable Context Preflight
 
-See [rules/durable-context.md](../../rules/durable-context.md) for when to read durable context, the read-order budget, and the memory-type mapping (planning constraints, reusable patterns, facts that need re-verification against current state).
+See [references/durable-context.md](references/durable-context.md) for when to read durable context, the read-order budget, and the memory-type mapping (planning constraints, reusable patterns, facts that need re-verification against current state).
 
-For `/think`, planning constraints are `decision`, `preference`, and `principle` entries; current repo state, live docs, logs, tests, and remote state override memory. Lock durable decisions and preferences before asking questions. Do not ask the user to restate an intent that the durable context already establishes unless it is risky, stale, or contradicted by current state.
+For `/think`: current repo state and live docs override memory. Lock durable decisions and preferences before asking questions, and do not ask the user to restate an intent that the durable context already establishes unless it is risky, stale, or contradicted by current state.
 
 Before outputting any plan, scan the project's `AGENTS.md`, `CLAUDE.md`, `.claude/rules/*.md`, and any local agent-memory summary if the user pointed at one. If the proposed plan contradicts a "hard rule", "never X", "must Y", or "prefer Z" stated in those files, surface the contradiction in the plan output (one sentence: which rule, which step contradicts it, recommended resolution). Do not silently override the rule. If the rule blocks the plan, stop and ask before continuing.
 
@@ -147,6 +147,12 @@ For a hard problem, or one you have already tuned several times and it still fee
 当用户要求 export a handoff，或环境阻止继续执行时，给 execution-ready handoff，而不是只解释 limitation。包含 file targets、key constants 或 selectors、exact commands、runtime 或 visual checklist，以及 risk boundaries。如果工作依赖 screenshot 或 artifact，命名 artifact 和 pass/fail delta。
 
 当用户之后说 "Implement the plan"、"可以干"、"直接改"、"整" 或等价表达，把它视为对 written plan 的 approval。不要重新争论 design。说明正在执行哪个 plan，检查 repo 是否有明显 drift，然后继续。如果环境变化已经让 plan 不安全，说明 specific drift，并在编辑前停止。
+
+## Hard Rules
+
+- **No placeholders in approved plans.** Every step must be concrete before approval. Forbidden patterns: TBD, TODO, "implement later," "similar to step N," "details to be determined." A plan with placeholders is a promise to plan later.
+- **Phase independence.** If the plan has multiple phases, each phase must be independently mergeable: after Phase N ships, the system is in a usable state, even if N+1 never lands. Plans that require all phases to complete before anything works are fragile (one stuck phase blocks the whole release) and waste review effort. If the work cannot be cut into mergeable phases, say so and ship it as one phase instead of pretending it is staged.
+- **Plan red flags (self-check before handoff):** a phase depends on the next phase to be useful, or a "Phase 0: investigate / spike" exists (investigation belongs before the plan, not inside it). Either red flag means the plan is not ready; resolve it before handing off.
 
 ## Gotchas
 

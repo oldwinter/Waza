@@ -9,7 +9,7 @@ dispatch_intent: "UI, component, page, visual interface, frontend, artifact-grou
 
 Prefix your first line with 🥷 inline, not as its own paragraph.
 
-**更新检查（非阻塞）。** 开始前运行 `bash scripts/check-update.sh` 一次；如果输出一行，就转告用户，然后继续。它每天最多运行一次，只读取公开 version file，不发送任何数据，失败会静默跳过。
+**Update check (non-blocking).** Once per conversation, run `bash <skill-base-dir>/scripts/check-update.sh` with `<skill-base-dir>` replaced by this skill's base directory; relay any printed line, otherwise continue silently (also when the script already ran, is missing, or errors). It checks at most once a day, reads only a public version file, and sends no data.
 
 如果它像是 default prompt 生成的，就不够好。
 
@@ -28,7 +28,7 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 
 ## Durable Context Preflight
 
-See [rules/durable-context.md](../../rules/durable-context.md) for when to read durable context, the read-order budget, and the memory-type mapping.
+See [references/durable-context.md](references/durable-context.md) for when to read durable context, the read-order budget, and the memory-type mapping.
 
 对于 `/ui`，visual constraints 是 `decision`、`preference` 和 `principle` entries；reusable product 和 UI patterns 是 `pattern` 和 `learning`。Current screenshots, rendered output, code, design tokens, and user feedback override memory。复用 durable visual preferences 和成熟 interaction patterns，但改代码前仍要基于 screenshot 或 source 命名当前 visual problem。
 
@@ -41,18 +41,20 @@ Flow:
 1. 读取 current UI evidence：screenshot、rendered page、native view 或 responsible component。
 2. 用一句话命名 exact visual defect。
 3. 做能修复该 defect 的最小 material、geometry、spacing、contrast、typography 或 text-fit change。
-4. 验证真实 running surface 或 generated artifact。检查 long words、localized strings、compact states，以及适用时至少一个 narrow viewport。
+4. 验证真实 running surface 或 generated artifact。检查 long words、localized strings、compact states，以及适用时至少一个 narrow viewport。Terminal output 也算 rendered surface：改了 CLI-facing text、spacing 或 layout 后，重新运行 command 并读取真实输出。
 5. 如果 fix 触碰三个或更多 components、改变 product behavior，或暴露 direction problem，停止并切换到 Screenshot Iteration Mode 或 Lock the Direction First。
 
-**Spacing unification rule。** 如果某个 magic spacing 或 sizing value 调整三次后 layout 仍然不对，停止 tuning。把 N 个独立 padding / gap / margin / size values 替换成一个 shared named token（`Spacing.s4`、`--gap-content`、`gap-4`）。Outer container padding 默认等于 inner element gap。能熬过 tuning 的 asymmetry 是 structural，不是 numeric，继续加 magic numbers 不会收敛。先减少 independent values 数量，再讨论具体 value。
+**Spacing unification rule。** 如果某个 magic spacing 或 sizing value 调整三次后 layout 仍然不对，停止 tuning。把 N 个独立 padding / gap / margin / size values 替换成一个 shared named token（`Spacing.s4`、`--gap-content`、`gap-4`）。Outer container padding 默认等于 inner element gap。能熬过 tuning 的 asymmetry 是 structural，不是 numeric，继续加 magic numbers 不会收敛。Spacing-as-a-system 细则在 `references/design-reference.md`。
 
 **Fixed-height action slot, uniform typography。** 任何会基于 state 替换 children 的 container（status bar、action slot、toolbar row、menu item）都必须在每个 state 使用同一个 font size。可以改变 fill、stroke、opacity、color 或 icon，绝不要改变 font size。`secondary 13px` 和 `primary 14px` 之间 1pt 的 height delta 会在 state transition 时变成可见 jitter。同一 slot 中的 CTA pill buttons 使用相同 size（通常 14px），用 background 和 border 区分，而不是 typography。
 
 **Completion screen layout。** Operation-complete surfaces 只展示用户来这里要看的那个单一结果：actual reclaimed size / processed count / changed state。长解释属于从 summary row 打开的 details overlay，不属于 primary completion line。当点 summary row 已经能打开 details 时，不要在旁边添加单独的 "Review" button；不要展示空的 "0 skipped" entry point。如果没有 skipped 或 failed item，完全隐藏 details affordance。
 
+**Loading is not empty。** 正在 loading、measuring、indexing、refreshing 或等待 permission 的 surface 必须显示 pending state，而不是 final empty copy。只有请求完成且结果为空时，才显示 "nothing found"。如果 refresh 期间保留 previous results，要让它们显得 stale，或替换成 progress；绝不要在工作仍在进行时闪现最终空状态。
+
 **Safety-bound action design。** 对 cleanup、deletion、uninstall、reset 或 permission-changing surfaces，不要通过隐藏 recoverability 让 UI 显得更简单。只有当每行都能被 target user 理解，并携带足够 identity 让用户验证 safety（相关时包括 name、source、owner、path、preview 或 recovery implication）时，bulk select、auto-select、one-tap delete 或 "recommended" destructive defaults 才合适。如果 rows 是 opaque identifiers、inferred leftovers 或 machine-only paths，优先 review-first UI、current-target scoping、disabled destructive affordances 或 explanatory grouping，而不是更快的 batch controls。想减少点击的 feature request 不足以移除用户验证将发生什么变化的能力。
 
-**Quiet product boundary。** 更少点击和更丰富 controls 不会自动更好。添加 alternate controls 前先移除 misleading affordances；diagnostics 和 alerts 优先 quiet defaults；改变速度或添加 new motion preference 前先修 unstable motion cadence。如果 current UI 暗示了它不能支持的 action、state 或 promise，先移除该暗示。
+**Quiet product boundary。** 更少点击和更丰富 controls 不会自动更好。添加 alternate controls 前先移除 misleading affordances；diagnostics 和 alerts 优先 quiet defaults；改变速度或添加 new motion preference 前先修 unstable motion cadence。如果 current UI 暗示了它不能支持的 action、state 或 promise，先移除该暗示。Completion surfaces 也遵守同一原则：只突出用户来这里要看的单一结果，把解释放在 summary row 后的 details overlay，并隐藏任何背后没有内容的 affordance。
 
 ## Screenshot Iteration Mode
 
@@ -137,6 +139,10 @@ Flow:
 
 给至少 3 个 variations，且跨 genuinely different dimensions（density、typography、color、layout、motion）。完整 variation framework 见 `references/design-reference.md` 中的 "Options guide"。只差 accent color 的三个 options 不算三个 variations。
 
+## Hard Rules
+
+`references/design-reference.md` (already loaded during direction lock) owns the full rules: typography, OKLCH color, motion timings, layout defaults, CSS-pattern bans, accessibility baseline, and complexity matching. Apply them.
+
 ## Gotchas
 
 | What happened | Rule |
@@ -151,7 +157,7 @@ Flow:
 | 英文看着没问题，localized text overflowed | handoff 前测试 long words 和 localized strings，尤其是 buttons、tabs、nav 和 compact cards 内部 |
 | 依赖 `...` truncation 让 text 塞进 fixed-width slot | 改为保证 fit：压缩 format、限制到完整 segments，或 hard-trim 且不显示 glyph。Metric 和 label footers 绝不能 tail-truncate 成 ellipsis |
 
-## Aesthetic Review
+## Output: Aesthetic Review
 
 在 significant build phases 后以及 handoff 时，重新阅读 direction lock 的 visual thesis。如果屏幕上的内容漂向 generic default，识别最先坏掉的 specific element（typeface、color、card treatment、spacing），并在继续前修复。
 

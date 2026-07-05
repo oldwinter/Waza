@@ -50,7 +50,7 @@ AI 在原始产出能力上已经强过大多数工程师。但没有结构时�
 npx skills add tw93/Waza -a claude-code codex cursor -g -y
 ```
 
-这会安装到 Claude Code、Codex 和 Cursor，也会被其他读取共享 `~/.agents/skills` 目录的 agent 使用。后续可用 `npx skills update -g -y` 更新，或传入单个 agent（例如 `-a claude-code`）来限定范围。
+这会把一份 canonical copy 安装到共享的 `~/.agents/skills` store（agents.md standard directory），并为 Claude Code 建好 symlink；Codex、Cursor、Kimi Code CLI、Amp、Cline，以及所有读取该目录的 agent 都会自动加载 Waza。通过这些 harness 路由的模型（例如 Claude Code-compatible endpoints 后面的 GLM 或 Kimi K2）不需要额外配置；私有 skills 目录的工具可以追加自己的 agent id，例如 `-a qwen-code iflow-cli`。后续用 `npx skills update -g -y` 更新。
 
 **Native plugin**（用于 host-native update commands）
 

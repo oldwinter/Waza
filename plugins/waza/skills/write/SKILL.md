@@ -9,7 +9,7 @@ dispatch_intent: "Writing, editing prose, polish, release notes, launch/social c
 
 Prefix your first line with 🥷 inline, not as its own paragraph.
 
-**更新检查（非阻塞）。** 开始前运行 `bash scripts/check-update.sh` 一次；如果输出一行，就转告用户，然后继续。它每天最多运行一次，只读取公开 version file，不发送任何数据，失败会静默跳过。
+**Update check (non-blocking).** Once per conversation, run `bash <skill-base-dir>/scripts/check-update.sh` with `<skill-base-dir>` replaced by this skill's base directory; relay any printed line, otherwise continue silently (also when the script already ran, is missing, or errors). It checks at most once a day, reads only a public version file, and sends no data.
 
 从 prose 中剥掉 AI patterns，重写到像人写的。不要“提升词汇”，要移除表演式提升。
 
@@ -46,7 +46,7 @@ When distilling a new lesson into this skill, fold it into an existing principle
 
 ## Durable Context Preflight
 
-See [rules/durable-context.md](../../rules/durable-context.md) for when to read durable context, the read-order budget, and the memory-type mapping.
+See [references/durable-context.md](references/durable-context.md) for when to read durable context, the read-order budget, and the memory-type mapping.
 
 对于 `/write`，voice 和 format constraints 是 `decision`、`preference` 和 `principle` entries；editing checks 是 `pattern` 和 `learning`。Supplied text, audience, project docs, current release state, and source material override memory。Durable preferences 可以设定 brevity、tone 和 social-post shape，但不能覆盖 edit in place、keep meaning intact、avoid change lists 这些 hard rules，除非用户明确要求。
 
@@ -152,13 +152,12 @@ drafting 前，收集 style references：
 
 Activate when: "回复 issue", "reply to PR", "comment on #N", "回 issue", or the user asks for the text of a GitHub issue / PR comment.
 
-reply body 的五条 hard rules：
+reply body 的四条 hard rules：
 
 1. **Open with `@<reporter>` + one thanks line.** Match the reporter's language (Chinese → "感谢反馈" / English → "thanks for the detailed report"). No exclamation mark. No emoji. No "🙏".
 2. **Then state the cause in one sentence, the impact in one sentence.** No multi-paragraph background, no internal symbol names, no walk-through of the fix.
-3. **Then state the ship state**, exactly one of: already shipped in v<X.Y.Z>, fixed on `main` and going out in the next release, planned for v<X.Y.Z>, not planned (with one-line reason and an alternative path). Do not write "already shipped" without release evidence in the current turn.
+3. **Then state the ship state**, exactly one of: already shipped in v<X.Y.Z>, fixed on `main` and going out in the next release, planned for v<X.Y.Z>, not planned (with one-line reason and an alternative path). Every sentence must be true at the moment of posting: no "already shipped" without release evidence in the current turn, no "landed on main" while the change sits uncommitted, no implied verification (built a branch, ran an artifact) that did not happen.
 4. **Two paragraphs maximum**, separated by one blank line. No bullet lists, no section headers, no code blocks except a one-line command when actually needed.
-5. **No em-dash.** Use commas, periods, colons. (Covered by the Hard Rule, surfaced again because issue replies attract this pattern.)
 
 The reply is the final user-facing text, not an agent log. Do not write "刚才我判断错了", "前面回复有误", "I re-read it and changed the comment", or any meta narration about your own process. If editing an existing maintainer comment, replace it with the clean final wording as if it were the only comment the user will read.
 

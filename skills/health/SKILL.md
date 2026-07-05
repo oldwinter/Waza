@@ -9,7 +9,7 @@ dispatch_intent: "Codex/Claude/Pi ignoring instructions, agent config audit, hoo
 
 Prefix your first line with 🥷 inline, not as its own paragraph.
 
-**更新检查（非阻塞）。** 开始前运行 `bash scripts/check-update.sh` 一次；如果输出一行，就转告用户，然后继续。它每天最多运行一次，只读取公开 version file，不发送任何数据，失败会静默跳过。
+**Update check (non-blocking).** Once per conversation, run `bash <skill-base-dir>/scripts/check-update.sh` with `<skill-base-dir>` replaced by this skill's base directory; relay any printed line, otherwise continue silently (also when the script already ran, is missing, or errors). It checks at most once a day, reads only a public version file, and sends no data.
 
 按这个 framework 审计当前项目的 agent setup 和 AI coding maintainability：
 `agent config → instruction surfaces → tools/runtime → verifiers → maintainability`
@@ -34,9 +34,9 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 
 ## Durable Context Preflight
 
-See [rules/durable-context.md](../../rules/durable-context.md) for when to read durable context, the read-order budget, and the memory-type mapping.
+See [references/durable-context.md](references/durable-context.md) for when to read durable context, the read-order budget, and the memory-type mapping.
 
-For `/health`, audit expectations are `decision`, `preference`, and `principle` entries; checks for repeated failures are `pattern` and `learning`. Current CLAUDE.md, installed skills, hooks, MCP config, command output, and live probes override memory. Also flag durable memory problems when they affect behavior: oversized injected summaries, stale or contradictory entries, missing project entrypoint references, or private paths copied into public instructions. Keep these as context findings, not code-review findings.
+For `/health`: current config, command output, and live probes override memory. Also flag durable memory problems when they affect behavior: oversized injected summaries, stale or contradictory entries, missing project entrypoint references, or private paths copied into public instructions. Keep these as context findings, not code-review findings.
 
 ## Step 0: Assess project tier
 
@@ -94,7 +94,9 @@ These run after collection and before the Step 2 analysis. The first two apply t
 
 每次 audit 都运行这些 checks，不管 tier。它们是 floor，不是 ceiling。
 
-**Deny-list floor.** Apply this only when the project or runtime exposes agent permission settings, hook settings, MCP settings, allowed/denied tools, or a documented autonomous-agent launcher. In that case, the settings should deny, at minimum: credential and key directories (SSH, cloud providers, GPG, gh CLI), secret files (`.env`, `credentials*`, `secrets*`), pipe-to-shell installers (`curl ... | bash`, `wget ... | sh`), and outbound shells (`ssh`, `scp`, `nc`). Report this as one concise WARN with the missing categories and suggested fix; let the reviewer fill in exact local paths from the environment. If no agent settings surface exists, report the deny-list as not applicable rather than a failure.
+**Deny-list floor.** Apply this only when the runtime actually enforces the rule shape being recommended: agent permission settings, hook settings, MCP settings, allowed/denied tools, or a documented autonomous-agent launcher. In that case, the settings should deny, at minimum: credential and key directories (SSH, cloud providers, GPG, gh CLI), secret files (`.env`, `credentials*`, `secrets*`), and pipe-to-shell installers. Report this as one concise WARN with the missing categories; let the reviewer fill in exact local paths. Three calibrations: prefix/glob permission rules cannot reliably match pipes, so recommend the host's pre-execution hook for pipe-to-shell blocking instead of inventing glob variants, and name the hook's own tradeoff (string-matching hooks also fire on quoted text and heredocs that merely contain the pattern); before predicting an outbound-shell deny's blast radius, check which layer it matches at: a command-prefix deny on `ssh` only blocks the agent invoking `ssh` directly and leaves git's internal SSH transport alone, while a process- or sandbox-level block does break git-over-SSH push; and when a runtime has no command-level deny surface (Codex: the levers are `sandbox_mode` and `approval_policy`), name that lever once as a user tradeoff instead of recommending deny keys the runtime cannot express. If no agent settings surface exists at all, report the deny-list as not applicable rather than a failure.
+
+**Permission-layer vs instruction-layer gating.** An allowlist entry for a git write action (`git push`) next to an instruction-layer rule ("push only when the user says so") is not automatically a contradiction: instructions decide when the action happens, permissions decide whether it re-prompts, and a user who explicitly authorizes pushes every session may keep push in allow deliberately to avoid double confirmation. Calibrate by reversibility and the user's own rules: actions the instructions forbid outright (`git reset --hard`, `git stash`, force-push) belong in deny or ask; routine explicitly-authorized actions stay where the user put them, reported at most as a note. Escalate only when auto mode plus skipped prompts plus broad allow lets a write action run with zero user input in a session, and even then present the friction tradeoff for the user to choose instead of silently moving entries.
 
 **Environment override surface.** Treat the following as attack surface, report when set in tracked files or shipped settings without a justification comment: API base-URL overrides (redirect all traffic to a third party), auto-trust flags for project-local MCP servers, wildcard tool allowlists (`allowedTools: ["*"]`), and permission-skip flags (`--dangerously-skip-permissions` or equivalents). Print file:line and the key name only; never print secrets.
 
@@ -135,6 +137,8 @@ The stop conditions should live in tracked project docs (`AGENTS.md`, the loop's
 
 **Health Report: {project} ({tier} tier, {file_count} files)**
 
+**Global findings report once.** Findings in machine-global config (`~/.claude`, `~/.codex`, global rules, skills, memory) are not project findings: label them `global`, report each once with its fix, and recommend one dedicated session for global cleanup instead of re-fixing per project. Before editing any global file, re-read its current state: when health runs across several projects in one day, another session may already have fixed or be mid-fix on the same file, and re-applying a variant of the same rule creates duplicate entries. Never edit the same global file from two concurrent sessions.
+
 ### [PASS] Passing checks (table, max 5 rows)
 
 ### Finding format
@@ -146,6 +150,8 @@ The stop conditions should live in tracked project docs (`AGENTS.md`, the loop's
 ```
 
 `Action:` 必须 copy-pasteable。绝不要写 "investigate X" 或 "consider Y"。如果 fix unknown，命名 diagnostic command。
+
+A finding refuted in the same breath (a TODO count that turns out to be vendored code or false positives) is not a finding; drop it or fold it into the passing table.
 
 ### [!] Critical -- fix now
 
@@ -166,7 +172,7 @@ Agent instructions 位于 wrong layer、missing hooks、oversized descriptions�
 从 project root 运行 quick check：
 
 ```bash
-bash skills/health/scripts/check-agent-context.sh . summary
+bash "$(dirname "$HEALTH_SCRIPT")/check-agent-context.sh" . summary
 ```
 
 **AI-maintainability gaps.** Use `AI MAINTAINABILITY SUMMARY` in summary mode and `AI MAINTAINABILITY DETAIL` in deep mode. Report `FAIL` when the project has no executable verification command, no agent instruction surface for a non-trivial repo, or broken doc references. Report `WARN` when instructions exist but lack a project map, verification guidance, boundary/non-goal language, when TODO/HACK markers are concentrated, when large source hotspots lack ownership/boundary and verification guidance, or when durable docs contain raw one-off review reports, scorecards, dated line references, or diagnostic dumps instead of stable invariants. Treat missing `docs/`, `specs/`, `.specify/`, `HANDOFF.md`, `CHANGELOG`, issue templates, and PR templates as informational unless project complexity makes them necessary for handoff. The action for stale reports is to extract stable rules into public instructions, rules, references, or verifier scripts, then remove or archive the transient report.
@@ -192,13 +198,13 @@ Layering rule: project-specific commands, app names, artifact names, and release
 从 project root 运行 quick check：
 
 ```bash
-bash skills/health/scripts/check-maintainability.sh . summary
+bash "$(dirname "$HEALTH_SCRIPT")/check-maintainability.sh" . summary
 ```
 
 For deep audits:
 
 ```bash
-bash skills/health/scripts/check-maintainability.sh . deep
+bash "$(dirname "$HEALTH_SCRIPT")/check-maintainability.sh" . deep
 ```
 
 保持 actions concrete 且 non-invasive：添加或修复 smallest useful instruction surface，添加一个 executable validation command，记录 hotspot ownership 和 tests，只在 boundary 已清晰时 split，或 repair broken reference。不要仅凭 script output 提出 broad rewrites。
@@ -214,7 +220,7 @@ Common offenders:
 从 project root 运行 quick check：
 
 ```bash
-bash skills/health/scripts/check-doc-refs.sh .
+bash "$(dirname "$HEALTH_SCRIPT")/check-doc-refs.sh" .
 ```
 
 The checker resolves `@...` and `docs/...` from the project root, expands `~`, resolves `references/...` from each `.claude/skills/<name>/SKILL.md` directory, checks every reference on a line, skips fenced code examples, and exits non-zero when any target is missing.
@@ -226,7 +232,7 @@ Report missing references as Structural findings, not Critical, unless the missi
 **Stale verifier cache output。** 如果 validation output 指向已删除 temp worktree 或不存在的 `/tmp` / `/private/tmp` 文件，用以下命令解析 captured log：
 
 ```bash
-bash skills/health/scripts/check-verifier-output.sh . <log-file>
+bash "$(dirname "$HEALTH_SCRIPT")/check-verifier-output.sh" . <log-file>
 ```
 
 只对用户提供的 existing command output，或当前 audit 期间生成的 output 使用此 script。不要为了 feed this checker 而运行 project tests。Known actions 包括 `golangci-lint cache clean`、`go clean -cache -testcache` 和 `npm cache verify`；unknown tools 给 diagnostic rerun action。

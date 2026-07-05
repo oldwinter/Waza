@@ -9,7 +9,7 @@ dispatch_intent: "Error, crash, regression, screenshot-reported defect, test fai
 
 Prefix your first line with 🥷 inline, not as its own paragraph.
 
-**更新检查（非阻塞）。** 开始前运行 `bash scripts/check-update.sh` 一次；如果输出一行，就转告用户，然后继续。它每天最多运行一次，只读取公开 version file，不发送任何数据，失败会静默跳过。
+**Update check (non-blocking).** Once per conversation, run `bash <skill-base-dir>/scripts/check-update.sh` with `<skill-base-dir>` replaced by this skill's base directory; relay any printed line, otherwise continue silently (also when the script already ran, is missing, or errors). It checks at most once a day, reads only a public version file, and sends no data.
 
 打在 symptom 上的 patch，会在别处制造新 bug。
 
@@ -35,7 +35,7 @@ Rationalization warning："I'll just try this" 表示没有 hypothesis，先写�
 
 ## Durable Context Preflight
 
-See [rules/durable-context.md](../../rules/durable-context.md) for when to read durable context, the read-order budget, and the memory-type mapping.
+See [references/durable-context.md](references/durable-context.md) for when to read durable context, the read-order budget, and the memory-type mapping.
 
 对于 `/hunt`，diagnostic constraints 是 `decision`、`preference` 和 `principle` entries；`pattern` 和 `learning` 可以作为 hypotheses 的种子。Current code, logs, repro steps, tests, environment versions, and remote state override memory。Durable context 只是 hypothesis fuel。它永远不能替代 fresh root-cause sentence、reproducible symptom list 或 current state 的 evidence。
 
@@ -171,13 +171,26 @@ Quick rules：
 | 从 app 内启动能工作，经 file association / drag-drop / deep link / external proxy 打开就坏 | 使用用户描述的 exact entry point 复现。App-internal init 与 cold-launch-with-file init 不同；document 到达时 state 可能还没 ready |
 | Build passed but UI still looked wrong | 沿 Runtime Evidence Ladder 上移，验证真实 rendered surface 或 artifact |
 
-## Outcome
+## Rendering Bug Mode
+
+Activate when: "PDF looks wrong", "page break issue", "font not rendering", broken PDF output, or print layout wrong.
+
+Load `references/rendering-debug.md` for the full diagnosis checklist (WeasyPrint quirks, font loading, page overflow, browser print CSS). Static analysis first, then reproduce if needed.
+
+## IME / Unicode Issues
+
+For input method, character rendering, or text encoding bugs (IME state, cursor drift, emoji splitting, composition events), check `references/ime-unicode.md` first before forming a hypothesis.
+
+## Output
 
 ### Success Format
+
+Open the wrap-up with one plain line stating the outcome and whether the changes are committed; the block below supports that line, it does not replace it.
 
 ```
 Root cause:        [what was wrong, file:line]
 Fix:               [what changed, file:line]
+Sibling sweep:     [N same-shape sites checked, N fixed / none found / not run, why]
 Confirmed:         [evidence or test that proves the fix]
 Tests:             [pass/fail count, regression test location]
 Regression guard:  [test file:line] or [none, reason]

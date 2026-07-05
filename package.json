@@ -1,6 +1,6 @@
 {
   "name": "@tw93/waza",
-  "version": "3.30.0",
+  "version": "3.31.0",
   "description": "Waza engineering skills for Claude Code, Codex, Antigravity, OpenCode, Pi, and compatible coding agents.",
   "license": "MIT",
   "repository": {
@@ -21,7 +21,10 @@
     "LICENSE",
     "README.md",
     "rules",
-    "scripts",
+    "scripts/check-update.sh",
+    "scripts/setup-rule.sh",
+    "scripts/setup-statusline.sh",
+    "scripts/statusline.sh",
     "skills",
     "!**/__pycache__/**",
     "!**/*.pyc"

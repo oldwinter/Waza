@@ -14,14 +14,14 @@ Waza 是面向 engineering workflows 的 skill collection。仓库包含八个 s
 - `skills/*/agents/` - specialist reviewer 或 inspector prompts。
 - `skills/*/references/` - 只在需要时加载的 supporting references。
 - `skills/*/scripts/` - 确定性的 helper scripts。
-- `rules/` - install 和 validation flows 使用的共享 writing/behavior rules。`rules/durable-context.md` 是共享 Durable Context Preflight preamble；六个带 optional memory context 的 skills 会在自己的 preflight section 链接到它。
+- `rules/` - install 和 validation flows 使用的共享 writing/behavior rules。`rules/durable-context.md` 是共享 Durable Context Preflight preamble；codegen 会把它复制到每个引用它的 skill，路径为 `skills/<name>/references/durable-context.md`（direct installs 只拿到单个 skill 目录），六个带 optional memory context 的 skills 会链接到这份 skill-local copy。
 - `.claude-plugin/marketplace.json` - **generated**。编辑 `VERSION` 或每个 skill 的 `SKILL.md` frontmatter 后运行 `make regenerate`；不要手工编辑。
 - `.agents/plugins/marketplace.json` - **generated** Codex repo marketplace。它让 Codex 在 plugin install 时指向 `plugins/waza`；不要手工编辑。
 - `plugins/waza/` - **generated** Codex plugin tree。它镜像 `skills/`、`rules/` 和 `plugins/waza/.codex-plugin/plugin.json`；编辑 source files 后运行 `make regenerate`。
 - `packaging.allowlist` - 打进 `waza.zip` 的路径 default-deny 清单。新的 shippable assets 必须显式加入这里；其他内容都会被排除。
 - `.github/workflows/` - public test 和 release automation。`release.yml` 会先运行 `make test` 再运行 `make package`，让 tagged commit 经过与 PR 相同的 suite。
-- `scripts/build_metadata.py` - Claude 和 Codex marketplace metadata、README install URLs、Codex plugin mirror files 以及 installer-script `WAZA_REF` 默认值的 codegen。通过 `make regenerate` 运行；CI 用 `make verify-generated` 检查 drift。
-- `scripts/verify_skills.py` - 唯一的 validator entrypoint。覆盖 frontmatter、references、marketplace、resolver、links、table pipes、trigger overlap、rule-file presence、README install string、English coaching guard 和 AI-attribution leak detection。
+- `scripts/build_metadata.py` - Claude 和 Codex marketplace metadata、README install URLs、Codex plugin mirror files、skill-local shared assets（update checkers、durable-context copies）、installer-script `WAZA_REF` 默认值以及 update-checker `LOCAL_VERSION` 的 codegen。通过 `make regenerate` 运行；CI 用 `make verify-generated` 检查 drift。
+- `scripts/verify_skills.py` - 唯一的 validator entrypoint。覆盖 frontmatter、references、marketplace、resolver、links、table pipes、trigger overlap、rule-file presence、README install string、English coaching guard、AI-attribution leak detection、canonical update-check line（SKILL.md files 和 dispatcher template）、portable command invocations，以及 skill-local durable-context copies。
 - `scripts/package-skill.sh` + `scripts/packaging_filter.py` - 从 `packaging.allowlist` 构建 `dist/waza.zip`。
 - `scripts/setup-rule.sh` + `scripts/setup-statusline.sh` - public install helpers；`WAZA_REF` 默认值由 codegen 固定到当前 release tag。
 - `Makefile` - smoke discovery 和 packaging entrypoints。新增一个 `tests/test_<name>.sh` 文件就会自动创建对应的 `smoke-<name>` target。
@@ -111,6 +111,7 @@ make package          # build dist/waza.zip from packaging.allowlist
 ## Verification
 
 - Skill behavior changes：运行 `python3 scripts/verify_skills.py` 和相关 smoke target。
+- 会触网的 smokes（read fetch、skills-add e2e）支持 `WAZA_SMOKE_OFFLINE=1` 进行完全 hermetic 运行；在线时会对 transient failures 做 backoff retry。
 - Packaging changes：运行 `make package` 并检查 generated archive。
 - Marketplace、resolver 或 root dispatcher changes：运行 `python3 scripts/verify_skills.py`，并确认每个 marketplace source 都指向存在的 skill directory。对于 Codex plugin changes，还要运行 clean install smoke，例如 `CODEX_HOME=$(mktemp -d) codex plugin marketplace add <repo>`，随后运行 `codex plugin add waza@waza` 和 `codex plugin list`。
 - Non-trivial diffs：release handoff 前运行 review workflow。

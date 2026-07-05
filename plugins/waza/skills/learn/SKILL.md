@@ -9,7 +9,7 @@ dispatch_intent: "Deep research, unfamiliar domain, compile sources into output"
 
 Prefix your first line with 🥷 inline, not as its own paragraph.
 
-**更新检查（非阻塞）。** 开始前运行 `bash scripts/check-update.sh` 一次；如果输出一行，就转告用户，然后继续。它每天最多运行一次，只读取公开 version file，不发送任何数据，失败会静默跳过。
+**Update check (non-blocking).** Once per conversation, run `bash <skill-base-dir>/scripts/check-update.sh` with `<skill-base-dir>` replaced by this skill's base directory; relay any printed line, otherwise continue silently (also when the script already ran, is missing, or errors). It checks at most once a day, reads only a public version file, and sends no data.
 
 收集、组织、翻译、解释、结构化。支持用户思考，不替代用户思考。
 
@@ -127,6 +127,12 @@ Then strip AI patterns from the draft. If `/write` is installed, invoke it. If n
 当它从头到尾读起来 clean，draft 就 ready for the user to publish。
 
 **用户确认 article ready to publish 后，停止。** 除非明确要求，不要 upload、post、distribute 或执行任何 publish action。
+
+## Hard Rules
+
+- **outline solid 前不要开始 Phase 4。** 没有 sources 的 section 要么不该存在，要么需要先找 source。
+- **矛盾必须可见。** 当两个 sources 在 factual claim 上冲突，记录双方 positions 和各自 evidence，绝不要静默选择一个。
+- **确认可发布后停止。** 用户确认 article ready 后，除非明确要求，不要 upload、post、distribute 或执行任何 publish action。
 
 ## Gotchas
 
