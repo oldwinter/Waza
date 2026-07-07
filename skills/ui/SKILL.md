@@ -141,7 +141,7 @@ Flow:
 
 ## Hard Rules
 
-`references/design-reference.md` (already loaded during direction lock) owns the full rules: typography, OKLCH color, motion timings, layout defaults, CSS-pattern bans, accessibility baseline, and complexity matching. Apply them.
+`references/design-reference.md`（direction lock 期间已加载）负责完整规则：typography、OKLCH color、motion timings、layout defaults、CSS-pattern bans、accessibility baseline 和 complexity matching。这些规则用于避免输出滑向 generic default，而不是当作 lint pass 机械执行：如果已经确定的 direction 确实需要打破某条规则，就有意打破，并在 handoff 中说明 tradeoff。accessibility baseline 和 CSS-pattern bans 仍然不可协商。
 
 ## Gotchas
 
