@@ -47,7 +47,7 @@ AI 在原始产出能力上已经强过大多数工程师。但没有结构时�
 一条命令会无提示、无报错地安装全部八个 skills。复制并运行：
 
 ```bash
-npx skills add tw93/Waza -a claude-code codex cursor -g -y
+npx skills add oldwinter/Waza -a claude-code codex cursor -g -y
 ```
 
 这会把一份 canonical copy 安装到共享的 `~/.agents/skills` store（agents.md standard directory），并为 Claude Code 建好 symlink；Codex、Cursor、Kimi Code CLI、Amp、Cline，以及所有读取该目录的 agent 都会自动加载 Waza。通过这些 harness 路由的模型（例如 Claude Code-compatible endpoints 后面的 GLM 或 Kimi K2）不需要额外配置；私有 skills 目录的工具可以追加自己的 agent id，例如 `-a qwen-code iflow-cli`。后续用 `npx skills update -g -y` 更新。
@@ -56,11 +56,11 @@ npx skills add tw93/Waza -a claude-code codex cursor -g -y
 
 ```bash
 # Claude Code: install, then `claude plugin update waza`
-/plugin marketplace add tw93/Waza
+/plugin marketplace add oldwinter/Waza
 /plugin install waza@waza
 
 # Codex: install, then `codex plugin marketplace upgrade waza`
-codex plugin marketplace add tw93/Waza
+codex plugin marketplace add oldwinter/Waza
 codex plugin add waza@waza
 ```
 
@@ -153,7 +153,7 @@ Part of a trilogy: [Kaku](https://github.com/tw93/Kaku) (書く) writes code, [W
 ## Uninstall
 
 ```bash
-npx skills remove tw93/Waza -g
+npx skills remove oldwinter/Waza -g
 rm -f ~/.claude/statusline.sh
 rm -f ~/.claude/rules/english.md
 rm -f ~/.claude/rules/anti-patterns.md
