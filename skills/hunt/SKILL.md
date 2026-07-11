@@ -170,6 +170,9 @@ Quick rules：
 | Stack trace 指向 library 深处 | 往回走 3 层到自己的代码；bug 几乎总在那里，不在 dependency |
 | 从 app 内启动能工作，经 file association / drag-drop / deep link / external proxy 打开就坏 | 使用用户描述的 exact entry point 复现。App-internal init 与 cold-launch-with-file init 不同；document 到达时 state 可能还没 ready |
 | Build passed but UI still looked wrong | 沿 Runtime Evidence Ladder 上移，验证真实 rendered surface 或 artifact |
+| Fix 只适配 reporter 的 setup，对其他人没有变化，或破坏了 default | Defect report 是 evidence，不是完整 scope。说明 fix 改变的是所有用户的 default experience，还是只有 reporter 的 configuration，并优先修复 default path |
+| 改了 algorithm，但 output 仍然错误 | Reader 可能命中了旧代码写入的 persisted output（scan results、analysis cache、带 TTL 的 snapshot）。修改 generated-then-persisted data 时，必须在同一 change 中 invalidate 或 bump 旧 cache version；重新诊断前先确认 runtime 没在读取 stale data |
+| Reporter 能复现，本地机器正常，agent 直接盲改 | 先生成一条可 copy-paste 的 diagnostic command（single command、silent collection、one output file，并附 privacy note），再根据返回的 evidence 诊断和修复 |
 
 ## Rendering Bug Mode
 

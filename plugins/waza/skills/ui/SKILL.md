@@ -85,6 +85,8 @@ Flow:
 
 ## Lock the Direction First
 
+**在成熟产品中新增 surface 时，direction lock 反向跳过**：如果任务是在已有同类 components 的 app 中新增 panel、dialog、sheet、toast 或 confirmation，app 本身就是 direction。先 grep existing sibling component，复用它的 container、motion 和 typography tokens；如果要另造 style，必须说明为什么没有 existing component 能适配。忽略 app 自身 component vocabulary 的 first draft 应直接拒绝。
+
 **开始任何 component、page 或 visual work 前**：列出同类别 2-3 个 mature products（例如 Notion、Linear、Typora、iA Writer、Raycast），并各写一句说明它们如何解决眼前 specific problem。然后再写代码。只有任务纯 cosmetic（color、spacing、copy）时才跳过。
 
 写任何代码前，直接询问用户；如果环境有 native question 或 approval mechanism，使用它：
@@ -156,6 +158,7 @@ Flow:
 | 添加 setting 或更响亮 control 来解决 UI noise | 先移除 misleading affordance 或选择 quiet default |
 | 英文看着没问题，localized text overflowed | handoff 前测试 long words 和 localized strings，尤其是 buttons、tabs、nav 和 compact cards 内部 |
 | 依赖 `...` truncation 让 text 塞进 fixed-width slot | 改为保证 fit：压缩 format、限制到完整 segments，或 hard-trim 且不显示 glyph。Metric 和 label footers 绝不能 tail-truncate 成 ellipsis |
+| 多一个词就让一行 wrap，最后一行只剩一个 orphan word | handoff 前扫描每个 user-visible text block 的 near-wrap 和 orphan-line states。通过收紧 copy 修复，不要缩小 type；发现一处就扫描整个 document，并修复所有实例 |
 
 ## Output: Aesthetic Review
 

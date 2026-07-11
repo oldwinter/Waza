@@ -53,7 +53,9 @@ See [references/durable-context.md](references/durable-context.md) for when to r
 ## Hard Rules
 
 - **Meaning first, style second.** 如果移除 AI pattern 会改变作者 intended meaning，保留原文。
-- **No silent restructuring.** 除非明确要求 structural changes，不要 reorganize headings、reorder paragraphs 或 merge sections。Edit in place。（例外：Long-form Article Mode 把 structural cuts 和 merges 视为 in-scope，因为 structure 才是核心问题；但它仍会先把它们作为 change-points 提出，而不是静默执行。）
+- **No silent restructuring.** 除非明确要求 structural changes，不要 reorganize headings、reorder paragraphs 或 merge sections。Edit in place。Structural assets 不是 cleanup noise：除非用户要求删除，否则保留 image placeholders、links、frontmatter 和 example blocks；任何 deletion 都要列出原因，不能等用户在 diff 中才发现。（例外：Long-form Article Mode 把 structural cuts 和 merges 视为 in-scope，因为 structure 才是核心问题；但它仍会先把它们作为 change-points 提出，而不是静默执行。）
+- **No invented first-person experience.** 以作者身份 ghostwrite 时，每段 personal anecdote、tool history、opinion 和 quote 都必须来自 supplied material 或作者已经 published 的 writing。Material 缺少 example 是需要追问的问题，不是可以自行填补的空白。以作者 voice 起草而非编辑 supplied text 前，先读一两篇作者 published pieces，作为 voice 和 length baseline。
+- **Shorter than the first draft wants to be.** Outward copy（README paragraphs、tweets、release notes、maintainer replies）默认对齐用户以前 accepted pieces 的长度；存在 physical constraint（tweet fold line、single-line rendering）时，先从 constraint 推导 budget，再动笔，不要等用户删短。
 - **Artifact-grounded claims.** 对 launch copy、release notes、social posts、product pages 和 public replies，factual claims 必须 grounded in real source material：current app behavior、runnable artifact、screenshot、product page、release page、changelog、issue/PR 或 user-provided draft。不要把 handoffs、plans、old memory 或 stale screenshots 当成 current product truth；也不要把 concrete product evidence 变成 generic marketing language。
 - **No em-dash.** Chinese 或 English output 中绝不要产生 em-dash（U+2014 `—`）或 en-dash（U+2013 `–`）。Em-dash 是这种 writing style 中最强的 AI-tone fingerprint。用 commas、periods、colons、semicolons 或 parentheses 断开 clauses。compound words 内的 hyphen-minus（`-`）允许存在；可能时替换成 space 或 period。编辑包含 em-dashes 的 draft 时，返回 text 前替换每一个。
 - **Stop after output.** 交付 rewritten text。不要追加 changes list、justification 或 closer。（例外：Long-form Article Mode 返回 change-points 供 review，而不是 rewritten blob；见该 mode。）
@@ -219,6 +221,7 @@ Close casually with an invitation, not a CTA. End with one short sentence inviti
 | Drafted release or social copy from memory or a handoff | Read the current release page, changelog, issue/PR, runnable artifact, product page, screenshot, or supplied source before making factual claims. |
 | Wrote launch copy in one pass without checking the live screenshots | Iterate: draft, compare against the real product screenshot or page, tighten wording to match what ships, repeat until copy and artifact agree |
 | Polished a review report until it sounded timeless | Keep snapshots labeled as snapshots, or distill them into stable rules. Do not make dated claims sound evergreen |
+| 用户指出一个词 "not my voice"，只修了那一处 | 被指出的词代表一类 smell，不是一个 typo。返回前扫描全文中的同一类问题（相同 register、相同 template shape） |
 
 ## Output
 
