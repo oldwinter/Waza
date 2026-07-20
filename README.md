@@ -47,10 +47,10 @@ AI 在原始产出能力上已经强过大多数工程师。但没有结构时�
 一条命令会无提示、无报错地安装全部八个 skills。复制并运行：
 
 ```bash
-npx skills add oldwinter/Waza -a claude-code codex cursor -g -y
+npx skills add oldwinter/Waza -a claude-code codex cursor antigravity-cli -g -y
 ```
 
-这会把一份 canonical copy 安装到共享的 `~/.agents/skills` store（agents.md standard directory），并为 Claude Code 建好 symlink；Codex、Cursor、Kimi Code CLI、Amp、Cline，以及所有读取该目录的 agent 都会自动加载 Waza。通过这些 harness 路由的模型（例如 Claude Code-compatible endpoints 后面的 GLM 或 Kimi K2）不需要额外配置；私有 skills 目录的工具可以追加自己的 agent id，例如 `-a qwen-code iflow-cli`。后续用 `npx skills update -g -y` 更新。
+这会把一份 canonical copy 安装到共享的 `~/.agents/skills` store（agents.md standard directory），并为 Claude Code 建好 symlink；Codex、Cursor、Kimi Code CLI、Amp、Cline、Antigravity CLI，以及所有读取该目录的 agent 都会自动加载 Waza。通过这些 harness 路由的模型（例如 Claude Code-compatible endpoints 后面的 GLM 或 Kimi K2）不需要额外配置；私有 skills 目录的工具可以追加自己的 agent id，例如 `-a qwen-code iflow-cli antigravity-cli`。后续用 `npx skills update -g -y` 更新。
 
 **Native plugin**（用于 host-native update commands）
 
@@ -121,7 +121,7 @@ Codex 显示剩余额度；上面的 Claude Code statusline 显示已用百分�
 
 ### Optional Rules
 
-三个彼此独立的开关。复制你需要的命令即可（Codex 用户把 `claude-code` 换成 `codex`）：
+三个彼此独立的开关。复制你需要的命令即可（Codex 或 Antigravity CLI 用户把 `claude-code` 换成 `codex` 或 `antigravity-cli`）：
 
 ```bash
 # English coaching: appends a short 😇 correction when your prompt has an English mistake
@@ -144,7 +144,7 @@ Curl URLs 使用最新 GitHub release asset。如果想使用 bleeding-edge scri
 
 Waza (技, わざ) is a Japanese martial arts term for technique: a move practiced until it becomes instinct.
 
-A good engineer does more than write code. They pressure-test requirements, debug to root cause, review their own diffs, and read primary sources. AI has the raw output for all of it, but without structure that output drifts into generic, imprecise work. Each Waza skill sets a clear goal and the constraints that matter, then steps back and lets the model work. As models improve, that restraint pays compound interest.
+A good engineer does more than write code. They pressure-test requirements, debug to root cause, review their own diffs, and read primary sources. AI has the raw output for all of it, but without structure that output drifts into generic, imprecise work. Each Waza skill states the outcome, the red lines, and how the result gets verified, then steps back and lets the model choose the path. As models improve, that restraint pays compound interest.
 
 Tools like Superpowers and gstack are powerful but heavy: too many skills, too much configuration. Waza stays small, eight skills for the habits that actually matter, each with one job and a clear trigger. Built from real projects and refined through 300+ sessions across 7 projects, every gotcha traces to a real failure. The `/health` skill grew from the six-layer Claude Code framework in [this post](https://tw93.fun/en/2026-03-12/claude.html).
 
@@ -166,7 +166,7 @@ Claude Desktop 用户从 Customize > Skills 删除 Waza。Codex rule installs �
 
 Superpowers 和 gstack 这样的工具很厉害，但也很重：skills 太多、配置太多、学习曲线太陡。
 
-作者写下的每条 rule 也是一个上限。模型只能做指令允许它做的事。Waza 反过来：每个 skill 只设清目标和真正重要的约束，然后退后一步。随着模型变强，这种克制会产生复利。
+作者写下的每条 rule 也是一个上限。模型只能做指令允许它做的事。Waza 反过来：每个 skill 只说清 outcome、red lines 和验证结果的方法，然后退后一步，让模型自己选择路径。随着模型变强，这种克制会产生复利。
 
 八个 skills，对应真正重要的习惯。每个只做一件事，有清晰 trigger，并且不挡路。它们来自真实项目，在 7 个项目的 300+ sessions 中打磨。每个 gotcha 都能追溯到一次真实失败。
 

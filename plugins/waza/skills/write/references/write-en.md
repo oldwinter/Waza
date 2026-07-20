@@ -8,7 +8,7 @@
 
 1. **Cut filler phrases.** 移除 throat-clearing openers、emphasis crutches，以及只负责 signal emphasis 的 adverbs。保留承载真实 meaning 的 adverbs。
 2. **Break formulaic structures.** 避免 binary contrasts、negative listings、dramatic fragmentation、rhetorical setups、false agency。
-3. **Use active voice.** 每个句子都需要 human subject 在做事。不要让 inanimate objects 执行 human actions（"the complaint becomes a fix"）。
+3. **Use active voice.** 每个句子都需要 human subject 在做事。不要让 inanimate objects 执行 human actions（见下方 False agency）。
 4. **Be specific.** 不要 vague declaratives（"The reasons are structural"）。命名具体事物。不要用 lazy extremes（"every," "always," "never"）承担模糊工作。
 5. **Put the reader in the room.** 不要 narrator-from-a-distance voice。"You" 好过 "People"。Specifics 好过 abstractions。
 6. **Vary rhythm.** 混合 sentence lengths。两个 items 好过三个。paragraph endings 要变化。不要 em dashes。
@@ -177,22 +177,6 @@
 
 **Re-anchoring after cutting recaps (long-form articles):**
 After removing table re-reads and structural repetition, scan the remaining prose for places where a general explanation can be tied back to the author's concrete project or experience already mentioned in the piece. This is one of the strongest ways to restore human voice in technical long-form writing.
-
-### Quick Checks Before Delivering Prose
-
-- Any adverb only adding emphasis? Cut it. (Meaning-bearing adverbs stay.)
-- Any passive voice? Find the actor, make them the subject.
-- Inanimate thing doing a human verb? Name the person.
-- Sentence starts with "Here's"? Cut to the point.
-- Any "not X, it's Y" contrasts? State Y directly.
-- Three consecutive sentences match length? Break one.
-- Paragraph ends with punchy one-liner? Vary it.
-- Em-dash anywhere? Remove it.
-- Vague declarative ("The implications are significant")? Name the specific implication.
-- Meta-joiners ("The rest of this essay...")? Delete. Exception: a single TL;DR closing sentence that orients readers to the structure ahead is navigation, not filler. Keep it.
-- Any bullet starting with bold label? Reconsider the format.
-- Any "In conclusion" or "To sum up"? Cut it.
-- Any emoji? Remove it.
 
 ---
 

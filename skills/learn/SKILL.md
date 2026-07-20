@@ -68,7 +68,7 @@ Target：blog post 5-10 个 sources，deep technical survey 15-20 个 sources。
 
 ## Phase 2: Digest
 
-逐份处理 materials。每一份：完整阅读，保留好的，剪掉不好的。本 phase 结束时，大约砍掉已收集内容的一半。
+逐份处理 materials。每一份都完整阅读，保留好的，无情剪掉不好的。
 
 把 key claims 放入 outline 前，先问：
 - Does this idea appear in at least two different contexts from the same source?
@@ -99,26 +99,11 @@ outline solid 前不要开始 Phase 4。
 
 ## Phase 4: Fill In
 
-逐个 section 推进 outline。如果某个 section 难写，说明这里的 mental model 仍然薄弱：回到该 sub-topic 的 Phase 2。outline 可以变化，这没问题。
-
-Stall signals（任一项都表示该 section 的 mental model 不完整）：
-- opening sentence 已重写三次或更多，仍无法定稿
-- section 依赖 single source，且你无法 cross-check claim
-- 需要 Phase 1 没有 collected 的 new source
-- paragraph 提出的 claim 你无法对别人当场解释清楚
-
-stalled 时：回到该 sub-topic 的 Phase 2，不是整篇文章。
+逐个 section 推进 outline。某个 section 难写，说明这里的 mental model 仍然薄弱：只回到该 sub-topic 的 Phase 2，不是整篇文章。Stall signals 包括：opening sentence 重写三次仍无法定稿、single-source claim 无法 cross-check、缺少 Phase 1 未收集的 source，或某个 claim 无法当场解释清楚。outline 可以变化，这没问题。
 
 ## Phase 5: Refine
 
-用 specific brief 处理 draft：
-- 在不改变 meaning 或 voice 的前提下，移除 redundant 和 verbose passages
-- 标出 argument 不顺的地方
-- 识别 gaps：先使用后解释的 concepts、需要 sources 的 claims
-
-不要 summarize 用户尚未写出的 sections。不要从零 draft new sections。只做 edits。
-
-Then strip AI patterns from the draft. If `/write` is installed, invoke it. If not, do it manually: scan for filler phrases, binary contrasts, dramatic fragmentation, and overused adverbs. Cut them without changing meaning.
+只做 edits：在不改变 meaning 或 voice 的前提下剪掉 redundancy，标出 argument flow 断裂处，并标记 gaps（先使用后解释的 concepts、需要 sources 的 claims）。不要从零 draft new sections。然后移除 AI patterns：已安装 `/write` 时调用它，否则手工扫描 filler、binary contrasts 和 dramatic fragmentation。
 
 ## Phase 6: Self-review and Publish Readiness
 

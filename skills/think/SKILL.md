@@ -82,15 +82,14 @@ Before outputting any plan, scan the project's `AGENTS.md`, `CLAUDE.md`, `.claud
 
 ## Before Reading Any Code
 
-- 确认 working path：`pwd` 或 `git rev-parse --show-toplevel`。绝不要假设 `~/project` 和 `~/www/project` 是同一个目录。
 - 如果项目追踪 prior decisions（ADRs、design docs、issue threads），提出方案前先 skim 与问题匹配的部分。没有则跳过。
 - 如果 plan 涉及 default value、env var 或 config field，打开项目的实际 config file，例如 `app.config.json`、`tauri.conf.json`、`package.json`、`.env`，提取 live value。绝不要凭记忆或 docs 引用默认值。
 
 ## Check for Official Solutions First
 
-提出 custom implementations 前，先搜索 framework built-ins、official patterns 和 ecosystem standards。有 Context7 MCP tools 时用它查询 latest docs。如果存在 official solution，它就是 default recommendation，除非你能说明它为什么不足以覆盖当前具体场景。
+提出 custom implementations 前，对照 live docs 检查 framework built-ins、official patterns 和 ecosystem standards；环境提供 doc-lookup tools 时使用它们。已有 official solution 是 default recommendation，除非你能说明它为什么不足以覆盖当前具体场景。
 
-For a hard problem, or one you have already tuned several times and it still feels off, study how mature open-source projects or direct competitors solve the same thing before designing. Fetch their approach, read the actual implementation, and extract the transferable mechanism. Designing from first principles when a proven implementation exists discards the iterations someone else already paid for. Name which projects you studied and what you took from each.
+对 hard problem，或已经 tune 多次仍感觉不对的问题，设计前研究 2-3 个成熟 open-source projects 或 direct competitors 的解法：阅读实际 implementation，提取 transferable mechanism，并说明从每个项目借鉴了什么。在 proven implementation 旁边重新从 first principles 设计，会丢掉别人已经付出的迭代成本。
 
 ## Propose Approaches
 

@@ -59,7 +59,7 @@
 
 ## Production Quality Baseline
 
-handoff 前检查。这些不是 aesthetic choices，而是 non-negotiable。
+handoff 前检查。Accessibility 和 CSS-pattern bans 是 non-negotiable；其余内容都是服务 locked direction 的 craft detail。
 
 > 把下面 sections 当成 craft details，而不是 defaults。只有在它们服务已锁定的 visual direction 时才应用。如果移除某个 detail 不会改变 interface 的感受，就不要加。
 
@@ -72,11 +72,11 @@ handoff 前检查。这些不是 aesthetic choices，而是 non-negotiable。
 ### Animation
 - 尊重 `prefers-reduced-motion`：设置时禁用或减少 animations
 - 只 animate `transform`/`opacity`（compositor-friendly，避免 layout thrash）
-- 永远不要 `transition: all`；明确列出 properties
+- 不用 bounce 或 elastic easing：真实物体会平滑减速；使用 exponential ease-out（`ease-out-quart`、`ease-out-quint` 或 `cubic-bezier(0.16,1,0.3,1)`）
 - Interruptible animations：interactive state changes（hover、toggle、open/close）优先用 CSS transitions，因为它们能在 animation 中途 retarget；keyframe animations 只留给运行一次的 staged sequences（例如 staggered page enters）
 - Staggered enter：把 content 拆成 semantic chunks，约 100ms delay；titles 拆成 words，约 80ms；典型 enter 使用 `opacity: 0 -> 1`、`translateY(12px) -> 0` 和 `blur(4px) -> 0`
 - Subtle exit：使用小的 fixed `translateY(-12px)`，不要 full height；duration 保持约 150ms `ease-in`，比 enter 更短更柔和
-- Contextual icon swaps：用 `scale: 0.25 -> 1`、`opacity: 0 -> 1` 和 `blur: 4px -> 0px`。有 spring library 时：`{ type: "spring", duration: 0.3, bounce: 0 }`。没有时：两个 icons 都保留在 DOM 中（一个 absolute），用 `cubic-bezier(0.2, 0, 0, 1)` 做 CSS cross-fade
+- Contextual icon swaps：用 `scale: 0.25 -> 1`、`opacity: 0 -> 1` 和 `blur: 4px -> 0px`。有 spring library 时：`{ type: "spring", duration: 0.3, bounce: 0 }`。没有时：两个 icons 都保留在 DOM 中（一个 absolute），用 `cubic-bezier(0.2, 0, 0, 1)` 做 CSS cross-fade。除非 rotation 有语义意义（例如 chevron 表示方向变化），不要旋转
 - Scale on press：buttons 通过 CSS transitions 在 active/press 使用 `scale(0.96)`，这样 press 可以被打断；添加 `static` prop，在 motion 会分散注意力时禁用
 - Page-load guard：对 toggles、tabs 和 icon swaps 的 animated presence wrappers 使用 `initial={false}`，防止首次 render 时出现 enter animations；不要把它用于刻意的 page-load entrance sequences
 
@@ -195,21 +195,11 @@ When the interface mixes Chinese, Japanese, or Korean with Latin, Latin-only typ
 | Modals as a lazy escape for overflow UI | 打断 flow，破坏 browser back navigation；常被用来逃避本该 inline expansion、drawer 或 separate page 的场景 | Inline expand、detail panel 或 dedicated route；只有 action 真正需要 focus-lock 时才使用 modal |
 | `transition: all` or animating width/height/padding/margin | 每一帧都强迫 browser 做 layout recalculation | 列出精确 properties（`transition-property: transform, opacity`）；height reveals 使用 `grid-template-rows: 0fr to 1fr` |
 
-## Motion Specifics
-
-补充 main SKILL.md constraints 中的 motion timing。
-
-- 不用 bounce 或 elastic easing。真实物体平滑减速。使用 exponential ease-out（`ease-out-quart`、`ease-out-quint` 或 `cubic-bezier(0.16,1,0.3,1)`）获得自然、高质量的 deceleration。
-- 只 animate `transform` 和 `opacity`。其他 property 都会触发 layout 或 paint。
-- height reveals 使用 `grid-template-rows: 0fr` 到 `1fr` transitions，而不是直接 animate `height`。这能避开 `height: auto` animation trap。
-- Icon swaps：使用 120ms cross-fade，配合 `opacity` 和轻微 `scale(0.9)` 到 `scale(1)`。除非 rotation 具有语义意义（例如 chevron 表示方向变化），不要旋转。
-- 即使 quick prototype 也不要用 `transition: all`。它会同时 animate layout、color 和 font-size，造成可见 jank。
-
 ## Reference-site Brand Presets (awesome-design-md)
 
 `VoltAgent/awesome-design-md` 维护了 66+ 个 curated DESIGN.md files，这些文件从真实 brand sites 提取而来。运行 `npx getdesign@latest add <brand>` 会把文件放到 project root，让 agent 分解 concrete token values，而不是靠记忆推理。
 
-**Usage rule:** 绝不要 auto-run command。direction lock 阶段只把它作为选项提出，只有用户明确批准才运行，并把结果当作 seed decomposition material，而不是 finished direction。
+**Usage rule:** 绝不要 auto-run command。direction lock 阶段只把它作为选项提出，只有用户明确批准才运行，并把结果当作 seed decomposition material，而不是 finished direction。获得批准并运行后，读取 project root 生成的 `DESIGN.md`，基于该文件做 3-property decomposition，不要凭记忆；用户仍需精确命名 aesthetic。
 
 **Brands in the catalog**（用户提到 reference 时识别这些）：
 
@@ -268,16 +258,12 @@ Source: [github.com/VoltAgent/awesome-design-md](https://github.com/VoltAgent/aw
 
 陌生人看一眼 first viewport，会不会立刻说 "an AI made this"？如果会，说明 committed direction 不够 committed。常见罪魁祸首：reflex font、default purple accent、centered hero 和下方 generic card grid。修 typography、color system 或 layout，直到答案翻转。
 
-## Brand Preset Flow
-
-对于 well-known brands（Linear、Stripe、Claude、Vercel、Apple、Tesla、Notion、Figma、Airbnb、Spotify，以及 `awesome-design-md` 中收录的约 56 个其他品牌）：询问用户是否通过 `npx getdesign@latest add <brand>` 拉取 curated preset。如果用户批准，运行它，读取 project root 中生成的 `DESIGN.md`，再基于该文件做 3-property decomposition，而不是从记忆出发。preset 是 starting point，不是 direction：用户仍需要精确命名 aesthetic；reflex-font blocklist 和 absolute bans 在任何冲突中仍然获胜。
-
 ## App Shell Rules
 
 When building a sidebar + main workspace layout (Slack, Linear, Notion class):
 - Decorative backgrounds 默认 off
 - Surface hierarchy 只使用 background-color steps 和 shadow
-- All interactive elements get `active:scale-95`
+- 所有 interactive elements 使用 Animation 中的标准 press scale（active/press 时 `scale(0.96)`）
 - Button radius 在每个 component type 内保持一致（从 pill、square 或一个 fixed value 中选一个，不要混用）
 - 第一个 component 前先 commit to a named radius scale（见上方 Border radius system）
 
@@ -292,4 +278,4 @@ When building a sidebar + main workspace layout (Slack, Linear, Notion class):
 
 ---
 
-*Rules in Reflex Fonts, Font Selection, OKLCH, Theme Matrix, Absolute Bans, Motion Specifics, and AI Slop Test adapted from [pbakaus/impeccable](https://github.com/pbakaus/impeccable) (Apache 2.0). DESIGN.md Scaffold adapted from [getdesign.md](https://getdesign.md) (MIT); concept credited to Google Stitch. Brand preset catalog from [VoltAgent/awesome-design-md](https://github.com/VoltAgent/awesome-design-md) (MIT). Content Authenticity, Multi-Card Alignment, and Strategic Omissions inspired by [Leonxlnx/taste-skill](https://github.com/Leonxlnx/taste-skill).*
+*Rules in Reflex Fonts, Font Selection, OKLCH, Theme Matrix, Absolute Bans, the motion rules, and AI Slop Test adapted from [pbakaus/impeccable](https://github.com/pbakaus/impeccable) (Apache 2.0). DESIGN.md Scaffold adapted from [getdesign.md](https://getdesign.md) (MIT); concept credited to Google Stitch. Brand preset catalog from [VoltAgent/awesome-design-md](https://github.com/VoltAgent/awesome-design-md) (MIT). Content Authenticity, Multi-Card Alignment, and Strategic Omissions inspired by [Leonxlnx/taste-skill](https://github.com/Leonxlnx/taste-skill).*

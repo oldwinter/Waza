@@ -27,11 +27,9 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 
 ## Diagnosis Signals
 
-Good progress：log line 匹配 hypothesis；运行前就能预测 next error；理解 root cause 到 symptom 的 propagation path；能写出在 old code 上失败的 test。每出现一个信号，commit 前再找一条 independent evidence。
+Hypothesis quality gate：Hypothesis 必须解释所有 observable symptoms，而不只是用户最先报告的那个；只覆盖一部分就是 symptom-level guess，不是 root cause。对 timing-dependent issues（flicker、intermittent failure、race），诊断前先可靠复现。
 
-Hypothesis quality gate：对 hypothesis 采取行动前，列出所有 observable symptoms，而不只是用户最先报告的那个。Hypothesis 必须解释每个 symptom；如果只覆盖一部分，它只是 symptom-level guess，不是 root cause。对 timing-dependent issues（flicker、intermittent failure、race condition），诊断前先可靠复现。
-
-Rationalization warning："I'll just try this" 表示没有 hypothesis，先写出来。"I'm confident" 表示运行 instrument 证明它。"Probably the same issue" 表示从头重读 execution path。"It works on my machine" 表示先枚举每个 env difference 再排除。"One more restart" 表示逐字读取 last error；没有 new evidence 时，绝不 restart 超过两次。
+Rationalization smells："I'll just try this" = 没有 hypothesis，先写出来。"I'm confident" = 运行 instrument 证明它。"Probably the same issue" = 从头重读 execution path。"It works on my machine" = 先枚举每个 env difference 再排除。"One more restart" = 逐字读取 last error；没有 new evidence 时，绝不 restart 超过两次。
 
 ## Durable Context Preflight
 
@@ -60,29 +58,15 @@ See [references/durable-context.md](references/durable-context.md) for when to r
 
 当出现这些触发时激活："以前是好的"、"之前是好的"、"used to work"、"上一次提交还是对的"、"broke after update"，或用户记得 specific good commit 或 version。
 
-0. 先保护用户 worktree：运行 `git status --short --branch -uall`。如果存在 modified、staged 或 untracked files，不要在 current checkout 里 bisect。从同一个 HEAD 创建 temporary detached worktree，在那里运行 bisect，完成后 `git bisect reset` 并移除 temporary worktree。如果无法创建 temporary worktree，停止并请求 explicit cleanup/stash approval。
-1. 找 candidate good tag：`git tag --sort=-version:refname | head -10`，或询问用户 last known-good commit。
-1b. 如果 last-good version 只落后一两个 release，先运行 `git diff <last-good-tag>..HEAD -- <suspect path>` 并直接阅读 delta。Regression 通常能在这个 diff 里看到，而且成本远低于完整 bisect。只有当 diff 太大或 culprit 不明显时，才继续 bisect。
-2. 开始 bisect 前定义 non-interactive pass/fail test command。没有 reproducible check，Bisect 没价值。
-3. 运行：`git bisect start && git bisect bad HEAD && git bisect good <tag-or-hash>`
-4. 每一步 bisect 会 checkout 一个 commit。运行 test command。标记：`git bisect good` 或 `git bisect bad`。
-5. 让 bisect 驱动流程。除非明确要求，不要 jump ahead 或 skip commits。
-6. 当 bisect 命名 culprit commit，只读那个 diff。识别引入 regression 的 specific line。
-7. 完成后运行 `git bisect reset`。
-
-Large files 只读一次，并从 notes 引用，不要每个 bisect step 重读。
+- 先保护用户 worktree：`git status --short --branch -uall`。只要存在 modified、staged 或 untracked files，就不要在 current checkout 中 bisect；改在 temporary detached worktree 中运行，完成后移除该 worktree。如果无法创建 temporary worktree，停止并请求 explicit cleanup/stash approval。
+- 如果 last-good version 只落后几个 releases，先运行 `git diff <last-good>..HEAD -- <suspect path>` 并阅读 delta。Regression 通常能在这里看到，成本远低于完整 bisect；只有 diff 太大或 culprit 不明显时，才继续 bisect。
+- 只有预先定义好 non-interactive pass/fail command 才能 bisect，并始终用 git 记录 bookkeeping（`git bisect good/bad`），直接测试 suspect commit 时也一样。它命名 culprit 后，只读该 diff 并定位 specific line；移除 temporary worktree 前运行 `git bisect reset`。
 
 ## Repeated Regression / Screenshot Reference Mode
 
 当用户说同一个 issue 在 fix 后仍然不对，提供 "good" screenshot/version/file，或描述某个 visual result 以前是正确的时激活。
 
-把 reference 当成 evidence，不是 decoration：
-
-1. 列出每个 reported 和 visible symptom，必要时保留用户具体用词（"still slow"、"not clear"、"尖刺"、"先显示上一个内容"）。
-2. 识别 reference oracle：last-good commit/tag、old build、fixture、screenshot、downloaded artifact，或用户描述中的 expected state。
-3. 编辑前定义 pass/fail check。对 visual bugs，这可以是 narrow screenshot checklist 加上 render view 的 command；对 behavioral bugs，优先 automated regression test 或 deterministic repro。
-4. 比较 current vs. reference，并命名 exact delta。当 evidence 指向 broken render、race、font pipeline 或 state path 时，不要把 visual defect 泛化成 "style polish"。
-5. 如果一次 attempted fix 后 same symptom 仍存在，停止并基于 evidence 重建 hypothesis。不要在已被推翻的 explanation 上继续叠 patches。
+把 reference 当成 evidence，不是 decoration：用用户的具体措辞列出所有 reported 和 visible symptoms（"still slow"、"尖刺"、"先显示上一个内容"）；识别 reference oracle（last-good commit、old build、fixture、screenshot 或描述的 expected state）；编辑前定义 pass/fail check；然后命名 exact current-vs-reference delta。当 evidence 指向 broken render、race、font pipeline 或 state path 时，不要把 visual defect 泛化成 "style polish"。如果 same symptom 在一次 attempted fix 后仍存在，停止并基于 evidence 重建 hypothesis；不要在已被推翻的 explanation 上继续叠 patches。
 
 如果 issue 是纯 subjective UI taste，route to `/ui`。如果是 rendering、state、timing、build output、font generation，或来自 known-good version 的 regression，留在 `/hunt`。
 
@@ -90,18 +74,7 @@ Large files 只读一次，并从 notes 引用，不要每个 bisect step 重读
 
 在修复 root-cause pattern 后、声明 bug done 前激活；用户说 "举一反三"、"举一反三深入看看" 或 "其他地方有没有同样问题" 时也激活。同一 shape 往往藏在其他 N 个地方；忽略 blast 的 one local fix 会把 N - 1 个 bugs 留在 tree 里。
 
-1. 提取 pattern signature：产生 bug 的 specific function name、regex、API call、CSS selector、lock acquisition、validation skip 或 input boundary。
-2. 在 repo 中 `grep -rn <pattern>`，排除 generated dirs、build output、vendored deps。对 class-of-bug patterns（例如 "any handler missing the lock"），grep surrounding shape，不只 grep literal text。
-3. 列出每个 match。对每个 match 用文字回答：这里是 same bug 吗？选择 fix / leave（解释为什么 safe）/ unsure（询问用户）。不要静默跳过 match。
-4. 在 Outcome block 放入 blast report 前，不要声称 "fixed"。
-
-Common triggers:
-- 一个 page 上修了 visual bug：检查使用同一 component、layout 或 media-query breakpoint 的其他 page。
-- 一个 handler 中修了 race：检查每个获取同一 lock 或触碰同一 shared state 的 handler。
-- 一个 entry point 修了 validation skip：检查到达同一 downstream sink 的每个 entry point。
-- 针对一个 input shape 修了 regex / parser：检查同一 regex / parser 的每个 caller。
-
-如果 blast 暴露 unrelated bugs，列出来，但除非用户同意，不要在此 PR 中修；scope creep 本身就是 anti-pattern。
+提取 pattern signature（产生 bug 的 specific function、regex、API call、CSS selector、lock acquisition、validation skip 或 input boundary），然后在 repo 中用 `grep -rn` 查找，排除 generated dirs、build output 和 vendored deps；对 class-of-bug patterns（例如 "any handler missing the lock"），grep surrounding shape，不只 grep literal text。对每个 match 用文字回答：same bug / safe to leave（说明原因）/ unsure（询问用户）。不要静默跳过 match；在 Outcome block 放入 blast report 前，不要声称 "fixed"。Sweep 暴露的 unrelated bugs 只列出，不在本 PR 修复，除非用户同意。
 
 ## Confirm or Discard
 
@@ -143,18 +116,7 @@ Common native freeze traps：
 
 ## Targeted Logging
 
-把 logs 当手术刀，不当噪音。添加 log 前，写出它回答的问题：
-
-> "If this log prints X before Y, hypothesis A is still possible; if it does not, hypothesis A is wrong."
-
-加载 `references/logging-techniques.md` 获取完整 logging playbook：binary-search instrumentation、discriminating log content、boundary-first placement、timing bug logging 和 removal discipline。
-
-Quick rules：
-1. 第一条 log 放在 execution path 的 midpoint，不放在 symptom 处。从那里 binary search。
-2. 只 log discriminating facts：sequence number、input key、branch taken、old/new state、error code。
-3. 完成前移除 temporary logs。Persistent diagnostics 要 gate 在项目 debug flag 后面。
-
-如果 adding logs 改变 behavior，把它当成 timing、lifecycle 或 concurrency problem 的 evidence。
+每条 log 都是一个 yes/no question："if this prints X before Y, hypothesis A survives; otherwise A is dead." 不能 rule hypothesis in 或 out 的 log 就是 noise。完成前移除 temporary logs；persistent diagnostics 要 gate 在项目 debug flag 后面。如果添加 log 改变 behavior，这本身就是 timing、lifecycle 或 concurrency problem 的 evidence。完整 playbook 见 `references/logging-techniques.md`。
 
 ## Gotchas
 
@@ -171,6 +133,7 @@ Quick rules：
 | 从 app 内启动能工作，经 file association / drag-drop / deep link / external proxy 打开就坏 | 使用用户描述的 exact entry point 复现。App-internal init 与 cold-launch-with-file init 不同；document 到达时 state 可能还没 ready |
 | Build passed but UI still looked wrong | 沿 Runtime Evidence Ladder 上移，验证真实 rendered surface 或 artifact |
 | Fix 只适配 reporter 的 setup，对其他人没有变化，或破坏了 default | Defect report 是 evidence，不是完整 scope。说明 fix 改变的是所有用户的 default experience，还是只有 reporter 的 configuration，并优先修复 default path |
+| 切换 theme / mode / locale 后出错，restart 后正常 | Toggle path 没有重新应用 state。先 trace toggle 的 recompute 或 invalidation route；state path 坏着时，不要逐像素调整 styles |
 | 改了 algorithm，但 output 仍然错误 | Reader 可能命中了旧代码写入的 persisted output（scan results、analysis cache、带 TTL 的 snapshot）。修改 generated-then-persisted data 时，必须在同一 change 中 invalidate 或 bump 旧 cache version；重新诊断前先确认 runtime 没在读取 stale data |
 | Reporter 能复现，本地机器正常，agent 直接盲改 | 先生成一条可 copy-paste 的 diagnostic command（single command、silent collection、one output file，并附 privacy note），再根据返回的 evidence 诊断和修复 |
 

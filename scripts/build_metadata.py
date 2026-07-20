@@ -45,8 +45,9 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "scripts"))
 
 from skill_frontmatter import (  # noqa: E402
+    iter_codex_plugin_files,
+    iter_codex_source_files,
     parse_frontmatter,
-    should_include_codex_mirror_file,
 )
 
 
@@ -207,6 +208,14 @@ def build_codex_plugin(version: str) -> dict:
     }
 
 
+def build_agy_plugin() -> dict:
+    return {
+        "$schema": "https://antigravity.google/schemas/v1/plugin.json",
+        "name": "waza",
+        "description": CODEX_DESCRIPTION.replace("Codex", "Antigravity CLI"),
+    }
+
+
 def build_codex_marketplace() -> dict:
     return {
         "name": "waza",
@@ -252,6 +261,7 @@ def build_package_json(version: str) -> str:
             "codex",
             "antigravity",
             "opencode",
+            "antigravity-cli"
         ],
         "files": [
             "LICENSE",
@@ -403,30 +413,28 @@ def shared_asset_source(rel: str) -> str:
 
 def collect_codex_plugin_tree(
     root: Path,
-    plugin_manifest_rendered: str,
+    codex_plugin_rendered: str,
+    agy_plugin_rendered: str,
     generated_skill_files: dict[str, bytes],
 ) -> dict[str, bytes]:
-    """Build the generated file set for the Codex plugin directory.
+    """Build the generated file set for the Codex and Antigravity plugin directory.
 
     Codex installs only the directory referenced by marketplace source.path, so
     the plugin tree contains real copies of the skill and rule files instead of
     symlinks or references back to the repository root.
     """
     generated = {
-        "plugins/waza/.codex-plugin/plugin.json": plugin_manifest_rendered.encode()
+        "plugins/waza/.codex-plugin/plugin.json": codex_plugin_rendered.encode(),
+        "plugins/waza/plugin.json": agy_plugin_rendered.encode(),
     }
     for source_name in ("skills", "rules"):
-        source_root = root / source_name
-        if not source_root.exists():
-            raise SystemExit(f"ERROR: missing required Codex plugin source tree {source_root}")
-        for path in sorted(source_root.rglob("*")):
-            if not path.is_file():
-                continue
-            source_rel = path.relative_to(source_root)
-            if not should_include_codex_mirror_file(source_rel):
-                continue
-            rel = path.relative_to(root).as_posix()
-            generated[f"plugins/waza/{rel}"] = path.read_bytes()
+        if not (root / source_name).exists():
+            raise SystemExit(
+                f"ERROR: missing required Codex plugin source tree {root / source_name}"
+            )
+    for _source_name, _source_rel, path in iter_codex_source_files(root):
+        rel = path.relative_to(root).as_posix()
+        generated[f"plugins/waza/{rel}"] = path.read_bytes()
     for rel, content in generated_skill_files.items():
         generated[f"plugins/waza/{rel}"] = content
     return generated
@@ -453,6 +461,7 @@ def main() -> int:
     marketplace = build_marketplace(version, skills)
     rendered = render_json(marketplace)
     codex_plugin_rendered = render_json(build_codex_plugin(version))
+    agy_plugin_rendered = render_json(build_agy_plugin())
     codex_marketplace_rendered = render_json(build_codex_marketplace())
     package_rendered = build_package_json(version)
 
@@ -499,6 +508,7 @@ def main() -> int:
     codex_plugin_tree = collect_codex_plugin_tree(
         root,
         codex_plugin_rendered,
+        agy_plugin_rendered,
         skill_shared_assets,
     )
 
@@ -540,12 +550,7 @@ def main() -> int:
         codex_plugin_root = root / "plugins" / "waza"
         if codex_plugin_root.exists():
             expected_paths = set(codex_plugin_tree)
-            for path in sorted(codex_plugin_root.rglob("*")):
-                if not path.is_file():
-                    continue
-                plugin_rel = path.relative_to(codex_plugin_root)
-                if not should_include_codex_mirror_file(plugin_rel):
-                    continue
+            for _plugin_rel, path in iter_codex_plugin_files(codex_plugin_root):
                 rel = path.relative_to(root).as_posix()
                 if rel not in expected_paths:
                     print(

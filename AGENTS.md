@@ -8,7 +8,7 @@ Waza 是面向 engineering workflows 的 skill collection。仓库包含八个 s
 
 ## Repository Map
 
-- `VERSION` - lock-step version 的单一事实源。每个 `SKILL.md` frontmatter、marketplace entry、README install URL 和 installer `WAZA_REF` 默认值都必须与此文件一致。
+- `VERSION` - lock-step version 的单一事实源。Marketplace entry、README install URL 和 installer `WAZA_REF` 默认值必须与此文件一致，并由 codegen 强制保证。每个 skill 的 frontmatter 不带 version 字段；validator 会拒绝过期的 `metadata.version`。
 - `skills/RESOLVER.md` - skill set 的 trigger 和 routing table。
 - `skills/*/SKILL.md` - 单个 skill entrypoint。
 - `skills/*/agents/` - specialist reviewer 或 inspector prompts。
@@ -21,16 +21,16 @@ Waza 是面向 engineering workflows 的 skill collection。仓库包含八个 s
 - `packaging.allowlist` - 打进 `waza.zip` 的路径 default-deny 清单。新的 shippable assets 必须显式加入这里；其他内容都会被排除。
 - `.github/workflows/` - public test 和 release automation。`release.yml` 会先运行 `make test` 再运行 `make package`，让 tagged commit 经过与 PR 相同的 suite。
 - `scripts/build_metadata.py` - Claude 和 Codex marketplace metadata、README install URLs、Codex plugin mirror files、skill-local shared assets（update checkers、durable-context copies）、installer-script `WAZA_REF` 默认值以及 update-checker `LOCAL_VERSION` 的 codegen。通过 `make regenerate` 运行；CI 用 `make verify-generated` 检查 drift。
-- `scripts/verify_skills.py` - 唯一的 validator entrypoint。覆盖 frontmatter、references、marketplace、resolver、links、table pipes、trigger overlap、rule-file presence、README install string、English coaching guard、AI-attribution leak detection、canonical update-check line（SKILL.md files 和 dispatcher template）、portable command invocations，以及 skill-local durable-context copies。
+- `scripts/verify_skills.py` - 唯一的 validator entrypoint；它负责驱动 `scripts/skill_checks.py` 中的检查清单（content、distribution 和 routing checks）。Facade 的 import list 是 canonical inventory；不要在这里重新枚举。
 - `scripts/package-skill.sh` + `scripts/packaging_filter.py` - 从 `packaging.allowlist` 构建 `dist/waza.zip`。
 - `scripts/setup-rule.sh` + `scripts/setup-statusline.sh` - public install helpers；`WAZA_REF` 默认值由 codegen 固定到当前 release tag。
 - `Makefile` - smoke discovery 和 packaging entrypoints。新增一个 `tests/test_<name>.sh` 文件就会自动创建对应的 `smoke-<name>` target。
-- `tests/test_*.sh` - 每个 surface 一个 smoke；会 source `tests/test_helpers.sh` 来获取 tmpdir、repo-copy、stub-curl factories。
+- `tests/test_*.sh` - 每个 surface 一个 smoke；会 source `tests/test_helpers.sh` 来获取 tmpdir、repo-copy、stub-curl 和 instruction-file fixture factories。`tests/python/` 是 pytest unit layer（`make verify-unit`）。
 
 ## Commands
 
 ```bash
-make test             # verify-docs + verify-generated + verify-routing + verify-scripts + all smokes
+make test             # verify-docs + verify-generated + verify-routing + verify-scripts + verify-unit + all smokes
 make regenerate       # rewrite marketplace.json, README install URLs, update checker copies
 make verify-generated # drift check used by CI; non-zero if regenerate would change anything
 make package          # build dist/waza.zip from packaging.allowlist
@@ -67,14 +67,13 @@ make package          # build dist/waza.zip from packaging.allowlist
 - 把 `code-review` 视为 Waza `check` 的 invocation alias，不要当成另一个通用 skill。
 - Waza `check` 必须保持 project-aware，但不能依赖未发布的本地文件。它从 target diff、public docs、manifests、CI config 和 user-provided context 中提取 commands、generated artifacts、risk areas 和 release rules。
 - Distribution files 要对 Claude Desktop 和 plugin installs 自包含。release ZIP 可以把 sub-skill bodies inline 到 generated root `SKILL.md`；source-of-truth skill content 仍保留在 `skills/*/SKILL.md`。
-- 如果添加 `templates/` 目录，把可复用 public scaffolds 放在那里，并有意识地纳入 packaging/validation rules。
 - README 保持简短：新读者应能在 30 秒内理解 Waza。详细 rules 属于 `skills/<name>/SKILL.md`、`rules/*.md` 或本文件。不要在顶部堆 promotional sections。
 
 ## Adding Or Changing A Skill
 
 任何 new skill 或 meaningful behavior change 都走这条路径：
 
-1. 创建或更新 `skills/<name>/SKILL.md`；description 保持具体、可触发，并包含 `Not for ...` exclusion。Frontmatter `metadata.version` 必须匹配顶层 `VERSION` 文件。
+1. 创建或更新 `skills/<name>/SKILL.md`；description 保持具体、可触发，并包含 `Not for ...` exclusion。不要在 frontmatter 中添加 version 字段；`VERSION` 是单一事实源，validator 会拒绝 `metadata.version`。
 2. 更新 `skills/RESOLVER.md` routing rows，让新 skill 或变化后的 scope 可达；不要手工编辑 `.claude-plugin/marketplace.json`，改用 `make regenerate`。
 3. 保持 Waza public：在 runtime 从 public repo context 中提取 project-specific details，不要硬编码 private paths、credentials 或 one-machine workflow。
 4. 把 deterministic enforcement 放进 `scripts/` 或 `rules/`；skill body 只保留 adaptive judgment。
@@ -83,11 +82,11 @@ make package          # build dist/waza.zip from packaging.allowlist
 
 ## Maintainability Invariants
 
-- 当同一 metadata 出现在多个 distribution files 中时，优先使用 generation，而不是 drift lint。`VERSION` 和 `skills/*/SKILL.md` frontmatter 是 generated marketplace 与 install metadata 的事实源。
+- 当同一 metadata 出现在多个 distribution files 中时，优先使用 generation，而不是 drift lint。`VERSION` 和 `skills/*/SKILL.md` frontmatter 是 generated marketplace 与 install metadata 的事实源；version 只来自 `VERSION`。
 - 可执行程序保持为真实文件，不要写成 shell scripts 或 Makefile recipes 里的 heredocs。Shell wrappers 可以委托给 Python helpers，但大逻辑应放在可 import 的 `.py` 文件里，并有 `py_compile` coverage。
 - Smoke tests 放在 `tests/test_*.sh`；`Makefile` 应发现并运行它们，不要嵌入大段 test bodies。
 - 避免 hidden runtime dependencies。如果某个 script 需要非 stdlib Python package、external CLI 或 network resolver，在 CI/docs 中声明，并添加一个缺失时会失败的 smoke test。
-- Shipped skill scripts（`skills/*/scripts/`）必须保持 self-contained：只 import standard library，并能从任意 target project 运行。不要把看起来共享的 helpers（file walks、parsers）抽到 root `scripts/` module。那个 module 只用于 dev/CI，不在 `packaging.allowlist` 中；import 它会把 standalone shipped tool 绑定到 install layout，可能破坏 `npx skills add` installs。两个 shipped scripts 之间有良性重复是正确 tradeoff；如果 drift 重要，就在原地对齐副本，不要共享 module。
+- Shipped skill scripts（`skills/*/scripts/`）必须保持 self-contained：只 import standard library，并能从任意 target project 运行。不要把看起来共享的 helpers（file walks、parsers）抽到 root `scripts/` module。那个 module 只用于 dev/CI，不在 `packaging.allowlist` 中；import 它会把 standalone shipped tool 绑定到 install layout，可能破坏 `npx skills add` installs。两个 shipped scripts 之间有良性重复是正确 tradeoff；如果 drift 重要，就在原地对齐副本，不要共享 module。不同 shipped auditors 中复制的机械定义（excluded dirs、source extensions、marker regexes）由 `tests/python/test_auditor_alignment.py` 固定为一致；复制新定义时扩展该测试，各产品自己的 threshold 仍分别维护。
 - 会 fetch remote content 的 installer scripts 必须默认指向 release tag。只有显式 bleeding-edge override 才使用 `WAZA_REF=main`。
 - One-off review reports、scorecards 或 diagnostic snapshots 不属于 durable docs。把 stable rule 提取到 `AGENTS.md`、`CLAUDE.md`、`rules/`、`skills/*/references/` 或 verifier script，然后丢弃 report。
 - Project case studies 是输入，不是 Waza policy。只提升可迁移 workflow rule；project-specific commands、paths、release rituals 和 safety constraints 留在该项目的 public context 中。
@@ -99,8 +98,8 @@ make package          # build dist/waza.zip from packaging.allowlist
 
 ## Distribution Rules
 
-- `.claude-plugin/marketplace.json`、`.agents/plugins/marketplace.json`、`plugins/waza/.codex-plugin/plugin.json`、`skills/RESOLVER.md` 和每个 `skills/*/SKILL.md` 必须在 skill names、descriptions、versions 和 source paths 上一致。
-- `npx skills add tw93/Waza` 默认应安装八个 direct coding skills。不要添加 source-root `SKILL.md`，它会阻止 nested skill discovery。
+- `.claude-plugin/marketplace.json`、`.agents/plugins/marketplace.json`、`plugins/waza/.codex-plugin/plugin.json`、`skills/RESOLVER.md` 和每个 `skills/*/SKILL.md` 必须在 skill names、descriptions 和 source paths 上一致；generated metadata 的 version 通过 `VERSION` 保持 lock-step。
+- `npx skills add oldwinter/Waza` 默认应安装八个 direct coding skills。不要添加 source-root `SKILL.md`，它会阻止 nested skill discovery。
 - Codex marketplace entries 必须 resolve 到 `plugins/waza`，不是 repository root。Codex marketplace、plugin manifest 或 plugin mirror changes 后，不只检查 JSON shape，还要验证 isolated install flow。
 - Plugin mirror generation 必须在 generator 和 verifier paths 中过滤 local cache 和 noise files，包括 `__pycache__`、`*.pyc`、`.pytest_cache`、`.ruff_cache`、`.mypy_cache` 和 `.DS_Store`。
 - Claude Desktop 使用 `scripts/package-skill.sh` 构建的 release ZIP。

@@ -41,7 +41,7 @@ Flow:
 1. 读取 current UI evidence：screenshot、rendered page、native view 或 responsible component。
 2. 用一句话命名 exact visual defect。
 3. 做能修复该 defect 的最小 material、geometry、spacing、contrast、typography 或 text-fit change。
-4. 验证真实 running surface 或 generated artifact。检查 long words、localized strings、compact states，以及适用时至少一个 narrow viewport。Terminal output 也算 rendered surface：改了 CLI-facing text、spacing 或 layout 后，重新运行 command 并读取真实输出。
+4. 验证真实 running surface 或 generated artifact。检查 long words、localized strings、compact states，以及适用时至少一个 narrow viewport。Terminal output 也算 rendered surface：改了 CLI-facing text、spacing 或 layout 后，重新运行 command 并读取真实输出；检查整个 output 的 column alignment、block spacing 和 icon consistency，不只看 changed line。
 5. 如果 fix 触碰三个或更多 components、改变 product behavior，或暴露 direction problem，停止并切换到 Screenshot Iteration Mode 或 Lock the Direction First。
 
 **Spacing unification rule。** 如果某个 magic spacing 或 sizing value 调整三次后 layout 仍然不对，停止 tuning。把 N 个独立 padding / gap / margin / size values 替换成一个 shared named token（`Spacing.s4`、`--gap-content`、`gap-4`）。Outer container padding 默认等于 inner element gap。能熬过 tuning 的 asymmetry 是 structural，不是 numeric，继续加 magic numbers 不会收敛。Spacing-as-a-system 细则在 `references/design-reference.md`。
@@ -81,7 +81,7 @@ Flow:
 
 **Boundary**：如果 fix 需要改变 3 个或更多 components，或它暴露的是 direction problem 而不是 specific bug，暂停并运行完整 direction lock 后再继续。
 
-**Redesign priority order**（重做 existing UI，而不是从零构建时）：font replacement → color cleanup → hover/active states → layout and whitespace → replace generic components → add loading/empty/error states → typographic polish。这个顺序在最大化 visual lift 的同时，最小化每一轮的 blast radius。完整规则在 `references/design-reference.md`。Common traps 和 absolute CSS bans 在 `references/design-traps.md`。
+**Redesign priority order**（重做 existing UI，而不是从零构建时）：font replacement → color cleanup → hover/active states → layout and whitespace → replace generic components → add loading/empty/error states → typographic polish。这个顺序在最大化 visual lift 的同时，最小化每一轮的 blast radius。完整规则、common traps 和 absolute CSS bans 都在 `references/design-reference.md`。
 
 ## Lock the Direction First
 
@@ -94,7 +94,7 @@ Flow:
 1. **Who uses this, and in what context?** Analyst dashboard 不同于 landing page 或 onboarding flow。如果答案是 sidebar + main workspace layout，见下方 "App shell exception"。
 2. **What is the aesthetic direction?** 精确命名：dense editorial、raw terminal、ink-on-paper、brutalist grid、warm analog。"Clean and modern" 不是 direction。如果用户命名 reference site 或 product（"feels like Linear / Claude.ai / Vercel"），不要把它当 direction 接受，而是从中提取 3 个 concrete properties：button radius philosophy、surface depth treatment（shadow vs background step vs border）和 accent color family。改用这些命名。
 
-   **Shortcut for well-known brands**：见 `references/design-reference.md` 中的 "Brand preset flow"。先询问，运行 preset，再对 generated file 做 decompose。
+   **Shortcut for well-known brands**：见 `references/design-reference.md` 中的 "Reference-site Brand Presets"。先询问，运行 preset，再对 generated file 做 decompose。
 3. **What is the design signature?** 一个 typeface、color system、unexpected motion 或 asymmetric layout。选一个，并让它明显。
 4. **What are the hard constraints?** Framework、bundle size、contrast minimums、keyboard accessibility。
 5. **What is the signature micro-interaction?** Scale on press、staggered reveal 或 contextual icon animation。选一个，并明确知道如何实现。
@@ -124,7 +124,7 @@ Flow:
 
 如果 surface 是 dashboard、analytics view 或 chart-heavy interface，同时加载 `references/design-data-viz.md`，用于 chart selection、number alignment 和 product-benchmark rules。构建 marketing pages、landing pages 或 generic components 时跳过。
 
-用一句话说明 chosen direction，然后加载 `references/design-reference.md` 并检查 tech stack conflicts table。写第一个 component 前，命名 single CSS strategy。对 token decisions（color、font、motion），加载 `references/design-tokens.md`。对 aesthetic quality review 和 production structure，加载 `references/design-aesthetic-quality.md`。
+用一句话说明 chosen direction，然后加载 `references/design-reference.md` 并检查 tech stack conflicts table。写第一个 component 前，命名 single CSS strategy。Token decisions（color、font、motion）也在同一文件的 OKLCH Rules、Theme Matrix、font sections 和 Animation 中。对 aesthetic quality review 和 production structure，加载 `references/design-aesthetic-quality.md`。
 
 写任何代码前，用三行总结 direction：
 - **Visual thesis**：用一句话说明 mood、material 和 energy，例如 "warm brutalist editorial with high-contrast ink type and rough paper texture"

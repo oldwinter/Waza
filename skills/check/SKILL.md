@@ -1,7 +1,7 @@
 ---
 name: check
 description: "Review code diffs, PRs, issue queues, release readiness, commits, pushes, publishing, and project audits. Use when users ask in any language for code review, issue/PR triage, release gates, publishing follow-through, or project audits. Not for root-cause debugging or prose review."
-when_to_use: "review, 看看代码, 检查一下, 有没有问题, 是否需要优化, 合并前, 继续优化, 优化代码, 看看issue, 看看PR, release, publish, push, release reaction, GitHub reaction, 发布, 提交, 关闭issue, 发布表情, release表情, close issue, issue close, review my code, check changes, before merge, before release, code review, code-review, audit, project audit, 项目体检, 项目评分, 给项目打分, 深入分析项目代码, 评估项目质量, 代码质量评分, scorecard, linus review, rate this codebase, score this project"
+when_to_use: "review, 看看代码, 检查一下, 有没有问题, 是否需要优化, 合并前, 继续优化, 优化代码, 看看issue, 看看PR, release, publish, push, release reaction, GitHub reaction, 发布, 提交, 关闭issue, 发布表情, release表情, close issue, issue close, review my code, check changes, before merge, before release, 值得发布, ready to release, code review, code-review, audit, project audit, 项目体检, 项目评分, 给项目打分, 深入分析项目代码, 评估项目质量, 代码质量评分, scorecard, linus review, rate this codebase, score this project"
 dispatch_intent: "Code review, before merge, release gates, generated artifacts, safety sinks, publish/push/reaction follow-through, triage issues/PRs, project-wide code-quality audit scorecard"
 ---
 
@@ -20,7 +20,7 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 - Outcome:基于 current diff、project context 和 live evidence 的 review、release decision 或 maintainer action。
 - Done when:findings、fixes、shipped state 或 blockers 都带有能证明它们的 commands、artifacts 或 remote state。
 - Evidence:worktree status、diff、public project docs、manifests、CI、package contents、release 或 registry state，以及 current command output。
-- Output:先给 concise findings；适用时再给 verification 和 shipped-state summary。
+- Output:先给 concise findings；适用时再给 verification 和 shipped-state summary。Multi-step 或 ship-action run 以 completion ledger（done / not applicable / remaining）收尾，不得留下还要用户追问“是否都完成了”的叙述。
 
 ## Worktree Safety Preflight
 
@@ -86,9 +86,8 @@ In this mode, do not run a code review. Instead:
 
 1. State which plan is being executed (first heading or summary line).
 2. Check for obvious repo drift: run `git status --short --branch -uall` and skim any changed files that contradict the plan. If drift makes the plan unsafe, name the specific conflict and stop.
-3. Work through each plan item as a to-do. Mark each complete as you go.
-4. After all items are done, run the project's verification command.
-5. Transition automatically into Ship mode if the project context or current thread indicates review-then-ship.
+3. After all items are done, run the project's verification command.
+4. Transition automatically into Ship mode if the project context or current thread indicates review-then-ship.
 
 ## Default Continuation (review-then-ship)
 
@@ -108,7 +107,7 @@ When the project's `AGENTS.md` or the current thread explicitly asks to "commit 
 
 **Status answer order：** 对 "都解决了吗"、"is this fixed"、"is this ready" 或类似 status checks，按这个顺序回答：code 或 commit state、branch 或 CI state、release artifact 或 registry state、public issue 或 PR state。不要把 fixed-on-main、available in pre-release、next stable release 和 already shipped 混成一种状态。
 
-**Flow:** First identify the project's issue/PR host from public context. For GitHub projects, pull open items with `gh issue list -R <repo> --state open --limit 20` and `gh pr list -R <repo> --state open`. For non-GitHub projects, use the platform CLI/API named by the project docs or user request; if none exists, stop and report the missing integration instead of pretending GitHub commands apply. For each item, check current state with the project's release boundary: latest public release, main branch, preview/nightly/beta channel, registry/appcast, and target issue/PR status. If the fix is already in the current public release or documented pre-release channel, close with that exact upgrade path. If fixed on `main` but unreleased, reply "已修复，等下一个版本 release" and close only when project convention or the current user request allows fixed-on-main closure; otherwise leave it open with the next-release note. If no fix exists, analyze and act. Fix now if possible (`fix: closes #N` commit); for valid-but-unreleased items acknowledge and leave open; for invalid items give one-two sentence reason and close.
+**Flow:** 从 public context 识别项目的 issue/PR host，并使用对应平台的 CLI/API；如果找不到，停止并报告缺失的 integration，不要假装 GitHub commands 适用。对每个 open item，按项目的 release boundary 检查当前状态：latest public release、main branch、preview/nightly/beta channel、registry/appcast，以及目标 issue/PR status。若已经进入 public release 或 documented pre-release channel，用准确的 upgrade path 关闭。若已在 `main` 修复但尚未发布，回复“已修复，等下一个版本 release”；只有 project convention 或当前请求允许 fixed-on-main closure 时才关闭，否则保留 open 并注明 next release。若尚无 fix，继续分析和处理：能修则现在修（`fix: closes #N` commit）；valid-but-unreleased item 先确认并保持 open；invalid item 用一两句说明原因后关闭。
 
 在 live queue 中给 final conclusions 前，再 refresh 一次 issue/PR list，并重读 run 期间发生变化的 item。如果 evidence 不完整，hold 住 item，不要靠猜测关闭。
 
@@ -125,14 +124,14 @@ triage:           N reviewed, N closed, N deferred
 
 当用户询问 "深入分析 X 是不是值得发新版本"、"is this worth a new release"、"值不值得发版" 或类似问题时激活。
 
-1. 运行 `git log <last-tag>..HEAD --oneline`，用 `git tag --sort=-version:refname | head -1` 找 last tag。
-2. 统计并分类 commits：feat（new feature）、fix（bug fix）、chore/docs/refactor（internal）。
-3. Output：
-   - **Commit summary**：自 last release 以来 N feat、N fix、N chore
-   - **Verdict**：release / skip（一行）
-   - **Recommended version bump**：patch（fixes only）、minor（feat present）、major（breaking change）
-   - **Key risk**：一句话说明这一批最大的 risk
-4. 如果 verdict 是 "release"，提出可以 transition into Ship mode。
+对 last published tag 之后的每个 commit 分类；baseline 必须是 tag，而不是 local VERSION file。然后输出：
+
+- **Commit summary**：自 last release 以来 N feat、N fix、N chore
+- **Verdict**：release / skip（一行）
+- **Recommended version bump**：patch（fixes only）、minor（feat present）、major（breaking change）
+- **Key risk**：一句话说明这一批最大的 risk
+
+如果 verdict 是 "release"，提出可以 transition into Ship mode。
 
 ## Ship / Release Follow-through
 
@@ -141,7 +140,7 @@ triage:           N reviewed, N closed, N deferred
 这个 mode 扩展 review，不跳过 review。任何 public 或 irreversible action 前：
 
 1. Extract release rules from public project context: README, manifests, CI workflows, release notes, package scripts, changelogs, and explicit user instructions in the current thread.
-2. Fill the Release Gate 2.0 matrix from `references/project-context.md`: review base, dirty/staged/untracked state, latest tag, origin sync, version fields, generated artifacts, package/archive contents, release assets, registry/appcast/CI, and public issue/PR state.
+2. 填写 `references/project-context.md` 的 Release Gate 2.0 matrix。先运行 `python3 <skill-base-dir>/scripts/release_gate.py --root <project>`，用它为 deterministic rows（worktree state、remote sync、tag baseline、version field sync、changelog mention）提供 seed，并粘贴其 status lines 作为 evidence；其余 rows（generated artifacts、package/archive contents、release assets、registry/appcast/CI、public issue/PR state）仍要各自判断并提供 evidence。
 3. Verify generated or bundled outputs, version fields, release notes, package contents, and required artifacts are in sync. Prefer dry-run commands when the ecosystem provides them. When drafting release notes or update-feed copy, follow `/write` Release Note Template Mode; for Chinese copy, load its zh release-notes rules before the first draft, not after a tone complaint -- translation-flavored Chinese notes are a defect, not a polish item.
    Drafting release notes 前，读取 repo 上一次 published release（用 `gh release view` 查看 latest tag），把它的 title convention、item count、per-item length 和 language layout 当作 hard template；只替换内容，绝不另造格式。
    Generated deliverables include tracked archives, ignored dist files, appcasts, site/download copy, registry packages, checksums, and release assets. If project docs require them, regenerate, inspect, and stage or upload them explicitly even when they are ignored by git; do not infer readiness from source-only tests. For remote assets, prefer downloading or reading back the published artifact and comparing entries, checksums, or manifest contents; release page text, file size, or workflow success alone is not artifact proof.
@@ -164,7 +163,7 @@ triage:           N reviewed, N closed, N deferred
 4. Output two release decisions, not one: whether the preview or beta can keep taking user testing, and whether stable release prep can start.
 5. Every conclusion must name blockers, deferrable maintenance, commands that ran, and runtime or user-smoke coverage. Source tests alone cannot prove a reworked UI/native release ready.
 
-以 concrete shipped state 结束：commit hash、tag、release URL、registry/version result、pushed branch、release asset state、release reaction state、issue/PR state，以及任何 remaining blockers。省略不适用字段。
+先给明确的 go / no-go verdict（ship，或列出 blockers），再以 concrete shipped state 结束：commit hash、tag、release URL、registry/version result、pushed branch、release asset state、release reaction state、issue/PR state，以及任何 remaining blockers。省略不适用字段。
 
 ## Project Audit Mode
 
@@ -174,9 +173,9 @@ triage:           N reviewed, N closed, N deferred
 
 1. Run `python3 <skill-base-dir>/scripts/audit_signals.py --root <project>` from the target repo, with `<skill-base-dir>` replaced by this skill's base directory. The script emits labelled blocks (`=== FILE SIZE HOTSPOTS ===` ... `=== DENYLIST IN BUILD ===`) each ending with `status: PASS|WARN|FAIL|N/A`.
 2. Skim the largest source files surfaced by `FILE SIZE HOTSPOTS` (typically 3-5; stop sooner if the architecture is already clear).
-3. Read `CLAUDE.md` / `AGENTS.md` / `README.md` to learn the project's own stated conventions before judging it against generic ones.
+3. 读取 `CLAUDE.md` / `AGENTS.md` / `README.md`，先理解项目自己的 conventions，再用 generic rules 判断。Repo 的 agent guidance 本身也属于 audited surface：确认其中的 commands 和 paths 仍存在，把 stale、conflicting 或可删除的 rules 作为 findings 报告。
 4. Apply the four-axis rubric below. Each axis is independently scored 0-10. Overall = arithmetic mean.
-5. Surface 3-7 concrete findings per axis. Each finding: file:line citation when possible, severity (CRIT/STRUCT/INCR), one-line fix.
+5. 报告所有会影响 axis score 的 findings；每项尽量给 file:line citation，并包含 severity（CRIT/STRUCT/INCR）和一行 fix。某个 axis 没有 finding 是有效结果，不要为了凑数而填充。
 6. Output to **terminal only**. Do not create files in the target repo. If the user follows up with "save it", offer `./docs/<project>-audit.md` then; default is ephemeral.
 
 **Rubric**
@@ -337,11 +336,11 @@ If found, either apply the doc update as `safe_auto` (when the invariant is clea
 
 ## Specialist Review (Standard and Deep only)
 
-加载 `references/persona-catalog.md` 判断哪些 specialists 激活。有环境 agent 或 sub-agent facility 时，把 full diff 传入并并行启动所有 activated specialists。如果没有 parallel reviewer facility，在同一 session 中顺序运行 specialist passes。
+加载 `references/persona-catalog.md` 判断激活哪些 specialists。环境提供 agent 或 sub-agent facility 时，parallel 启动所有 activated specialists，每个都传 full diff 和各自 persona brief。没有 parallel reviewer facility 时，在同一 session 依次执行 specialist passes。
 
 合并 findings：两个 specialists 标记同一 code location 时，保留更高 severity，并注明 cross-reviewer agreement。不同 code locations 上的 findings 即使 theme 相同，也不是 duplicates。
 
-Treat each specialist finding as a claim to verify, not a fact to act on. Before routing a finding to Autofix or sign-off, re-read the cited code this turn and confirm it is real and live: not already handled elsewhere, not consistent-by-design, not a latent-only risk labeled as a live bug. Parallel reviewers over-report from name-based inference and partial context; drop or downgrade what dissolves on direct read, and cite the verification path.
+每条 specialist finding 都只是待验证的 claim，不是可直接行动的事实。对 HIGH 和 CRITICAL claims，在 agent facility 允许时，为每条 finding 单独 spawn 一个 independent skeptic，只让它对照实际代码反驳该 claim；skeptic 在 direct read 中驳倒的 finding 必须 drop 或 downgrade，不受提出它的 persona 影响。没有 facility 时由自己执行 skeptic pass：本 turn 重读 cited code，确认它真实且 live，没有在其他地方处理、不是 consistent-by-design，也不是被当成 live bug 的 latent-only risk。Parallel reviewers 容易因 name-based inference 和 partial context 过度报告；任何 direct read 后消失的 finding 都要丢弃，并在送往 Autofix 或 sign-off 前引用 verification path。
 
 ## Autofix Routing
 
@@ -356,7 +355,7 @@ Treat each specialist finding as a claim to verify, not a fact to act on. Before
 
 ## Adversarial Pass (Deep only)
 
-"If I were trying to break this system through this specific diff, what would I exploit?" Four angles (see `references/persona-catalog.md`): assumption violation, composition failures, cascade construction, abuse cases. Suppress findings below 0.60 confidence.
+“如果我要通过这个 specific diff 破坏系统，会利用什么？”从四个 angles 执行（见 `references/persona-catalog.md`）：assumption violation、composition failures、cascade construction、abuse cases。环境提供 agent facility 时，将四个 angles 作为彼此看不到其他 findings 的 parallel agents 运行：independent angles 的 convergence 会提高 confidence；singleton findings 接受与 specialist claims 相同的 per-finding skeptic verification。抑制 confidence 低于 0.60 的 findings。
 
 ## Platform Operations
 

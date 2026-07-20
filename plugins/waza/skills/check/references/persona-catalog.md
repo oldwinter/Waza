@@ -13,14 +13,7 @@ base `/check` skill always-on 运行。Specialist reviewers 是 additive。
 **Agent file:** `agents/reviewer-security.md`
 **Activate at:** Standard or Deep depth
 
-当 diff 触碰以下内容时激活：
-- Authentication 或 authorization logic（middleware、guards、JWT handling、session management）
-- Cryptographic operations（hashing、signing、encryption）
-- Trust boundaries 上的 input handling（form fields、API request bodies、URL parameters）
-- User-controlled paths 上的 file system operations
-- Shell 或 subprocess execution
-- Third-party credential 或 API key handling
-- SQL queries 或 raw database access
+当 diff 修改 attacker 可以触达或影响的代码时激活：trust-boundary input、auth 或 crypto、credentials，或 query/shell/path construction。
 
 **Do not activate** for：pure UI changes、config file updates、test-only changes、documentation。
 
@@ -29,21 +22,15 @@ base `/check` skill always-on 运行。Specialist reviewers 是 additive。
 **Agent file:** `agents/reviewer-architecture.md`
 **Activate at:** Standard or Deep depth
 
-当 diff 符合以下条件时激活：
-- 添加 new module、package 或 service boundary
-- 改变 public API、exported type 或 function signature
-- 引入之前不存在的 cross-module import
-- 跨不同 directories 修改超过 10 个 files
-- 添加或移除 major dependency
-- 重构 components 之间的调用方式
+当 diff 改变 module 之间的关系时激活：boundaries、public APIs 或 signatures、cross-module dependencies，或 major dependency；而不是只改一个 module 内的 logic。
 
 **Do not activate** for：single-file bug fixes、test additions、style changes、documentation updates。
 
 ## Adversarial Pass (Deep only)
 
-没有 separate agent。Orchestrator 在收集所有 findings 后，把它作为 extra reasoning pass 运行。
+没有 dedicated agent file。环境提供 agent facility 时，orchestrator 将四个 angles 作为彼此看不到 findings 的 parallel agents 运行；否则在收集所有 findings 后进行额外 reasoning pass。
 
-**Activate at:** 仅 Deep depth（500+ lines changed，或 explicit high-risk signals：auth、payments、data mutation、external API integration）。
+**Activate at:** 仅 Deep depth；Deep criteria 以 SKILL.md 的 Scope table 为准。
 
 Adversarial pass 询问："If I wanted to break this system through this specific diff, what would I do?"
 
@@ -53,4 +40,4 @@ Adversarial pass 询问："If I wanted to break this system through this specifi
 3. **Cascade construction** -- 哪一串 valid operations 会导向 invalid state？
 4. **Abuse cases** -- 第 1000 个 request、deployment 期间，或两个 users 同时编辑同一 resource 时会发生什么？
 
-报告 adversarial findings 时附 confidence score。Suppress 0.60 以下的 findings。
+Adversarial findings 要带 confidence score；抑制 threshold 以 SKILL.md 的 Adversarial Pass section 为准。

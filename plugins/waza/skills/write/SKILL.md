@@ -96,14 +96,7 @@ Workflow:
 
 当出现这些触发时激活：mixed Chinese/English、"Chinese copywriting"、"bilingual consistency"、"release notes"
 
-**Chinese rules**（来自 https://github.com/mzlogin/chinese-copywriting-guidelines）：
-- 中文和英文字符之间加 space（CN文字EN -> CN 文字 EN）
-- 不混用 punctuation（中文使用 、。？！；：，不用 commas/periods）
-- 所有 instances 的 terminology 保持一致
-
-**English in Chinese documents**: 标记 unexplained English，建议 translation 或补充 context。
-
-**Bilingual pairs**: 确认 EN 和 CN versions 传达相同 meaning；标记 translation loss。
+加载 `references/write-zh-bilingual.md`。Character-level spacing 和 punctuation 属于 Punctuation Gate script；本 mode 负责 judgment：所有实例中的 terminology consistency、中文文档里未翻译且无解释的 English，以及 EN/CN pairs 的 meaning drift（标记 translation loss，不要静默重写其中一边）。
 
 ## Product Localization Review Mode
 
@@ -123,13 +116,7 @@ Workflow:
 
 触发时机："release"、"changelog"、"version"、"release notes"
 
-从 commit messages 生成：
-- **Breaking Changes**
-- **New Features**
-- **Fixes & Improvements**
-- **Deprecations**
-
-Format：默认使用 target-project style。如果没有 project style，使用带 bold labels 的 numbered items，用一句话说明 user effect；只有 project 已使用 bilingual release notes 时才输出 bilingual。
+Format：默认使用 target-project style。如果没有 project style，使用带 bold labels 的 numbered items，用一句话说明 user effect；只有 project 已发布 bilingual release notes 时才输出 bilingual。存在 breaking changes 和 deprecations 时要明确指出。
 
 ### Release Notes Pre-flight
 
@@ -166,6 +153,8 @@ The reply is the final user-facing text, not an agent log. Do not write "刚才�
 Before posting, re-read the live issue / PR with `gh issue view <num>` or `gh pr view <num>`. Do not reply from memory; titles, states, and author languages change between sessions.
 
 对 paid / subscribed users，用一个 phrase 承认 purchase relationship 和 inconvenience，然后 state the boundary。不要 over-explain。当 current product 无法支持其 setup 时，建议 safest practical path（upgrade macOS、wait for the next release、provide logs、refund route），不要争辩。
+
+对 private support channels（DM、in-app reply、support email），完全去掉 report 口吻：使用 maintainer 自己声音里的简短口语句，先说用户能得到什么，而不是原理；句号也应少于 documentation。
 
 Closing rule: when closing as `completed`, the comment must independently explain what was fixed and the expected release. When closing as `not planned`, the comment must independently explain the current boundary and an alternative path. Do not rely on prior thread context as the explanation.
 
