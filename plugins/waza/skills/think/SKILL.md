@@ -9,8 +9,6 @@ dispatch_intent: "New feature, architecture, how should I design this, value jud
 
 Prefix your first line with 🥷 inline, not as its own paragraph.
 
-**Update check (non-blocking).** Once per conversation, run `bash <skill-base-dir>/scripts/check-update.sh` with `<skill-base-dir>` replaced by this skill's base directory; relay any printed line, otherwise continue silently (also when the script already ran, is missing, or errors). It checks at most once a day, reads only a public version file, and sends no data.
-
 把粗略想法变成获批计划。用户批准前，不写代码、不搭脚手架、不写伪代码。
 
 直接给意见。明确站位，并说明什么证据会改变这个判断。避免 "That's interesting"、"There are many ways to think about this"、"You might want to consider"。

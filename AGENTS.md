@@ -20,7 +20,7 @@ Waza 是面向 engineering workflows 的 skill collection。仓库包含八个 s
 - `plugins/waza/` - **generated** Codex plugin tree。它镜像 `skills/`、`rules/` 和 `plugins/waza/.codex-plugin/plugin.json`；编辑 source files 后运行 `make regenerate`。
 - `packaging.allowlist` - 打进 `waza.zip` 的路径 default-deny 清单。新的 shippable assets 必须显式加入这里；其他内容都会被排除。
 - `.github/workflows/` - public test 和 release automation。`release.yml` 会先运行 `make test` 再运行 `make package`，让 tagged commit 经过与 PR 相同的 suite。
-- `scripts/build_metadata.py` - Claude 和 Codex marketplace metadata、README install URLs、Codex plugin mirror files、skill-local shared assets（update checkers、durable-context copies）、installer-script `WAZA_REF` 默认值以及 update-checker `LOCAL_VERSION` 的 codegen。通过 `make regenerate` 运行；CI 用 `make verify-generated` 检查 drift。
+- `scripts/build_metadata.py` - Claude 和 Codex marketplace metadata、README install URLs、Codex plugin mirror files、skill-local durable-context copies 和 installer-script `WAZA_REF` 默认值的 codegen。通过 `make regenerate` 运行；CI 用 `make verify-generated` 检查 drift。
 - `scripts/verify_skills.py` - 唯一的 validator entrypoint；它负责驱动 `scripts/skill_checks.py` 中的检查清单（content、distribution 和 routing checks）。Facade 的 import list 是 canonical inventory；不要在这里重新枚举。
 - `scripts/package-skill.sh` + `scripts/packaging_filter.py` - 从 `packaging.allowlist` 构建 `dist/waza.zip`。
 - `scripts/setup-rule.sh` + `scripts/setup-statusline.sh` - public install helpers；`WAZA_REF` 默认值由 codegen 固定到当前 release tag。
@@ -31,7 +31,7 @@ Waza 是面向 engineering workflows 的 skill collection。仓库包含八个 s
 
 ```bash
 make test             # verify-docs + verify-generated + verify-routing + verify-scripts + verify-unit + all smokes
-make regenerate       # rewrite marketplace.json, README install URLs, update checker copies
+make regenerate       # rewrite marketplace.json, README install URLs, plugin mirrors
 make verify-generated # drift check used by CI; non-zero if regenerate would change anything
 make package          # build dist/waza.zip from packaging.allowlist
 ```

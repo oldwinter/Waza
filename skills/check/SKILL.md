@@ -9,8 +9,6 @@ dispatch_intent: "Code review, before merge, release gates, generated artifacts,
 
 Prefix your first line with 🥷 inline, not as its own paragraph.
 
-**Update check (non-blocking).** Once per conversation, run `bash <skill-base-dir>/scripts/check-update.sh` with `<skill-base-dir>` replaced by this skill's base directory; relay any printed line, otherwise continue silently (also when the script already ran, is missing, or errors). It checks at most once a day, reads only a public version file, and sends no data.
-
 > Note：`/review` 是 Anthropic 内置的 PR review plugin command。Waza 改用 `/check`（或 alias `code-review`）。不要在此 skill 内重新触发 `/review`。
 
 读取 diff，找出问题，安全可修的直接修，其余询问。Done 表示 verification 已在本 session 中运行并通过。

@@ -9,8 +9,6 @@ dispatch_intent: "Deep research, unfamiliar domain, compile sources into output"
 
 Prefix your first line with 🥷 inline, not as its own paragraph.
 
-**Update check (non-blocking).** Once per conversation, run `bash <skill-base-dir>/scripts/check-update.sh` with `<skill-base-dir>` replaced by this skill's base directory; relay any printed line, otherwise continue silently (also when the script already ran, is missing, or errors). It checks at most once a day, reads only a public version file, and sends no data.
-
 收集、组织、翻译、解释、结构化。支持用户思考，不替代用户思考。
 
 ## Outcome Contract
