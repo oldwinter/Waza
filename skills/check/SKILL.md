@@ -40,19 +40,19 @@ PR inspection 优先使用不会切换 current working tree 的 commands：`gh p
 
 ## Mode Picker
 
-选择匹配用户 intent 的 mode，然后完整阅读该 section。Modes 会叠加到下方共享 review surface（Scope、Hard Stops、Autofix、Specialist Review、Verification、Sign-off）之上。
+选择匹配用户 intent 的 mode，只加载对应 reference；default review 和 plan execution 不需要额外 mode reference。下方共享 review surface（Scope、Hard Stops、Autofix、Specialist Review、Verification、Sign-off）始终适用。
 
 | User intent | Mode |
 |---|---|
-| "implement this plan", `/think` output handed off | [Plan Execution](#plan-execution-mode) |
-| Diff or PR ready, "review", "看看代码", "合并前" | Default review (start at [Get the Diff](#get-the-diff)) |
-| "look at issues", "review PRs", "triage", "批量处理" | [Triage Mode](#triage-mode) |
-| "is this worth a release", "值不值得发版" | [Release Worthiness Analysis](#release-worthiness-analysis) |
-| "commit", "push", "publish", "release", "close issue", "发布表情" | [Ship / Release Follow-through](#ship--release-follow-through) |
-| "audit", "项目体检", "项目评分", "给项目打分", "深入分析项目代码", "scorecard", "linus review" | [Project Audit](#project-audit-mode) |
-| Document, PDF, prose review | Delegate to `/write` (see [Document Review](#document-review)) |
+| "implement this plan"、交接的 /think output | [Plan Execution](#plan-execution-mode) |
+| diff 或 PR 已就绪、"review"、"看看代码"、"合并前" | Default review，从 [Get the Diff](#get-the-diff) 开始 |
+| "look at issues"、"review PRs"、"triage"、"批量处理" | 加载 `references/mode-triage.md` |
+| "is this worth a release"、"值不值得发版" | 加载 `references/mode-ship.md` 的 Release Worthiness Analysis |
+| "commit"、"push"、"publish"、"release"、"close issue" | 加载 `references/mode-ship.md` 的 Ship / Release Follow-through |
+| "audit"、"项目体检"、"项目评分"、"scorecard"、"linus review" | 加载 `references/mode-audit.md` |
+| document、PDF、prose review | 交给 /write，见 [Document Review](#document-review) |
 
-进入任何 mode 前，先运行 [Project Context Extraction](#project-context-extraction)，如果 memory 在 scope 内，再运行 [Durable Context Preflight](#durable-context-preflight)。
+进入任何 mode 前，先运行 [Project Context Extraction](#project-context-extraction)；若 memory 在 scope 内，再运行 [Durable Context Preflight](#durable-context-preflight)。
 
 ## Project Context Extraction
 
@@ -72,7 +72,7 @@ For release or maintainer work, also fill the Release Gate 2.0 matrix from `refe
 
 ## Durable Context Preflight
 
-See [references/durable-context.md](references/durable-context.md) for when to read durable context, the read-order budget, and the memory-type mapping.
+See [references/durable-context.md](references/durable-context.md) for when durable context is in scope and the redaction gate that applies before any of it becomes a durable rule.
 
 For `/check`: the current diff, CI, and remote state override memory. Durable memory can explain user intent and preferred follow-through, but public project rules still come from README files, manifests, CI workflows, release docs, and explicit instructions in the current thread. Never cite private memory as a public project requirement.
 
@@ -94,131 +94,6 @@ When the project's `AGENTS.md` or the current thread explicitly asks to "commit 
 ## Get the Diff
 
 获取 current branch 与 base branch 之间的 full diff。如果不清楚，询问。如果已经在 base branch 上，询问要 review 哪些 commits。
-
-## Triage Mode
-
-当用户提到 issue、PR、"review all"、triage、"batch" 或 "批量处理" 时激活。跳过 diff flow，改运行此 mode。
-
-**Action-first rule：** 有清晰 disposition 的 items（already fixed、duplicate、already released）直接行动，不写 analysis paragraphs。分析 screenshots 或 images 时，在一条消息里说明你看到什么和 suggested action。只有 disposition 真的 ambiguous 时才询问用户。
-
-**Bundled request classification：** 当一个 issue、PR 或 support thread 包含多个 asks，行动前先拆分：core bug、existing affordance、cosmetic preference 和 out-of-scope request。只修复或关闭 validated core bug；用 current path 回答 existing affordances；defer 或 decline cosmetic 和 out-of-scope asks，不要把整份 report 当成 to-do list。
-
-**Status answer order：** 对 "都解决了吗"、"is this fixed"、"is this ready" 或类似 status checks，按这个顺序回答：code 或 commit state、branch 或 CI state、release artifact 或 registry state、public issue 或 PR state。不要把 fixed-on-main、available in pre-release、next stable release 和 already shipped 混成一种状态。
-
-**Flow:** 从 public context 识别项目的 issue/PR host，并使用对应平台的 CLI/API；如果找不到，停止并报告缺失的 integration，不要假装 GitHub commands 适用。对每个 open item，按项目的 release boundary 检查当前状态：latest public release、main branch、preview/nightly/beta channel、registry/appcast，以及目标 issue/PR status。若已经进入 public release 或 documented pre-release channel，用准确的 upgrade path 关闭。若已在 `main` 修复但尚未发布，回复“已修复，等下一个版本 release”；只有 project convention 或当前请求允许 fixed-on-main closure 时才关闭，否则保留 open 并注明 next release。若尚无 fix，继续分析和处理：能修则现在修（`fix: closes #N` commit）；valid-but-unreleased item 先确认并保持 open；invalid item 用一两句说明原因后关闭。
-
-在 live queue 中给 final conclusions 前，再 refresh 一次 issue/PR list，并重读 run 期间发生变化的 item。如果 evidence 不完整，hold 住 item，不要靠猜测关闭。
-
-**PR handling:** If the PR direction is accepted but the patch needs changes, prefer pushing the maintainer's fixes to the contributor's PR branch and then merging the PR. Check `maintainerCanModify` first, then confirm the push remote, target branch, and current HEAD immediately before pushing so you do not overwrite contributor work or push maintainer fixes to the wrong repository. If branch edits are not allowed, ask the contributor to enable maintainer edits or push the needed revision; only fall back to a separate maintainer commit when timing or release safety requires it, and say so in the PR. Close without merging only when the direction is rejected, unsafe, no longer needed, or explicitly not part of the project's scope. Do not silently absorb an accepted PR into `main` and close it.
-
-**Public reply shape：** 加载 `references/public-reply.md` 获取完整 template（mention、single thanks、factual paragraphs、next-release step、editing rules、closure criteria）。Ship Mode 使用同一 template；该文件是 single source。
-
-**Sign-off line (append to standard sign-off):**
-```
-triage:           N reviewed, N closed, N deferred
-```
-
-## Release Worthiness Analysis
-
-当用户询问 "深入分析 X 是不是值得发新版本"、"is this worth a new release"、"值不值得发版" 或类似问题时激活。
-
-对 last published tag 之后的每个 commit 分类；baseline 必须是 tag，而不是 local VERSION file。然后输出：
-
-- **Commit summary**：自 last release 以来 N feat、N fix、N chore
-- **Verdict**：release / skip（一行）
-- **Recommended version bump**：patch（fixes only）、minor（feat present）、major（breaking change）
-- **Key risk**：一句话说明这一批最大的 risk
-
-如果 verdict 是 "release"，提出可以 transition into Ship mode。
-
-## Ship / Release Follow-through
-
-当用户在 change ready 后要求 commit、tag、release、publish、push、reply on an issue/PR 或 close an issue 时激活。
-
-这个 mode 扩展 review，不跳过 review。任何 public 或 irreversible action 前：
-
-1. Extract release rules from public project context: README, manifests, CI workflows, release notes, package scripts, changelogs, and explicit user instructions in the current thread.
-2. 填写 `references/project-context.md` 的 Release Gate 2.0 matrix。先运行 `python3 <skill-base-dir>/scripts/release_gate.py --root <project>`，用它为 deterministic rows（worktree state、remote sync、tag baseline、version field sync、changelog mention）提供 seed，并粘贴其 status lines 作为 evidence；其余 rows（generated artifacts、package/archive contents、release assets、registry/appcast/CI、public issue/PR state）仍要各自判断并提供 evidence。
-3. Verify generated or bundled outputs, version fields, release notes, package contents, and required artifacts are in sync. Prefer dry-run commands when the ecosystem provides them. When drafting release notes or update-feed copy, follow `/write` Release Note Template Mode; for Chinese copy, load its zh release-notes rules before the first draft, not after a tone complaint -- translation-flavored Chinese notes are a defect, not a polish item.
-   Drafting release notes 前，读取 repo 上一次 published release（用 `gh release view` 查看 latest tag），把它的 title convention、item count、per-item length 和 language layout 当作 hard template；只替换内容，绝不另造格式。
-   Generated deliverables include tracked archives, ignored dist files, appcasts, site/download copy, registry packages, checksums, and release assets. If project docs require them, regenerate, inspect, and stage or upload them explicitly even when they are ignored by git; do not infer readiness from source-only tests. For remote assets, prefer downloading or reading back the published artifact and comparing entries, checksums, or manifest contents; release page text, file size, or workflow success alone is not artifact proof.
-   If the project has preview, beta, nightly, stable, or App Store lanes, name the lane explicitly. Do not use a preview or beta artifact to claim stable release readiness, and do not touch stable appcast, registry, or download surfaces when the requested lane is preview-only unless project docs require it.
-   Classify each change by deployment surface before concluding what is live: code that ships inside a packaged artifact (app binary, bundled CLI, release archive) reaches users only at the next release, while sites, serverless functions, CDN config, and infrastructure deploy automatically when the default branch updates. One batch of changes can be unreleased on the first surface and already in production on the second; state each surface separately instead of letting "not released yet" cover auto-deployed code.
-4. Commit only intended files. Preserve unrelated dirty work, serialize git operations so index locks or overlapping adds do not corrupt the workflow, and re-check HEAD/status before pushing so concurrent agent or maintainer commits are not swept into your ship action.
-5. Push, publish, tag, or create a release only when the user has explicitly approved that action. If auth, OTP, CI, registry, or network state blocks the operation, pause and report the exact blocker.
-6. For issue/PR follow-through, confirm the item identity with the host's read command before posting. On GitHub, use `gh issue view` or `gh pr view`; on other hosts, use the CLI/API named by project docs or the current request. Use `references/public-reply.md` for the maintainer reply template (mention, single thanks, facts, explicit next release or verification step) and its closure criteria.
-7. For GitHub release reaction follow-through, only do it when project context or the current thread asks for it. After the release exists and required assets are verified, resolve the release id from the tag, POST every positive release reaction to `repos/<owner>/<repo>/releases/<id>/reactions` with `gh api` or the available GitHub tool, and re-read reactions to confirm. Positive release reactions are `+1`, `laugh`, `heart`, `hooray`, `rocket`, and `eyes`.
-8. After network or API failures, re-read the end state instead of assuming success or failure.
-
-### Reworked Or Cancelled Release Gate
-
-当 release candidate 被取消、preview 或 beta 反复 bug-fix churn，或用户询问 delayed release 是否终于 safe 时，激活此 gate。
-加载 `references/release-surfaces.md` 的 Reworked Or Cancelled Release Gate checklist。
-
-1. Lock the review base to the last public stable tag or release artifact, then review through current `HEAD`. Do not limit the review to recent commits or the latest local diff.
-2. Record the exact base, `HEAD`, dirty state, origin sync, version fields, generated artifacts, release notes, package contents, CI, and remote distribution state. If any state changes mid-review, refresh the range and rerun the fast gates.
-3. Review by shipped risk surface: user-reported regressions, crash or hang paths, destructive operations, privilege or permission boundaries, background workers, startup or first-frame work, update feeds, package contents, and public support claims.
-4. Output two release decisions, not one: whether the preview or beta can keep taking user testing, and whether stable release prep can start.
-5. Every conclusion must name blockers, deferrable maintenance, commands that ran, and runtime or user-smoke coverage. Source tests alone cannot prove a reworked UI/native release ready.
-
-先给明确的 go / no-go verdict（ship，或列出 blockers），再以 concrete shipped state 结束：commit hash、tag、release URL、registry/version result、pushed branch、release asset state、release reaction state、issue/PR state，以及任何 remaining blockers。省略不适用字段。
-
-## Project Audit Mode
-
-当用户要求 project-wide code-quality scorecard 时激活："audit"、"项目体检"、"代码质量评分"、"scorecard"、"linus 风格 review"。它不同于 Default Review（PR/diff scoped）和 Triage（issue batching），是 single-pass project-wide quality assessment。
-
-**Flow**
-
-1. Run `python3 <skill-base-dir>/scripts/audit_signals.py --root <project>` from the target repo, with `<skill-base-dir>` replaced by this skill's base directory. The script emits labelled blocks (`=== FILE SIZE HOTSPOTS ===` ... `=== DENYLIST IN BUILD ===`) each ending with `status: PASS|WARN|FAIL|N/A`.
-2. Skim the largest source files surfaced by `FILE SIZE HOTSPOTS` (typically 3-5; stop sooner if the architecture is already clear).
-3. 读取 `CLAUDE.md` / `AGENTS.md` / `README.md`，先理解项目自己的 conventions，再用 generic rules 判断。Repo 的 agent guidance 本身也属于 audited surface：确认其中的 commands 和 paths 仍存在，把 stale、conflicting 或可删除的 rules 作为 findings 报告。
-4. Apply the four-axis rubric below. Each axis is independently scored 0-10. Overall = arithmetic mean.
-5. 报告所有会影响 axis score 的 findings；每项尽量给 file:line citation，并包含 severity（CRIT/STRUCT/INCR）和一行 fix。某个 axis 没有 finding 是有效结果，不要为了凑数而填充。
-6. Output to **terminal only**. Do not create files in the target repo. If the user follows up with "save it", offer `./docs/<project>-audit.md` then; default is ephemeral.
-
-**Rubric**
-
-| Axis | What it covers |
-|---|---|
-| Architecture | Module boundaries, coupling, abstraction layers vs flat duplication, single source of truth |
-| Code Quality | File size discipline, dedup, readability, comments on non-obvious behavior |
-| Engineering | Tests, CI gates, version coordination, install URL pinning, packaging posture |
-| Perf and Risk | Hazards, scope creep, distribution risk, privacy posture, third-party blast radius |
-
-**Scoring anchors**
-
-- 9-10: exceptional discipline, polish-only items
-- 7-8.5: solid with clear targeted improvements
-- 5-7: working but with structural debt
-- below 5: significant rework recommended
-
-A WARN that the project has explicitly justified (in its own docs or a comment) is not a finding; cite the justification and skip. Do not mechanically convert WARN to CRIT. A block with `status: N/A` means the surface does not exist (e.g. no packaging script); treat as silence, not as a positive signal.
-
-**Output template (terminal)**
-
-```
-Project: <name>
-Overall: X.X / 10
-
-Architecture: X / 10 -- one-line summary
-Code Quality: X / 10 -- one-line summary
-Engineering:  X / 10 -- one-line summary
-Perf & Risk:  X / 10 -- one-line summary
-
-Findings
-[CRIT] <file:line> -- <issue>
-       why: <reason grounded in signal or read>
-       fix: <concrete action>
-[STRUCT] ...
-[INCR] ...
-
-Top 3 highest-leverage moves
-1. ...
-2. ...
-3. ...
-```
-
-除非用户要求 follow-up implementation，报告后停止。Audit mode 不修改 target repo 中的 files。
 
 ## Scope
 

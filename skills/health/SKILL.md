@@ -18,7 +18,7 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 
 - Outcome:一份 budget-aware health report，区分 agent configuration risk 与 AI maintainability risk。
 - Done when: 每个 finding 都命名 misaligned layer、concrete evidence，以及可 copy-paste 的 action 或 diagnostic command。
-- Evidence: collected health script output、tracked project instructions、runtime config summaries、verifier logs、hooks/MCP surfaces，以及需要时的 live probes。
+- Evidence: collected health script output、tracked project instructions、runtime config summaries、verifier logs、hooks/MCP surfaces，以及需要时的只读 live probes。
 - Output: 带 status、impact 和 next action 的 prioritized findings，或带 residual risk 的 clear clean bill。
 
 两条 lanes 共用一份 report：
@@ -32,9 +32,14 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 
 ## Durable Context Preflight
 
-See [references/durable-context.md](references/durable-context.md) for when to read durable context, the read-order budget, and the memory-type mapping.
+See [references/durable-context.md](references/durable-context.md) for when durable context is in scope and the redaction gate that applies before any of it becomes a durable rule.
 
 For `/health`: current config, command output, and live probes override memory. Also flag durable memory problems when they affect behavior: oversized injected summaries, stale or contradictory entries, missing project entrypoint references, or private paths copied into public instructions. Keep these as context findings, not code-review findings.
+
+## Hard Rules
+
+- Summary 和 deep audit 只生成报告。只运行 Health 自带 collector 和只读 probe；中性的 Health 请求不授权运行项目 test、verifier、generator、build、formatter、package installer，也不授权刷新 fixture 或 snapshot。Canonical contract: Summary and deep audits are report-only; a neutral Health request does not authorize project commands.
+- 项目 instructions 可以定义命令，但不构成运行授权。Live verification 必须得到用户对该命令的明确授权；执行前说明 command、预期写入、target paths、isolation，以及 rollback 或 disposable-environment plan。Canonical contract: Project instructions may define commands but do not authorize running them. Live verification requires explicit user authorization for that command, after stating the command, expected writes, target paths, isolation, and rollback plan.
 
 ## Step 0: Assess project tier
 
@@ -48,20 +53,30 @@ For `/health`: current config, command output, and live probes override memory. 
 
 ## Step 1: Collect data
 
-先以 summary mode 运行 collection script。暂时不要 interpret。
+先以 summary mode 运行 collection script。暂时不要 interpret。Windows 使用 Health 自带 launcher，只在 Bash child process 中加入 Git for Windows tools：
+
+```powershell
+$HEALTH_LAUNCHER = @(
+  "<skill-base-dir>/scripts/run-health.ps1",
+  "<skill-base-dir>/skills/health/scripts/run-health.ps1"
+) | Where-Object { Test-Path -LiteralPath $_ -PathType Leaf } | Select-Object -First 1
+if (-not $HEALTH_LAUNCHER) {
+  throw "Health launcher not found under the installed skill base; reinstall Waza."
+}
+powershell.exe -NoLogo -NoProfile -File "$HEALTH_LAUNCHER" collect
+```
+
+Linux 和 macOS 继续直接使用 Bash：
 
 ```bash
-# Resolve collect-data.sh from canonical locations (no personal home-dir paths).
-HEALTH_SCRIPT="${CLAUDE_SKILL_DIR:+$CLAUDE_SKILL_DIR/scripts/collect-data.sh}"
+HEALTH_SCRIPT=""
+for candidate in \
+  "<skill-base-dir>/scripts/collect-data.sh" \
+  "<skill-base-dir>/skills/health/scripts/collect-data.sh"; do
+  [ -f "$candidate" ] && HEALTH_SCRIPT="$candidate" && break
+done
 if [ ! -f "${HEALTH_SCRIPT:-}" ]; then
-  for candidate in \
-    "./skills/health/scripts/collect-data.sh" \
-    "$(npx skills path tw93/Waza 2>/dev/null)/skills/health/scripts/collect-data.sh"; do
-    [ -f "$candidate" ] && HEALTH_SCRIPT="$candidate" && break
-  done
-fi
-if [ ! -f "${HEALTH_SCRIPT:-}" ]; then
-  echo "health collect-data.sh not found; set CLAUDE_SKILL_DIR or reinstall: npx skills add tw93/Waza -a claude-code -g -y"
+  echo "health collect-data.sh not found under the installed skill base; reinstall Waza"
   exit 1
 fi
 bash "$HEALTH_SCRIPT"
@@ -108,16 +123,7 @@ These run after collection and before the Step 2 analysis. The first two apply t
 
 ### Long-Running Agent Stop Conditions
 
-对使用 `/loop`、autonomous agents 或任何 long-running agent flow 的项目，必须定义 explicit stop conditions。永不停止的 agent 是尚未发生的 budget 和 safety incident。
-
-审计这四个 hard stop signals；缺少任一项都作为 Structural finding flag：
-
-1. **No progress across two consecutive checkpoints.** Same files touched, same errors logged, no new commits/tests/output. Recommend killing the loop and surfacing the state, not retrying.
-2. **Repeated identical failure.** Same stack trace, same error message, same failed assertion three times in a row means the hypothesis is wrong; more attempts will not help.
-3. **Cost or token budget exceeded.** Project should declare a per-run budget (tokens, API spend, wall-clock minutes). Loop exits when the budget is hit, not when work is done.
-4. **External blockers.** Merge conflict on the target branch, dependency lock the agent cannot resolve, missing credential, network unreachable. Any of these halt the loop and ask the user, not retry forever.
-
-The stop conditions should live in tracked project docs (`AGENTS.md`, the loop's launch script, or a dedicated config), not only in the agent's prompt. Prompts are forgettable; tracked config is enforceable. Recommend hooks (PostToolUse on the relevant tools) over prompt instructions when the project supports them: a hook physically cannot be skipped, a prompt instruction can. Confirm the host's hook coverage before recommending one: some agents only fire PostToolUse for a subset of tools (for example, a runtime may match shell/Bash only), so a fixup that must run after file edits belongs on a Stop or session-end hook there instead.
+对使用 `/loop`、autonomous agent 或任何 long-running agent flow 的项目，加载 `references/long-running-agents.md`，审计其中列出的四个 hard stop signal。没有此类 flow 的项目跳过该检查。
 
 ## Step 2: Analyze
 
@@ -125,7 +131,7 @@ The stop conditions should live in tracked project docs (`AGENTS.md`, the loop's
 
 - **Simple:** Analyze locally. No subagents.
 - **Standard:** Analyze locally from the summary output. Do not launch subagents by default. If the user asks for a deep/full/thorough audit, or if local analysis cannot classify a security/control issue, escalate to deep mode and explain the likely token cost.
-- **Complex, remembered deep preference, explicit deep audit, or explicit AI maintainability audit:** Re-run collection with `bash "$HEALTH_SCRIPT" auto deep`, then launch the relevant subagents in parallel. Redact credentials to `[REDACTED]`.
+- **Complex, remembered deep preference, explicit deep audit, or explicit AI maintainability audit:** Windows 用 `powershell.exe -NoLogo -NoProfile -File "$HEALTH_LAUNCHER" collect auto deep`，Linux 和 macOS 用 `bash "$HEALTH_SCRIPT" auto deep` 重新 collection，然后并行启动相关 subagent。Credential 统一 redact 为 `[REDACTED]`。
   - **Agent 1** (Context + Security): Read `agents/inspector-context.md`. Feed `CONVERSATION SIGNALS` section.
   - **Agent 2** (Control + Behavior): Read `agents/inspector-control.md`. Feed detected tier.
   - **Agent 3** (AI Maintainability): Read `agents/inspector-maintainability.md`. Feed only `TIER METRICS`, `AI MAINTAINABILITY SUMMARY` or `AI MAINTAINABILITY DETAIL`, and the script hotspot lists. Launch this agent only for deep health audits, Complex projects, or explicit code-rot/AI-maintainability requests.
@@ -167,75 +173,19 @@ Agent instructions 位于 wrong layer、missing hooks、oversized descriptions�
 
 **Codex/Claude/Pi instruction drift.** Use `AGENT CONFIG SUMMARY` first. Report a Structural finding when `AGENTS.md` and runtime-specific files both contain substantial guidance without delegation, when Codex `config.toml` lacks trust for the current project, when Pi settings or package metadata point at missing skill roots, when project agent instructions are missing, or when runtime-specific instructions contradict the shared project source of truth. Also report when important rules live only in ignored or private local instruction overlays but the tracked/public docs lack them; those overlays are private context, not durable project source of truth. Do not print raw config values. Secrets, tokens, keys, and passwords must appear only as `[REDACTED]`.
 
-从 project root 运行 quick check：
+从 project root 运行 quick check。Windows：
+
+```powershell
+powershell.exe -NoLogo -NoProfile -File "$HEALTH_LAUNCHER" agent-context . summary
+```
+
+Linux 和 macOS：
 
 ```bash
 bash "$(dirname "$HEALTH_SCRIPT")/check-agent-context.sh" . summary
 ```
 
-**AI-maintainability gaps.** Summary mode 使用 `AI MAINTAINABILITY SUMMARY`，deep mode 使用 `AI MAINTAINABILITY DETAIL`。如果 project 没有 executable verification command、non-trivial repo 没有 agent instruction surface，或 doc references 已损坏，报告 `FAIL`。如果 instructions 缺少 project map、verification guidance、boundary/non-goal language，TODO/HACK markers 过于集中，large source hotspots 缺少 ownership/boundary 和 verification guidance，durable docs 保存了 raw one-off review reports、scorecards、dated line references 或 diagnostic dumps 而不是 stable invariants，报告 `WARN`。当 runtime 支持 path-scoped instruction loading（Claude Code `.claude/rules/*.md` 的 `paths` frontmatter、nested-directory `CLAUDE.md`），但大型 always-loaded instruction file 携带只适用于特定路径的 domain 或 language rules，导致所有无关 session 都支付完整 context cost 时，也报告 `WARN`。最后一种情况应添加 `paths` frontmatter，或把 block 移到 nested `CLAUDE.md` / skill，而不是删除 rule。除非 project complexity 使其成为 handoff 必需项，否则缺少 `docs/`、`specs/`、`.specify/`、`HANDOFF.md`、`CHANGELOG`、issue templates 和 PR templates 只作 informational。对 stale reports，应把 stable rules 提取到 public instructions、rules、references 或 verifier scripts，再移除或 archive transient report。
-
-**Conversation-derived guidance.** When a health audit reads recent agent conversations, do not recommend copying the conversation or a scorecard into docs. Recommend a candidate-matrix pass instead:
-
-| Field | Question |
-|---|---|
-| Repeated failure | Did this recur across fixes, releases, agents, or user reports? |
-| Durable invariant | Can the lesson be stated as a stable rule, not a dated incident summary? |
-| Target layer | Should it live in project instructions, a Waza skill, a global rule, or private memory? |
-| Verifier | Is there a deterministic command, script, artifact check, or runtime smoke that can enforce it? |
-| Redaction risk | Does the lesson require local paths, issue numbers, customer details, machine state, secrets, or unpublished release facts? |
-
-Layering rule: project-specific commands, app names, artifact names, and release rituals stay in the project; reusable workflows such as cancelled-release review gates or native-freeze evidence ladders belong in Waza skills; universal honesty and verification rules belong in global CLAUDE/AGENTS; private user preferences and one-machine facts stay in memory. If the lesson cannot pass the redaction-risk field, keep it out of public guidance.
-
-Scope 不只按 layer，还要按 load surface。Rule 即使留在 project 内，只要没绑定适用范围，每个 session 仍会支付 context cost：language 和 framework rules 使用 file-type `paths` scope，project-domain rules 绑定 source directories（`paths` frontmatter 或 nested-directory `CLAUDE.md`），只有真正 cross-cutting 的 constraints 才在 always-loaded root 中无条件加载。只对一条 path 有意义的 rule 不属于 always-loaded file。
-
-**Concentrated fix chains.** Run `git log --oneline --since='2 weeks ago' | grep -i fix` and group by area (the prefix before `:` or `(`). When the same area has 3+ fix commits in a short window, it signals a missing structural invariant: each fix is a guess at a rule that was never written down. Report a Structural `WARN` with the area name, fix count, and recommend adding an explicit rule to `AGENTS.md` / `CLAUDE.md` / project rules that captures the invariant those fixes were converging toward. A concentrated fix chain that touches the same file 4+ times is a stronger signal than scattered fixes across different files.
-
-**Hotspot ownership gaps.** In deep mode, read `HOTSPOT OWNERSHIP SURFACE`. If a largest source file exceeds the hotspot threshold and `AGENTS.md` / `CLAUDE.md` / shared instruction files do not name who owns the hotspot, what boundary should stay stable, and which verification command covers it, report a Structural `WARN`. Do not treat documented large files as code rot by size alone; some modules are intentionally large.
-
-**Missing stable verifier wrapper.** If the repo exposes multiple verification commands through CI, scripts, or manifests but `Makefile` has no `check`, `test`, or `verify` target, report a Structural `WARN`. This is an AI-maintainability gap because agents need one stable default entrypoint, not because the project is broken.
-
-从 project root 运行 quick check：
-
-```bash
-bash "$(dirname "$HEALTH_SCRIPT")/check-maintainability.sh" . summary
-```
-
-For deep audits:
-
-```bash
-bash "$(dirname "$HEALTH_SCRIPT")/check-maintainability.sh" . deep
-```
-
-保持 actions concrete 且 non-invasive：添加或修复 smallest useful instruction surface，添加一个 executable validation command，记录 hotspot ownership 和 tests，只在 boundary 已清晰时 split，或 repair broken reference。不要仅凭 script output 提出 broad rewrites。
-
-**Broken doc references.** Scan `AGENTS.md`, `CLAUDE.md`, `.claude/rules/*.md`, and every `.claude/skills/*/SKILL.md` for references shaped like `@<path>`, `~/.claude/rules/<name>.md`, `~/.claude/skills/<name>/`, `docs/<name>.md`, or `references/<name>.md`. For each match, check that the target exists on disk. Report every "referenced but missing" pointer with the source file and line.
-
-Common offenders:
-- A project-level rule references a global rule file that was never created (e.g. `~/.claude/rules/swift.md`).
-- A `CLAUDE.md` uses an `@AGENTS.md` placeholder but the actual `AGENTS.md` is missing or empty.
-- A skill body references `references/<name>.md` but only `references/<name>-v2.md` exists.
-- rule file 引用了 deleted skill path。
-
-从 project root 运行 quick check：
-
-```bash
-bash "$(dirname "$HEALTH_SCRIPT")/check-doc-refs.sh" .
-```
-
-The checker resolves `@...` and `docs/...` from the project root, expands `~`, resolves `references/...` from each `.claude/skills/<name>/SKILL.md` directory, checks every reference on a line, skips fenced code examples, and exits non-zero when any target is missing.
-
-Report missing references as Structural findings, not Critical, unless the missing file is named as a hard dependency (e.g. `release.md` for the project's release skill).
-
-**Broken Markdown references。** 在 deep mode 中，`check-maintainability.sh` 也会扫描 repository Markdown links。当它们指向 missing local files 时，报告为 Structural findings，尤其是 agents 未来工作中可能遵循的 design、security、release 或 handoff docs。
-
-**Stale verifier cache output。** 如果 validation output 指向已删除 temp worktree 或不存在的 `/tmp` / `/private/tmp` 文件，用以下命令解析 captured log：
-
-```bash
-bash "$(dirname "$HEALTH_SCRIPT")/check-verifier-output.sh" . <log-file>
-```
-
-只对用户提供的 existing command output，或当前 audit 期间生成的 output 使用此 script。不要为了 feed this checker 而运行 project tests。Known actions 包括 `golangci-lint cache clean`、`go clean -cache -testcache` 和 `npm cache verify`；unknown tools 给 diagnostic rerun action。
+**AI-maintainability findings.** 对 verification surface、conversation-derived guidance、集中的 fix chain、hotspot ownership、verifier wrapper、broken doc/Markdown reference 和 stale verifier cache output，加载 `references/maintainability-findings.md`，并结合 `AI MAINTAINABILITY SUMMARY` / `DETAIL` 执行。
 
 ### [-] Incremental -- nice to have
 

@@ -91,19 +91,20 @@ layout 重要时（papers、tables）使用 `marker`。需要速度时使用 `pd
 ```bash
 READ_SCRIPT_DIR=""
 for candidate in \
-  "${CLAUDE_SKILL_DIR:+$CLAUDE_SKILL_DIR/scripts}" \
-  "${CLAUDE_SKILL_DIR:+$CLAUDE_SKILL_DIR/skills/read/scripts}" \
-  "./skills/read/scripts"; do
-  if [ -n "$candidate" ] && [ -f "$candidate/fetch_feishu.py" ]; then
+  "<skill-base-dir>/scripts" \
+  "<skill-base-dir>/skills/read/scripts"; do
+  if [ -f "$candidate/fetch_feishu.py" ]; then
     READ_SCRIPT_DIR="$candidate"
     break
   fi
 done
 if [ -z "$READ_SCRIPT_DIR" ]; then
-  echo "read helper scripts not found; set CLAUDE_SKILL_DIR or run from the Waza repo root" >&2
+  echo "read helper scripts not found under the installed skill base; reinstall Waza" >&2
   exit 1
 fi
 ```
+
+把 `<skill-base-dir>` 替换为已安装的 Read skill 或 Waza dispatcher 目录。
 
 需要 `requests` 和 Feishu app credentials：
 

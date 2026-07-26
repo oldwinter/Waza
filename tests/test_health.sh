@@ -25,4 +25,41 @@ if grep -q '^USER CORRECTION: Please build a dashboard for sales data\.$' "$tmpd
   echo "false positive correction detected"; exit 1
 fi
 
+# Repository-configured fsmonitor hooks are executable project code. Health
+# collection must disable them rather than relying on a clean Git status.
+fsmonitor_repo="$tmpdir/fsmonitor"
+mkdir -p "$fsmonitor_repo"
+(
+  cd "$fsmonitor_repo"
+  git init -q
+  printf '%s\n' \
+    '#!/usr/bin/env bash' \
+    'printf executed > fsmonitor-marker' \
+    "printf '2.0.0\\n'" \
+    > fsmonitor.sh
+  chmod +x fsmonitor.sh
+  git config core.fsmonitor "$fsmonitor_repo/fsmonitor.sh"
+  HOME="$tmpdir" bash "$ROOT/skills/health/scripts/collect-data.sh" auto > "$tmpdir/fsmonitor.out"
+  test ! -e fsmonitor-marker
+)
+
+# A copied trusted collector must fail closed when its own helpers are absent.
+# It must never execute project-local lookalikes from the audited repository.
+lookalike_repo="$tmpdir/lookalike"
+trusted_health="$tmpdir/trusted-health/scripts"
+mkdir -p "$lookalike_repo/skills/health/scripts" "$trusted_health"
+cp "$ROOT/skills/health/scripts/collect-data.sh" "$trusted_health/collect-data.sh"
+for helper in check-agent-context.sh check-maintainability.sh; do
+  printf '%s\n' \
+    '#!/usr/bin/env bash' \
+    'printf executed >> project-helper-marker' \
+    > "$lookalike_repo/skills/health/scripts/$helper"
+  chmod +x "$lookalike_repo/skills/health/scripts/$helper"
+done
+(
+  cd "$lookalike_repo"
+  HOME="$tmpdir" bash "$trusted_health/collect-data.sh" auto > "$tmpdir/lookalike.out"
+  test ! -e project-helper-marker
+)
+
 echo "health smoke: ok"

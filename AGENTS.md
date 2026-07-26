@@ -60,6 +60,7 @@ make package          # build dist/waza.zip from packaging.allowlist
 - skill description、trigger 或 scope 改变时，同步更新 `skills/RESOLVER.md`。
 - 每个 `description` 都要足够具体，便于 automatic routing。
 - 写 skill entrypoints 时 outcome-first：说清目标结果、什么算完成、哪些约束和证据重要、最终回答或 artifact 应该长什么样。详细流程放到 mode sections 和 references。
+- `SKILL.md` 只承载该 skill 每次运行都需要的内容；只有部分运行需要的正文放进 `references/`，并通过 picker row 或明确命名 trigger 的 conditional line 到达。Mutually exclusive modes 是最典型的情况：diff review 不应为 release、triage 和 audit playbook 支付 context。Deterministic checks 仍然放进 `scripts/`；本规则决定 judgment prose 在何时加载，不是拆分 skill。
 - 八个 `SKILL.md` 要保持同一套 skeleton，读起来像一个 set：第一行是 `🥷` 加一句 tagline，然后是 Outcome Contract；会读 memory 的 skills 紧接着放 Durable Context Preflight；再放 modes、must-obey list、Gotchas 和 Output。同一个概念在各 skills 中只用一个名字（skill 的 must-obey constraints 叫 `Hard Rules`；`Hard Stops` 是 check 里单独的 merge-blocker list）。Tables 保持紧凑的 `| a | b |`，不要手工对齐；numbered step sequence 要连续，side-checks 放在某一步下面，不要插在两个步骤之间。
 - 避免把无关 workflows 混在一个宽泛 skill 里。
 - 八个 skills 是硬上限。不要提出第 9 个 skill，也不要拆分现有 skill。Behavior additions 应落在 `references/`、`rules/`、`scripts/` 或 `rules/anti-patterns.md`，不要新增 skill。

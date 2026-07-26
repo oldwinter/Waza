@@ -42,53 +42,51 @@ When distilling a new lesson into this skill, fold it into an existing principle
 
 读取 loaded reference file。然后编辑。除非明确要求，不要 summary、commentary 或 explanation of changes。
 
+## Mode Picker
+
+按交付物选择 mode；只加载匹配的 reference，其余请求继续使用本文件已有 section。
+
+| User intent | Mode |
+|---|---|
+| release note、changelog、update-feed copy | 加载 `references/mode-release-notes.md` |
+| 公开 issue / PR 的 maintainer reply | 加载 `references/mode-public-reply.md` |
+| 约一万字以上、需要结构调整的 long draft | 加载 `references/mode-long-form.md` |
+| bilingual review、localization、document review、paragraph、social post | 使用下方已有对应 section |
+
 ## Durable Context Preflight
 
-See [references/durable-context.md](references/durable-context.md) for when to read durable context, the read-order budget, and the memory-type mapping.
+See [references/durable-context.md](references/durable-context.md) for when durable context is in scope and the redaction gate that applies before any of it becomes a durable rule.
 
 对于 `/write`，voice 和 format constraints 是 `decision`、`preference` 和 `principle` entries；editing checks 是 `pattern` 和 `learning`。Supplied text, audience, project docs, current release state, and source material override memory。Durable preferences 可以设定 brevity、tone 和 social-post shape，但不能覆盖 edit in place、keep meaning intact、avoid change lists 这些 hard rules，除非用户明确要求。
 
 ## Hard Rules
 
 - **Meaning first, style second.** 如果移除 AI pattern 会改变作者 intended meaning，保留原文。
-- **No silent restructuring.** 除非明确要求 structural changes，不要 reorganize headings、reorder paragraphs 或 merge sections。Edit in place。Structural assets 不是 cleanup noise：除非用户要求删除，否则保留 image placeholders、links、frontmatter 和 example blocks；任何 deletion 都要列出原因，不能等用户在 diff 中才发现。（例外：Long-form Article Mode 把 structural cuts 和 merges 视为 in-scope，因为 structure 才是核心问题；但它仍会先把它们作为 change-points 提出，而不是静默执行。）
+- **No silent restructuring.** 除非明确要求 structural changes，不要 reorganize headings、reorder paragraphs 或 merge sections。Edit in place。Structural assets 不是 cleanup noise：除非用户要求删除，否则保留 image placeholders、links、frontmatter 和 example blocks；任何 deletion 都要列出原因，不能等用户在 diff 中才发现。（例外：`references/mode-long-form.md` 把 structural cuts 和 merges 视为 in-scope，因为 structure 才是核心问题；但它仍会先把它们作为 change-points 提出，而不是静默执行。）
 - **No invented first-person experience.** 以作者身份 ghostwrite 时，每段 personal anecdote、tool history、opinion 和 quote 都必须来自 supplied material 或作者已经 published 的 writing。Material 缺少 example 是需要追问的问题，不是可以自行填补的空白。以作者 voice 起草而非编辑 supplied text 前，先读一两篇作者 published pieces，作为 voice 和 length baseline。
 - **Shorter than the first draft wants to be.** Outward copy（README paragraphs、tweets、release notes、maintainer replies）默认对齐用户以前 accepted pieces 的长度；存在 physical constraint（tweet fold line、single-line rendering）时，先从 constraint 推导 budget，再动笔，不要等用户删短。
 - **Artifact-grounded claims.** 对 launch copy、release notes、social posts、product pages 和 public replies，factual claims 必须 grounded in real source material：current app behavior、runnable artifact、screenshot、product page、release page、changelog、issue/PR 或 user-provided draft。不要把 handoffs、plans、old memory 或 stale screenshots 当成 current product truth；也不要把 concrete product evidence 变成 generic marketing language。
 - **No em-dash.** Chinese 或 English output 中绝不要产生 em-dash（U+2014 `—`）或 en-dash（U+2013 `–`）。Em-dash 是这种 writing style 中最强的 AI-tone fingerprint。用 commas、periods、colons、semicolons 或 parentheses 断开 clauses。compound words 内的 hyphen-minus（`-`）允许存在；可能时替换成 space 或 period。编辑包含 em-dashes 的 draft 时，返回 text 前替换每一个。
-- **Stop after output.** 交付 rewritten text。不要追加 changes list、justification 或 closer。（例外：Long-form Article Mode 返回 change-points 供 review，而不是 rewritten blob；见该 mode。）
+- **Stop after output.** 交付 rewritten text。不要追加 changes list、justification 或 closer。（例外：`references/mode-long-form.md` 返回 change-points 供 review，而不是 rewritten blob。）
 
 ## Punctuation Gate
 
 Before returning any produced text (a rewrite, or generated release / reply / social copy), resolve the checker across install layouts and run it:
 
 ```bash
-GATE="${CLAUDE_SKILL_DIR:+$CLAUDE_SKILL_DIR/scripts/check-punctuation.sh}"
-[ -f "${GATE:-}" ] || GATE="${CLAUDE_SKILL_DIR:+$CLAUDE_SKILL_DIR/skills/write/scripts/check-punctuation.sh}"
-[ -f "${GATE:-}" ] || GATE="./skills/write/scripts/check-punctuation.sh"
-[ -f "${GATE:-}" ] || GATE="$(npx skills path tw93/Waza 2>/dev/null)/skills/write/scripts/check-punctuation.sh"
-[ -f "${GATE:-}" ] || { echo "punctuation gate not found; reinstall Waza or set CLAUDE_SKILL_DIR" >&2; exit 1; }
+GATE=""
+for candidate in \
+  "<skill-base-dir>/scripts/check-punctuation.sh" \
+  "<skill-base-dir>/skills/write/scripts/check-punctuation.sh"; do
+  [ -f "$candidate" ] && GATE="$candidate" && break
+done
+[ -f "${GATE:-}" ] || { echo "punctuation gate not found under the installed skill base; reinstall Waza" >&2; exit 1; }
 bash "$GATE" --lang <zh|en|ja|auto> <file>   # or pipe text via stdin
 ```
 
-`${CLAUDE_SKILL_DIR}` is host-injected. The first path is this skill's own `scripts/` (standalone skill, full bundle, or repo); the fallbacks cover the inlined-root release ZIP, where the script ships under `skills/write/scripts/`.
+把 `<skill-base-dir>` 替换为已安装的 Write skill 或 Waza dispatcher 目录。第一个路径覆盖 direct/plugin installs，第二个覆盖 inlined-root release ZIP。
 
 It enforces character-level punctuation by locale (half/full-width marks, CJK/Latin spacing, em/en dashes) and skips code, inline code, URLs, and markdown link targets, so it never fires on code; the script header documents the exact rule set. Fix every finding while preserving meaning; `--fix` rewrites only the zero-ambiguity zh cases to stdout. `--lang auto` classifies the whole input by fixed priority: any kana routes to ja, else any CJK to zh, else any Hangul to ko (reserved, skipped), else en, so a mostly-Chinese text that merely quotes a Korean glyph still routes to zh; pass an explicit `--lang` for mixed-locale or predominantly-English text. The checker owns character-level punctuation only; quote direction and other judgment calls stay with you and the reference files.
-
-## Long-form Article Mode
-
-触发时机：编辑超过约 300 行的 Markdown article 或 file，或包含多个 `##` sections 加 tables 和 images 的文件（technical long-reads、blog posts、deep dives）。
-
-长文里，主要问题通常是 structure：同一 checklist 跨 sections 重复、prose 复读刚刚出现的 table、list bloat、整段或整节冗余。Sentence-level AI taste 只是较小的一半。单次 in-place polish 看不到也修不好 structural half，所以普通 `/write` 跑在长文上会像是改了措辞，却保留了臃肿结构。因此这个 mode override 两条 Hard Rules：structural cuts 和 merges 是 in-scope，output 是供 review 的 change-points，而不是 rewritten blob。
-
-Workflow:
-
-1. **Map first, read-only.** 编辑任何内容前，读完整篇文章，列出每个 `##` section、table、list 和 image。标记三类 structural problems：cross-section repetition（同一 checklist / judgment list / core claim 出现在 2+ sections）、table re-reading（某节 prose 逐行复读上方 table）、整节或整段冗余。
-2. **把 cuts 作为 change-points 提出。** 对每个 structural cut 或 merge 展示 before to after，让用户选择 subset。绝不静默删除整节或整段；先确认，因为里面可能有别处没有的 fact（见 `references/write-zh.md` 删段之前先确认信息量）。
-3. **再做 line-level de-AI**，按 section 依据 `references/write-zh.md` 处理。
-4. **Output 是 change-points，不是 blob。** 展示改了什么，方便用户 review 并保留自己的 hand-edits。只有用户说 直接改 / just rewrite 时，才返回完整 rewritten text。
-
-不要 single-pass rewrite 一篇 40k-character article：它会静默覆盖作者手调的 phrasing，也无法作为 diff review。匹配的 content rules 见 `references/write-zh.md` 结构级重复与表格复读（长文专项）。
 
 ## Bilingual Review Mode
 
@@ -109,52 +107,6 @@ Workflow:
 3. 按 locale artifacts review，不只按 English meaning review。Missing accents、ASCII fallbacks、literal possessives、stale locale paths，以及机械 plural 或 apostrophe errors 都是一等问题。
 4. 大范围 cleanup 后，再做一轮 replacement damage 检查。generated output 检查前，不要信任 accent sweeps 或 glossary replacements。
 5. 用户要求 implement 时，patch source localization files 并 rebuild generated pages。只要求 review 时，按 surface 和 severity 分组返回 findings。
-
-## Release Note Template Mode
-
-触发时机："release"、"changelog"、"version"、"release notes"
-
-Format：默认使用 target-project style。如果没有 project style，使用带 bold labels 的 numbered items，用一句话说明 user effect；只有 project 已发布 bilingual release notes 时才输出 bilingual。存在 breaking changes 和 deprecations 时要明确指出。
-
-### Release Notes Pre-flight
-
-drafting 前，收集 style references：
-
-1. Read the target project's `CLAUDE.md` for its Release Convention / Release Flow section.
-2. Read the target project's existing release source as a style, length, and density reference: changelog, release notes, registry page, appcast, or platform release page.
-3. For GitHub projects, `gh release view --json body -R <owner>/<repo>` is the preferred way to read the most recent release when `gh` is available. If the project is not on GitHub, use the release source named by the project docs or user request.
-4. If the user mentions comparing with a sibling project's release style, ask for the target identifier or release URL before fetching it.
-5. Match the reference release's item count, sentence length, and tone. Do not invent a new format.
-6. Keep each release-note item to one sentence unless the reference project clearly does otherwise. Do not add emoji to release prose unless the target surface is explicitly a reaction or celebratory social surface.
-
-### Release Notes Content Rules
-
-- **Group by user-perceivable feature**, not by internal taxonomy. "Polish", "细节打磨", "Misc improvements", "Chores" are not categories users can act on. Group by product surface (Clean / Uninstall / Status / Settings) or by user-visible verb (Faster startup / New keyboard shortcut / Fixed crash on M3).
-- **Extract from `git log <last-tag>..HEAD`** rather than from memory. Read every `feat:` and `fix:` commit; do not omit small items just because they look minor in commit form (iOS wrapper support, Dock cleanup, AV-vendor protection boundary are not "minor" from a user point of view).
-- **One sentence per item, naming the user-visible change**, not the implementation. "Use `CKDownloadQueue` observer for App Store updates" is not a release note; "App Store updates now run inside the app instead of opening App Store" is.
-- **Bilingual structure**: when the project ships bilingual release notes, put the English block and the Chinese block as two parallel sections inside the same release item; do not interleave per bullet. For Sparkle appcast CDATA, separate with `<h4>Changelog</h4>` and `<h4>更新日志</h4>` so the rendered update window shows both.
-- **No em-dash** in release prose (covered by the Hard Rule). Use Chinese full-width punctuation in Chinese blocks, ASCII in English blocks.
-
-## Public Reply Mode (GitHub issue / PR)
-
-Activate when: "回复 issue", "reply to PR", "comment on #N", "回 issue", or the user asks for the text of a GitHub issue / PR comment.
-
-reply body 的四条 hard rules：
-
-1. **Open with `@<reporter>` + one thanks line.** Match the reporter's language (Chinese → "感谢反馈" / English → "thanks for the detailed report"). No exclamation mark. No emoji. No "🙏".
-2. **Then state the cause in one sentence, the impact in one sentence.** No multi-paragraph background, no internal symbol names, no walk-through of the fix.
-3. **Then state the ship state**, exactly one of: already shipped in v<X.Y.Z>, fixed on `main` and going out in the next release, planned for v<X.Y.Z>, not planned (with one-line reason and an alternative path). Every sentence must be true at the moment of posting: no "already shipped" without release evidence in the current turn, no "landed on main" while the change sits uncommitted, no implied verification (built a branch, ran an artifact) that did not happen.
-4. **Two paragraphs maximum**, separated by one blank line. No bullet lists, no section headers, no code blocks except a one-line command when actually needed.
-
-The reply is the final user-facing text, not an agent log. Do not write "刚才我判断错了", "前面回复有误", "I re-read it and changed the comment", or any meta narration about your own process. If editing an existing maintainer comment, replace it with the clean final wording as if it were the only comment the user will read.
-
-Before posting, re-read the live issue / PR with `gh issue view <num>` or `gh pr view <num>`. Do not reply from memory; titles, states, and author languages change between sessions.
-
-对 paid / subscribed users，用一个 phrase 承认 purchase relationship 和 inconvenience，然后 state the boundary。不要 over-explain。当 current product 无法支持其 setup 时，建议 safest practical path（upgrade macOS、wait for the next release、provide logs、refund route），不要争辩。
-
-对 private support channels（DM、in-app reply、support email），完全去掉 report 口吻：使用 maintainer 自己声音里的简短口语句，先说用户能得到什么，而不是原理；句号也应少于 documentation。
-
-Closing rule: when closing as `completed`, the comment must independently explain what was fixed and the expected release. When closing as `not planned`, the comment must independently explain the current boundary and an alternative path. Do not rely on prior thread context as the explanation.
 
 ## Document Review Mode
 

@@ -31,7 +31,7 @@ Rationalization smells："I'll just try this" = 没有 hypothesis，先写出来
 
 ## Durable Context Preflight
 
-See [references/durable-context.md](references/durable-context.md) for when to read durable context, the read-order budget, and the memory-type mapping.
+See [references/durable-context.md](references/durable-context.md) for when durable context is in scope and the redaction gate that applies before any of it becomes a durable rule.
 
 对于 `/hunt`，diagnostic constraints 是 `decision`、`preference` 和 `principle` entries；`pattern` 和 `learning` 可以作为 hypotheses 的种子。Current code, logs, repro steps, tests, environment versions, and remote state override memory。Durable context 只是 hypothesis fuel。它永远不能替代 fresh root-cause sentence、reproducible symptom list 或 current state 的 evidence。
 

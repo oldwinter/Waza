@@ -20,66 +20,25 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 
 **Output language rule：** 此 skill 的任何 output 绝不使用 em-dash（—）。改用 commas、colons 或 periods。
 
-**Chinese gut-feel complaints**：当用户用 "很傻"、"很怪"、"突兀"、"不协调"、"不和谐" 评价 visual 时，把它视为 aesthetic rejection，而不是 debugging symptom。Route to Screenshot Iteration Mode，不要 route to `/hunt`。
+**Chinese gut-feel complaints**：当用户用 "很傻"、"很怪"、"突兀"、"不协调"、"不和谐" 评价 visual 时，把它视为 aesthetic rejection，而不是 debugging symptom。加载 `references/mode-screenshot-iteration.md`，不要 route to `/hunt`。
 
 **Document & print typography → Kami.** When the deliverable is a shippable document rather than a product UI surface (report, slide deck, resume, long-form or print-oriented page, paged PDF), do not hand-roll an over-designed document layout here. Suggest the user run it through Kami (`tw93/Kami`), a document design system with a fixed constraint language and templates, and let Kami draft the detailed plan. Screen 排版 (app surfaces, components, web pages) stays in this skill.
 
 ## Durable Context Preflight
 
-See [references/durable-context.md](references/durable-context.md) for when to read durable context, the read-order budget, and the memory-type mapping.
+See [references/durable-context.md](references/durable-context.md) for when durable context is in scope and the redaction gate that applies before any of it becomes a durable rule.
 
 对于 `/ui`，visual constraints 是 `decision`、`preference` 和 `principle` entries；reusable product 和 UI patterns 是 `pattern` 和 `learning`。Current screenshots, rendered output, code, design tokens, and user feedback override memory。复用 durable visual preferences 和成熟 interaction patterns，但改代码前仍要基于 screenshot 或 source 命名当前 visual problem。
 
-## Visual Quick-Fix Mode
+## Mode Picker
 
-当用户要求带具体 symptom 的窄 visual repair 时激活：overflow、clipped 或 wrapped text、misalignment、spacing imbalance、contrast/readability、localized text 不适配、compact responsive breakage。这用于修 existing surface，不用于 redesign。
+按用户 intent 只加载匹配的 mode reference：
 
-Flow:
-
-1. 读取 current UI evidence：screenshot、rendered page、native view 或 responsible component。
-2. 用一句话命名 exact visual defect。
-3. 做能修复该 defect 的最小 material、geometry、spacing、contrast、typography 或 text-fit change。
-4. 验证真实 running surface 或 generated artifact。检查 long words、localized strings、compact states，以及适用时至少一个 narrow viewport。Terminal output 也算 rendered surface：改了 CLI-facing text、spacing 或 layout 后，重新运行 command 并读取真实输出；检查整个 output 的 column alignment、block spacing 和 icon consistency，不只看 changed line。
-5. 如果 fix 触碰三个或更多 components、改变 product behavior，或暴露 direction problem，停止并切换到 Screenshot Iteration Mode 或 Lock the Direction First。
-
-**Spacing unification rule。** 如果某个 magic spacing 或 sizing value 调整三次后 layout 仍然不对，停止 tuning。把 N 个独立 padding / gap / margin / size values 替换成一个 shared named token（`Spacing.s4`、`--gap-content`、`gap-4`）。Outer container padding 默认等于 inner element gap。能熬过 tuning 的 asymmetry 是 structural，不是 numeric，继续加 magic numbers 不会收敛。Spacing-as-a-system 细则在 `references/design-reference.md`。
-
-**Fixed-height action slot, uniform typography。** 任何会基于 state 替换 children 的 container（status bar、action slot、toolbar row、menu item）都必须在每个 state 使用同一个 font size。可以改变 fill、stroke、opacity、color 或 icon，绝不要改变 font size。`secondary 13px` 和 `primary 14px` 之间 1pt 的 height delta 会在 state transition 时变成可见 jitter。同一 slot 中的 CTA pill buttons 使用相同 size（通常 14px），用 background 和 border 区分，而不是 typography。
-
-**Completion screen layout。** Operation-complete surfaces 只展示用户来这里要看的那个单一结果：actual reclaimed size / processed count / changed state。长解释属于从 summary row 打开的 details overlay，不属于 primary completion line。当点 summary row 已经能打开 details 时，不要在旁边添加单独的 "Review" button；不要展示空的 "0 skipped" entry point。如果没有 skipped 或 failed item，完全隐藏 details affordance。
-
-**Loading is not empty。** 正在 loading、measuring、indexing、refreshing 或等待 permission 的 surface 必须显示 pending state，而不是 final empty copy。只有请求完成且结果为空时，才显示 "nothing found"。如果 refresh 期间保留 previous results，要让它们显得 stale，或替换成 progress；绝不要在工作仍在进行时闪现最终空状态。
-
-**Safety-bound action design。** 对 cleanup、deletion、uninstall、reset 或 permission-changing surfaces，不要通过隐藏 recoverability 让 UI 显得更简单。只有当每行都能被 target user 理解，并携带足够 identity 让用户验证 safety（相关时包括 name、source、owner、path、preview 或 recovery implication）时，bulk select、auto-select、one-tap delete 或 "recommended" destructive defaults 才合适。如果 rows 是 opaque identifiers、inferred leftovers 或 machine-only paths，优先 review-first UI、current-target scoping、disabled destructive affordances 或 explanatory grouping，而不是更快的 batch controls。想减少点击的 feature request 不足以移除用户验证将发生什么变化的能力。
-
-**Quiet product boundary。** 更少点击和更丰富 controls 不会自动更好。添加 alternate controls 前先移除 misleading affordances；diagnostics 和 alerts 优先 quiet defaults；改变速度或添加 new motion preference 前先修 unstable motion cadence。如果 current UI 暗示了它不能支持的 action、state 或 promise，先移除该暗示。Completion surfaces 也遵守同一原则：只突出用户来这里要看的单一结果，把解释放在 summary row 后的 details overlay，并隐藏任何背后没有内容的 affordance。
-
-## Screenshot Iteration Mode
-
-当用户发送 screenshot 或 image，并附带 complaint（"这里很丑"、"这个不对"、"fix this"、"looks wrong"）时激活。Existing product 就是 direction。跳过 five-question direction lock。
-
-**Flow:**
-
-1. 读取 screenshot。用一句话说明问题：具体哪里看起来不对（spacing、contrast、alignment、typeface、color、density、hierarchy）。当用户的负面标签有诊断意义时，保留它；不要把 "丑"、"乱"、"不清晰" 或 "怪" 翻译成模糊的 "make it modern"。
-2. 触碰代码前，等待用户确认 diagnosis。
-3. 如果用户提供 reference screenshot、older version 或 "this one is good" example，选择 fix 前先比较 current vs. reference，并命名 visual deltas。
-4. 如果 diagnosis 是已知 UX problem（split-view sync、infinite scroll、virtualised list、sticky header），写代码前花一轮调研同类别 2-3 个 mature products 如何解决。引用每个产品做了什么。只有纯 cosmetic fix（color、spacing、copy）才跳过。
-5. 找 responsible code：grep component name 或 class，读取实际文件。不要依赖记忆或关于 file location 的 assumptions。
-6. 应用 minimal fix。对 existing products，redesign surface 前先尝试 material/opacity、geometry、spacing、typography 或 text-fit adjustments。
-7. 在 browser、native app、screenshot tool 或 rendered artifact 中验证结果；适用时检查 desktop width 和 375px mobile width。检查 long words、localized strings、button labels 和 compact states 是否 overflow。如果 host 无法 render，明确说明，并 hand off 用户应检查的 exact view。
-8. 请用户在 browser 中验证。没有这一步不要 hand off。
-
-**Calibration rules:**
-- 用户的 screenshot 是当前 turn 最强的 design brief。修完前，reasoning 中持续保留它。
-- 真实 running product 是 oracle。Product pages、app screenshots、release pages 和 current UI state 覆盖 generic style instincts。
-- 不要把具体 taste feedback 压平成 generic UI adjectives。"More premium" 不是 diagnosis；"caption baseline drifts above the Chinese line" 才是。
-- 如果 screenshot 暴露的是 regression、broken render、timing issue 或 generated asset defect，而不是 taste，route to `/hunt`，并保留 visual evidence。
-
-**Native screenshot handoff。** 对 native apps，一旦你已经证明 app 能 build、run，并且能到达目标 view，就不要为了捕获 final visual proof 反复和 focus、window ordering 或 coordinate-click automation 缠斗。做一次 bounded automation attempt；如果 flaky，命名 exact screen，并请用户提供 screenshot 作为迭代依据。这是 visual QA boundary，不是 build/run verification 的替代品。
-
-**Boundary**：如果 fix 需要改变 3 个或更多 components，或它暴露的是 direction problem 而不是 specific bug，暂停并运行完整 direction lock 后再继续。
-
-**Redesign priority order**（重做 existing UI，而不是从零构建时）：font replacement → color cleanup → hover/active states → layout and whitespace → replace generic components → add loading/empty/error states → typographic polish。这个顺序在最大化 visual lift 的同时，最小化每一轮的 blast radius。完整规则、common traps 和 absolute CSS bans 都在 `references/design-reference.md`。
+| User intent | Mode |
+|---|---|
+| 现有 screen 上边界明确的 visual fix | 加载 `references/mode-quick-fix.md` |
+| 用户提供 screenshot 或把现有 visual 明确判为失败 | 加载 `references/mode-screenshot-iteration.md` |
+| 新 page、component 或 design system | 继续执行 [Lock the Direction First](#lock-the-direction-first) |
 
 ## Lock the Direction First
 
