@@ -13,4 +13,6 @@ Triage Mode 和 Ship / Release Follow-through 都复用此 shape。除非 target
 
 ## When closing
 
+Closing comment 是给 reporter 的答案，不是调查报告。说明 fix 状态、交付 channel 和时间，然后结束；root cause、file names 和推导过程属于 commit。无论结构多清晰，需要滚动才能读完的 reply 都过长。
+
 只有当 fix 已 shipped、已在 latest release 可用、report invalid、report duplicate，或 maintainer 明确要求 closure 时，才 close。否则保持 open，并给 next-release acknowledgement。

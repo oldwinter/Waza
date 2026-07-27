@@ -21,6 +21,15 @@
 - **French**：missing apostrophes 或 accents，例如 `L app`、`memoire`、`desinstallation`、`defaut`；当周围文本已使用 French conventions 时，标点前空格也应遵循。
 - **Italian**：missing accents 和 articles，例如 `piu`、`non e`、`un app`；机械替换导致 invalid forms，比如 `puòi`。
 
+## Surface Voice Defects
+
+这些与语言无关的 shape 会逃过 translation review，因为单看每个 locale 都读得通。先检查 source string，再检查每个 locale。
+
+- **Parenthetical padding**：把补充 qualifier 追加在括号里。Title、label 和 metric name 不应携带这种内容；拆开句子，或删除 qualifier。
+- **Hedged verdict**：给产品已经计算出的结果套上问号或 “maybe / possibly”。Verdict sentence 应直接陈述 verdict；不确定性属于 value，不属于 punctuation。
+- **Untranslated domain noun**：把 implementation 借来的术语（ledger、buffer、daemon、quota）直接用作 metric name 或 label。改成用户描述同一事物时会说的词；如果没有这种说法，说明 metric 测量的不是用户要求的东西。
+- **Alarming detail**：user-facing string 只报告 failure mechanism，却不说用户下一步做什么。Release notes、error banner 和 update prompt 保留 reader 要采取的动作；mechanism 写进 commit。
+
 ## Review Procedure
 
 1. 识别 scope 内所有 source 和 generated surfaces。网站包括 templates、locale JSON、content partials、generated pages、language switchers、canonical links 和 route rewrites。App 包括 runtime catalogs、permission strings、update feeds 和 notification copy。

@@ -128,6 +128,24 @@ Checks：
 - 把 output 切到 latest sample（对 parsed lines 用 `.suffix(perSampleSize)`，或寻找第二次出现的 header row）。
 - 不确定时，把 `-l` 提到 3，确认 sample 2 和 3 一致；sample 1 保持 zero。
 
+## Locale-Dependent Subprocess Output
+
+Signals：数字在作者环境中解析正确，但对部分用户返回 zero、truncated 或严重错误的结果；同一个 percentage、size 或 duration 在某个 region 正确，在另一个 region 出错；同一个 parser 已经因为另一个 field 被 patch 过一次。
+
+Checks：
+- 对每个需要解析 output 的 subprocess 强制使用固定 locale（`LC_ALL=C` 或平台等价设置），不要逐个修补 parser 来适配逗号小数点、digit grouping 或已翻译的 field label。
+- 在 spawn boundary 修复，不要在每个 call site 分别处理。这种 shape 通常会以三四份独立 report 出现（先一个 metric，再另一个，最后是 rendered summary）；每个 pointwise patch 都会掩盖仍有多少 parser 暴露在同一问题下。
+- 把 localized output 视为 format change，而不是 string change：field order、unit 和 label name 都可能改变。
+
+## Single-Probe Existence Check
+
+Signals：某个“是否 installed / running / registered / active”的 verdict 对一部分用户判断错误，错误 verdict 随后触发 destructive 或 user-visible action（标为 orphaned、提供 deletion，或静默禁用 feature）。这部分用户共享一种 probe 不认识的 install method、packaging convention 或 OS feature。
+
+Checks：
+- 列出 subject 合法存在的所有方式，再确认 probe 能看到每一种。一次 index query、一次 PATH lookup、一个 process name 或一个 interface-name prefix 都只是局部视图：system index 可能被禁用或跳过某种 packaging convention；nested 或 embedded component 不会注册在 top-level component 的位置；OS-owned interface 也可能借用第三方 feature 使用的命名。
+- 区分 “probe timed out” 和 “subject absent”。Slow index 代表 unknown，不是 absence 的证据；fast path timeout 后必须 fallback 到 direct check，绝不能直接给 negative verdict。
+- 不对称地衡量失败：verdict 如果授权 removal，false “absent” 会毁掉数据，而 false “present” 只会留下一些东西。进入 destructive branch 前，必须有第二个 source 交叉证明。
+
 ## Aggregation Key Variant
 
 Signals：count、log roll-up、event tally 或 per-category breakdown 少了一些 entries；missing items 共享某个 trait（system-derived path、localized string、prefixed command name）；base-form key 匹配，但 derived variant（`<base>-system`、suffix、prefix）被静默丢掉。
@@ -136,3 +154,52 @@ Checks：
 - 添加 category 前，grep 产生这类 key 的每个 write site，枚举真实 variants，而不只是 base form。
 - 用 `hasPrefix` / regex / explicit variant list 匹配，不要只对 base key 做 exact equality。
 - 为每个 known variant 添加 fixture row，让未来逃过 matcher 的新 key shape 让 test fail，而不是让 aggregate 悄悄变短。
+
+## Whole-Buffer Decode Collapse
+
+Signals：在你的机器上正常工作的 parser，到其他人机器上却返回空值；受影响用户有带 accent 的 device name、non-ASCII filename 或不寻常的 process argument；失败是 total（所有 row 都消失），不是 partial（某一 row 乱码）。这与 pipe backpressure 不同：bytes 已经到达，只是在 decode 时被丢弃。
+
+Checks：
+- 找出对 child process、device 或 filesystem 产生的 bytes 所做的每个 strict decode（`String(data:encoding:)`、`from_utf8`、未设置 `errors=` 的 `decode('utf-8')`）。一个 invalid byte 就会让整个 buffer 变成 nil；caller 再把 nil 合并为空值，就会把它解释成“command 没有产生 output”。
+- 只要 bytes 是待解析的 report，就做 lenient decode；只有当 bytes 是需要验证的 signature 或 checksum 时才保留 strict decode，并在那里 fail closed。同一 codebase 可以因 call site 不同同时需要这两种立场。
+- 检查 empty result 在 downstream 中代表什么。Safety guard 若把空 process list 读成“没有东西在运行”，就会 fail open；在 destructive path 上，这是危险方向。
+- 真正的 failure 由 exit status 和 timeout 报告，不由 decode 是否成功决定。让 caller 依赖前两者。
+
+## Denied Read Returns A Plausible Value
+
+Signals：某个 metric 对部分 subject 正确，对另一些错误，分界与 ownership 一致：自己的 process/file 正确，root-owned 或其他用户的结果是 zero、stale 或 absent。API 给出了 response，因此没有 error log。
+
+Checks：
+- 实测 boundary，不要只读 docs：对 owned 和 non-owned subject 分别调用并统计成功数量。“自己的 33/33，root 的 0/5”才是 evidence，猜测不是。
+- 检查 denied read 的 fallback 与 primary source 是否表达同一含义。即使每个 value 单独看都说得通，同一 column 混入两种含义仍然是 bug。
+- 优先使用能对所有 subject 一致回答的 source（例如不区分 owner、报告全部 process 的 tool），不要选一个更精确但会对部分 subject 静默降级的 source。
+
+## Recovery Gated On The Artifact It Restores
+
+Signals：repair、reinstall 或 self-heal path 无论运行多少次都报告同一个 dead end；broken state 跨 reinstall 持续存在；repair “一直都在那里”，却没有任何 evidence 证明它成功过。
+
+Checks：
+- 阅读 repair path 自己的 precondition，问它在需要被修复的 broken state 中是否成立。Recovery 如果 gate 在那个已经缺失的 file 上，就永远不会触发。
+- 验证 repair command 中每个 absolute tool path 都真实存在于目标平台。Wrong path 会 non-zero exit，`&&` chain 随即静默停止，repair 就会永远在每台机器上 no-op。添加 test，遍历 command 中每个 path 并 assert 它可执行。
+- 不要让 test assert repair command 的 source shape；那会把 broken form 锁成正确。改为 assert observable end state（service 已注册、file 已存在、probe 有响应）。
+- 让 repair 对 outcome 负责，不要假定成功：写入 artifact 后查询系统证明它存在，并记录 query 的 raw output，不要丢弃。
+
+## Watchdog Tuned To The Fast Path
+
+Signals：实际健康的 operation 被报告为 failed、stalled 或 “no progress”；report 来自 slow link、cold cache、network volume 或 large payload 用户；每次 retry 都在同一个 elapsed time 失败。
+
+Checks：
+- 对每个 timeout constant，命名最慢的*健康* case（slow link 上数百 MB download、每天第一次 index rebuild、cleanup 后 tool 重建 cache），并确认 constant 留有余量地覆盖它。这与 magic-wait coupling 相反：前者 timer 太松，不能作为真实 signal；这里 timer 太紧，容不下健康的慢路径。
+- 用真实 liveness probe（持续增长的 temp file、byte counter、heartbeat）替换“N 秒无 output”，只把 timeout 保留为真正的 stall guard。
+- 对每个 watchdog，枚举它所守护区域的所有 exit，包括 thrown error 和 fork 到 alternate path。若 watchdog 在 fork 后仍存活，它会在替代路径执行到一半时触发。
+- 检查是否已有第二个 bound 覆盖真正 hung 的 run。如果有，额外 timer 只可能提前误触发。
+
+## Display-String Comparison
+
+Signals：基于 user-facing text 的 comparison 产生永远无法收敛的 verdict：持续显示却什么也不安装的 “update available”、永远报告 changed 的 diff、永远不触发的 match。两侧只是用不同 format 表示同一个 underlying value。
+
+Checks：
+- 先问被比较 value 的 *format* 是 contract 的一部分，还是 producer 可以任意调整的展示形式。Version display string、从 URL tail 派生的 filename 和 localized label 都是 free-form。
+- 找到平台用于 ordering 或 equality 的 machine-facing identity（build number、content hash、id）并比较它；只有任一侧缺少 identity 时才 fallback 到 display form。
+- 必须保留 fallback 时，如果两个 string 只是以不同排列携带完全相同的 token sequence，就 suppress verdict；真正更新或变化的 value 不可能满足这个条件。
+- 修复所有重复这段 comparison 的 channel，不要只修产生 report 的那一个。这种 shape 几乎总是 duplicated。

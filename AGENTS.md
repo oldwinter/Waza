@@ -40,6 +40,8 @@ make package          # build dist/waza.zip from packaging.allowlist
 
 ## Skill Design Rules
 
+以下规则遵循同一条准则：给模型目标，不要替它写死路径。把路线逐步写明的 skill 能换来服从，却会牺牲调用模型最有价值的判断力；说明“完成”是什么样，让模型自己选择路线。
+
 添加 capability 前，先有意识地决定它属于哪一层：
 
 | Question | Yes | No |

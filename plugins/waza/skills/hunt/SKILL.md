@@ -90,6 +90,8 @@ Instrument-first rule 已在上方 Hard Rules（behavioral/async bugs）中定�
 
 对 UI、native-app、visual、rendering 或 generated-artifact bugs，compile-only 不够。如果环境中无法 runtime check，说明原因，并 hand off 要验证的 exact screen、command 或 artifact。
 
+如果缺失的证据层来自 reporter 的环境，且本地无法复现，下一个 artifact 应是对方可直接粘贴运行的只读 probe，而不是另一个 hypothesis。让它只输出 environment、有争议的 measurement，以及 hypothesis 所依赖的 state；不要输出任何可能携带 secret 或 private path 的内容。不要假设对方采用你的 layout：install method、directory conventions、locale、shell 和 version 都可能不同，因此应动态发现而非 hardcode。用纯文本交付：一条可复制 command，加一个让对方贴回的 output block。这个流程替代连续两轮只问“能否检查一下……”却不给 probe 的做法。
+
 对 recurring classes of failures，在添加第二个 fix 前加载 `references/failure-patterns.md`。
 
 ## Native App Freeze Mode
@@ -166,6 +168,7 @@ Status：**resolved**、**resolved with caveats**（说明 caveats）或 **block
 1. 存在 regression test，且它在 unfixed code 上失败、在 fixed code 上通过。
 2. 该 test 位于项目 test suite 中，不是 temporary file。
 3. Commit message 说明 bug 为什么复发，以及这个 fix 为什么能防止复发。
+4. Red-green 必须**实际运行**，不能靠推断：还原 fix（或临时 stash），观察新 test 失败；恢复 fix，再观察它通过。只见过 green 的 regression test 什么也没有锁住。Output 中要写明 red run。两种已经真实发布过的情况会让这一步静默失效：其一，framework 或语法让 test 中段的 failing assertion 不会导致整条 test 失败，只有最后一个 assertion 真正 gate（shell suite 中可能只因 bracket form 不同，一个 keyword 被吞掉，另一个被捕获；应运行两行最小 repro 确认，不能靠推理）；其二，assertion 检查一个错误的 string 不存在，而该 string 在任何 code version 中都从未输出，于是永远通过。任何 negative assertion（“output 不能包含 X”）还必须在同一 test 中配一个 positive case，证明该 assertion 确实可能失败。
 
 ### Handoff Format (after 3 failed hypotheses)
 

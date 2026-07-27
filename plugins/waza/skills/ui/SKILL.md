@@ -38,6 +38,7 @@ See [references/durable-context.md](references/durable-context.md) for when dura
 |---|---|
 | 现有 screen 上边界明确的 visual fix | 加载 `references/mode-quick-fix.md` |
 | 用户提供 screenshot 或把现有 visual 明确判为失败 | 加载 `references/mode-screenshot-iteration.md` |
+| 生成的 image asset（diagram、cover、social card、illustration） | 加载 `references/mode-generated-asset.md` |
 | 新 page、component 或 design system | 继续执行 [Lock the Direction First](#lock-the-direction-first) |
 
 ## Lock the Direction First
@@ -112,6 +113,7 @@ See [references/durable-context.md](references/durable-context.md) for when dura
 | 选择 glassmorphism，却忽略 mobile constraint | `backdrop-filter` 在低功耗设备上昂贵。命名 tradeoff |
 | Light-mode app：white panel 放在 white background 上，视觉不可区分 | 相邻 nested surfaces 必须有视觉差异。要么 background step（sidebar vs main ≥4% lightness difference），要么最小 shadow `0 1px 3px rgba(0,0,0,0.10)` |
 | 用重设计整个 surface 来修 visual polish | 先定位 concrete visual delta，再做最小 material、opacity、geometry 或 typography change 解决它 |
+| 生成图片因“难看”被拒两次后，仍第三次重新生成 | 两次外观否定说明分歧在 subject，不在 palette。停止生成，重新对齐图片要表达什么 |
 | 添加 setting 或更响亮 control 来解决 UI noise | 先移除 misleading affordance 或选择 quiet default |
 | 英文看着没问题，localized text overflowed | handoff 前测试 long words 和 localized strings，尤其是 buttons、tabs、nav 和 compact cards 内部 |
 | 依赖 `...` truncation 让 text 塞进 fixed-width slot | 改为保证 fit：压缩 format、限制到完整 segments，或 hard-trim 且不显示 glyph。Metric 和 label footers 绝不能 tail-truncate 成 ellipsis |

@@ -11,6 +11,9 @@
 
 <br/>
 
+> [!NOTE]
+> 这是基于 [`tw93/Waza`](https://github.com/tw93/Waza) 的社区维护中文 fork，当前同步到上游 `9c97ccb`。下方 `oldwinter/Waza` 安装命令会加载本 fork 中已中文化的 `skills/`；Codex plugin 还会加载生成的 `plugins/waza/` 镜像。
+
 ## 为什么
 
 Waza（技, わざ）是日本武术里的“技”：反复练习，直到动作变成本能。
@@ -64,7 +67,7 @@ codex plugin marketplace add oldwinter/Waza
 codex plugin add waza@waza
 ```
 
-**Claude Desktop**：下载 [waza.zip](https://github.com/tw93/Waza/releases/latest/download/waza.zip)，然后打开 Customize > Skills > "+" > Create skill，并上传 ZIP。更新时重新上传最新版 ZIP。
+**Claude Desktop**：上游提供的 [waza.zip](https://github.com/tw93/Waza/releases/latest/download/waza.zip) 不包含本 fork 的中文化内容，不能作为中文版安装入口。需要中文 runtime 时使用上方 `npx skills add oldwinter/Waza` 或 native plugin 命令。
 
 **Pi**: `pi install npm:@tw93/waza` (update with `pi update npm:@tw93/waza`). `/health` audits Pi settings alongside Claude Code and Codex.
 
