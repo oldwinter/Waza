@@ -11,7 +11,7 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 
 > Note：`/review` 是 Anthropic 内置的 PR review plugin command。Waza 改用 `/check`（或 alias `code-review`）。不要在此 skill 内重新触发 `/review`。
 
-读取 diff，找出问题，安全可修的直接修，其余询问。Done 表示 verification 已在本 session 中运行并通过。
+读取 diff，找出问题。Review、audit、triage 和 readiness 请求默认只生成报告；只有当前 turn 明确要求 fix、change、implement 或 optimize 时才应用修复。Done 表示请求的 review surface 已覆盖，且每个 verification claim 都来自本 session。
 
 ## Outcome Contract
 
@@ -19,6 +19,7 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 - Done when:findings、fixes、shipped state 或 blockers 都带有能证明它们的 commands、artifacts 或 remote state。
 - Evidence:worktree status、diff、public project docs、manifests、CI、package contents、release 或 registry state，以及 current command output。
 - Output:先给 concise findings；适用时再给 verification 和 shipped-state summary。Multi-step 或 ship-action run 以 completion ledger（done / not applicable / remaining）收尾，不得留下还要用户追问“是否都完成了”的叙述。
+- Authorization：只读意图可以检查 worktree 和 remote state，但不得编辑文件、apply autofix、commit、push、publish、comment、close、merge 或切换 branch。每个 write 或 public action 都需要当前 turn 的授权，除非用户明确授权的 named batch 已包含该动作。
 
 ## Worktree Safety Preflight
 
@@ -220,16 +221,18 @@ If found, either apply the doc update as `safe_auto` (when the invariant is clea
 
 每条 specialist finding 都只是待验证的 claim，不是可直接行动的事实。对 HIGH 和 CRITICAL claims，在 agent facility 允许时，为每条 finding 单独 spawn 一个 independent skeptic，只让它对照实际代码反驳该 claim；skeptic 在 direct read 中驳倒的 finding 必须 drop 或 downgrade，不受提出它的 persona 影响。没有 facility 时由自己执行 skeptic pass：本 turn 重读 cited code，确认它真实且 live，没有在其他地方处理、不是 consistent-by-design，也不是被当成 live bug 的 latent-only risk。Parallel reviewers 容易因 name-based inference 和 partial context 过度报告；任何 direct read 后消失的 finding 都要丢弃，并在送往 Autofix 或 sign-off 前引用 verification path。
 
+在给出 whole-scope verdict 前，为每个 delegated review 对齐 completion ledger：记录 assigned scope、returned status 和 uncovered remainder。等待每个 active reviewer，或明确列出其 scope 为 unreviewed。任何 reviewer 或 required verification 仍 pending 时，不得声称“all read”“full audit complete”或“no issues”。
+
 ## Autofix Routing
 
 | Class | Definition | Action |
 |-------|------------|--------|
-| `safe_auto` | Unambiguous, risk-free: typos, missing imports, style inconsistencies | Apply immediately |
+| `safe_auto` | Unambiguous, risk-free: typos, missing imports, style inconsistencies | 只有得到 explicit write authorization 后才应用；否则报告 |
 | `gated_auto` | Likely correct but changes behavior: null checks, error handling additions | Batch into one user confirmation block |
 | `manual` | Requires judgment: architecture, behavior changes, security tradeoffs | Present in sign-off |
 | `advisory` | Informational only | Note in sign-off |
 
-先应用所有 `safe_auto` fixes。把所有 `gated_auto` 合并成一个 confirmation block。绝不要逐个询问。
+得到 explicit write authorization 后，先应用 `safe_auto` fixes，再展示 `gated_auto` confirmation block。只读模式不得修改 worktree。
 
 ## Adversarial Pass (Deep only)
 

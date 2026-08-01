@@ -18,7 +18,7 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 - Evidence:screenshots、rendered UI、source components、design tokens、accessibility constraints 和 user-provided references。
 - Output:已实现的 visual change，或一份 precise visual review，并命名 remaining verification gap。
 
-**Output language rule：** 此 skill 的任何 output 绝不使用 em-dash（—）。改用 commas、colons 或 periods。
+**Output language rule：** 此 skill 的任何 output 绝不使用 U+2014 em dash。改用 commas、colons 或 periods。
 
 **Chinese gut-feel complaints**：当用户用 "很傻"、"很怪"、"突兀"、"不协调"、"不和谐" 评价 visual 时，把它视为 aesthetic rejection，而不是 debugging symptom。加载 `references/mode-screenshot-iteration.md`，不要 route to `/hunt`。
 

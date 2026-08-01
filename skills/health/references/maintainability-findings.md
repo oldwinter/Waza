@@ -27,25 +27,25 @@ Scope 不只按 layer，还按 load surface。规则即使保留在项目内，�
 在项目根目录执行 quick check，复用 Step 1 解析的 `$HEALTH_SCRIPT`：
 
 ```powershell
-powershell.exe -NoLogo -NoProfile -File "$HEALTH_LAUNCHER" maintainability . summary
+& "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" maintainability . summary
 ```
 
 Linux 与 macOS：
 
 ```bash
-bash "$(dirname "$HEALTH_SCRIPT")/check-maintainability.sh" . summary
+BASH_ENV= ENV= /bin/bash -p "${HEALTH_SCRIPT%/*}/check-maintainability.sh" . summary
 ```
 
 Deep audit：
 
 ```powershell
-powershell.exe -NoLogo -NoProfile -File "$HEALTH_LAUNCHER" maintainability . deep
+& "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" maintainability . deep
 ```
 
 Linux 与 macOS：
 
 ```bash
-bash "$(dirname "$HEALTH_SCRIPT")/check-maintainability.sh" . deep
+BASH_ENV= ENV= /bin/bash -p "${HEALTH_SCRIPT%/*}/check-maintainability.sh" . deep
 ```
 
 Action 要具体且 non-invasive：添加或修复最小有用 instruction surface，增加一条可执行 validation command，记录 hotspot ownership 和 tests，只在 boundary 已清晰时拆分，或修复 broken reference。不能只凭 script output 提议大范围 rewrite。
@@ -62,13 +62,13 @@ Action 要具体且 non-invasive：添加或修复最小有用 instruction surfa
 在项目根目录执行 quick check，复用 Step 1 解析的 `$HEALTH_SCRIPT`：
 
 ```powershell
-powershell.exe -NoLogo -NoProfile -File "$HEALTH_LAUNCHER" doc-refs .
+& "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" doc-refs .
 ```
 
 Linux 与 macOS：
 
 ```bash
-bash "$(dirname "$HEALTH_SCRIPT")/check-doc-refs.sh" .
+BASH_ENV= ENV= /bin/bash -p "${HEALTH_SCRIPT%/*}/check-doc-refs.sh" .
 ```
 
 Checker 会从 project root 解析 `@...` 和 `docs/...`，展开 `~`，从每个 `.claude/skills/<name>/SKILL.md` 目录解析 `references/...`，检查一行中的所有 reference，跳过 fenced code example，并在任一目标缺失时以非零状态退出。
@@ -80,13 +80,13 @@ Checker 会从 project root 解析 `@...` 和 `docs/...`，展开 `~`，从每�
 **Stale verifier cache output。** 若 validation output 指向已删除的 temp worktree，或不存在的 `/tmp` / `/private/tmp` file，使用下列命令解析 captured log：
 
 ```powershell
-powershell.exe -NoLogo -NoProfile -File "$HEALTH_LAUNCHER" verifier-output . <log-file>
+& "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" verifier-output . <log-file>
 ```
 
 Linux 与 macOS：
 
 ```bash
-bash "$(dirname "$HEALTH_SCRIPT")/check-verifier-output.sh" . <log-file>
+BASH_ENV= ENV= /bin/bash -p "${HEALTH_SCRIPT%/*}/check-verifier-output.sh" . <log-file>
 ```
 
 只对用户提供的既有 command output，或当前 audit 中生成的 output 使用此 script。不要为了给 checker 提供输入而运行项目测试。已知 action 包括 `golangci-lint cache clean`、`go clean -cache -testcache` 和 `npm cache verify`；未知 tool 使用 diagnostic rerun action。

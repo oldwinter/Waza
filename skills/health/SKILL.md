@@ -28,7 +28,9 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 
 **Output language:** 按顺序检查：(1) project agent instructions（`AGENTS.md` before runtime-specific files）；(2) global agent instructions；(3) user recent language；(4) English。
 
-**Budget posture:** Start with the summary audit. Escalate automatically when the user asks for a deep, full, complete, thorough, "深入", "完整", "彻底", or "继续跑完" audit, when the user explicitly mentions AI coding code rot, Codex/Claude config drift, unclear context, missing verification, verifier output that points at stale paths, or "代码变烂", when current project instructions or remembered user preference says to run deep health checks by default, when the project is Complex, or when the summary pass exposes a critical ambiguity that cannot be resolved locally. Otherwise do not read full conversation extracts or launch inspector subagents. Tell the user before escalating because deep health audits can consume significant token quota.
+**Budget posture:** Start with the summary audit. Escalate automatically when the user asks for a deep, full, complete, thorough, "深入", "完整", "彻底", or "继续跑完" audit, when the user explicitly mentions AI coding code rot, Codex/Claude config drift, unclear context, missing verification, verifier output that points at stale paths, or "代码变烂", when current project instructions or remembered user preference says to run deep health checks by default, when the project is Complex, or when the summary pass exposes a critical ambiguity that cannot be resolved locally. Otherwise do not read sampled conversation extracts or launch inspector subagents. Tell the user before escalating because deep health audits can consume significant token quota.
+
+**Conversation scope:** Summary mode 会在存在本地历史时，从有界 candidate window 中扫描 Claude 和 Codex 最近最多三个当前项目的 previous sessions。Deep mode 会流式扫描当前项目的全部 previous sessions，只输出有界 extracts 和 coverage receipt。默认不扫描其他项目；只有用户明确要求 all conversations 或 cross-project capability distillation 时，才对该 runtime 发现的受支持本地 history roots 使用 bundled conversation audit 的 `--all-projects`，或交给已安装的 full-history retrospective workflow，例如 `ai-retro`。显式 global mode 会排除最近五分钟内修改的 files（视为可能仍在使用），并 redact 输出。只有 `coverage_status: complete` 且 `cross_project_full_history: yes` 时才声称 complete coverage；`no_data`、root unavailable、parse/read error、扫描期间发生变化的 files，以及被排除的 live sessions 都必须作为 coverage gap 明确报告。
 
 ## Durable Context Preflight
 
@@ -63,8 +65,11 @@ $HEALTH_LAUNCHER = @(
 if (-not $HEALTH_LAUNCHER) {
   throw "Health launcher not found under the installed skill base; reinstall Waza."
 }
-powershell.exe -NoLogo -NoProfile -File "$HEALTH_LAUNCHER" collect
+$POWERSHELL = Join-Path ([Environment]::SystemDirectory) "WindowsPowerShell\v1.0\powershell.exe"
+& "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" collect
 ```
+
+`-ExecutionPolicy Bypass` 只作用于这个 PowerShell process；不要修改用户或 account 的 execution policy。
 
 Linux 和 macOS 继续直接使用 Bash：
 
@@ -79,13 +84,13 @@ if [ ! -f "${HEALTH_SCRIPT:-}" ]; then
   echo "health collect-data.sh not found under the installed skill base; reinstall Waza"
   exit 1
 fi
-bash "$HEALTH_SCRIPT"
+BASH_ENV= ENV= /bin/bash -p "$HEALTH_SCRIPT"
 ```
 
 tools missing 时，sections 可能显示 `(unavailable)`：
 
 - `jq` missing → conversation sections unavailable
-- `python3` missing → MCP/hooks/allowedTools sections unavailable
+- trusted `python3` missing → conversation、MCP/hooks/allowedTools 和 skill-security sections unavailable
 - `settings.local.json` absent → hooks/MCP may be unavailable (normal for global-only setups)
 
 把 `(unavailable)` 视为 insufficient data，不是 finding。不要 flag 这些 areas。
@@ -131,11 +136,13 @@ These run after collection and before the Step 2 analysis. The first two apply t
 
 - **Simple:** Analyze locally. No subagents.
 - **Standard:** Analyze locally from the summary output. Do not launch subagents by default. If the user asks for a deep/full/thorough audit, or if local analysis cannot classify a security/control issue, escalate to deep mode and explain the likely token cost.
-- **Complex, remembered deep preference, explicit deep audit, or explicit AI maintainability audit:** Windows 用 `powershell.exe -NoLogo -NoProfile -File "$HEALTH_LAUNCHER" collect auto deep`，Linux 和 macOS 用 `bash "$HEALTH_SCRIPT" auto deep` 重新 collection，然后并行启动相关 subagent。Credential 统一 redact 为 `[REDACTED]`。
+- **Complex, remembered deep preference, explicit deep audit, or explicit AI maintainability audit:** Windows 用 `& "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" collect auto deep`，Linux 和 macOS 用 `BASH_ENV= ENV= /bin/bash -p "$HEALTH_SCRIPT" auto deep` 重新 collection，然后并行启动相关 subagent。Credential 统一 redact 为 `[REDACTED]`。
   - **Agent 1** (Context + Security): Read `agents/inspector-context.md`. Feed `CONVERSATION SIGNALS` section.
   - **Agent 2** (Control + Behavior): Read `agents/inspector-control.md`. Feed detected tier.
   - **Agent 3** (AI Maintainability): Read `agents/inspector-maintainability.md`. Feed only `TIER METRICS`, `AI MAINTAINABILITY SUMMARY` or `AI MAINTAINABILITY DETAIL`, and the script hotspot lists. Launch this agent only for deep health audits, Complex projects, or explicit code-rot/AI-maintainability requests.
 - **Fallback:** If a subagent fails, analyze that layer locally and note "(analyzed locally)".
+
+在报告 deep audit 完成前，等待每一个已启动的 inspector，并对齐其 assigned scope。如果某个 inspector 仍 pending，或失败且没有本地替代 pass，就把该 scope 列为 unreviewed，不得给出 whole-scope clean bill。
 
 ## Step 3: Report
 
@@ -176,13 +183,13 @@ Agent instructions 位于 wrong layer、missing hooks、oversized descriptions�
 从 project root 运行 quick check。Windows：
 
 ```powershell
-powershell.exe -NoLogo -NoProfile -File "$HEALTH_LAUNCHER" agent-context . summary
+& "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" agent-context . summary
 ```
 
 Linux 和 macOS：
 
 ```bash
-bash "$(dirname "$HEALTH_SCRIPT")/check-agent-context.sh" . summary
+BASH_ENV= ENV= /bin/bash -p "${HEALTH_SCRIPT%/*}/check-agent-context.sh" . summary
 ```
 
 **AI-maintainability findings.** 对 verification surface、conversation-derived guidance、集中的 fix chain、hotspot ownership、verifier wrapper、broken doc/Markdown reference 和 stale verifier cache output，加载 `references/maintainability-findings.md`，并结合 `AI MAINTAINABILITY SUMMARY` / `DETAIL` 执行。

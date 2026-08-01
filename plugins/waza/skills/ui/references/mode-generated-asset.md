@@ -13,7 +13,7 @@
 - **Reference**：用户已经接受的 existing image，或这张 asset 要与之并列的 named product style。
 - **绝不能出现**：exclusion list。Version number 和 changelog content 默认放进这里。
 
-一个 repo 已批准的 spec 应原样复用于 sibling repos。逐 repo 重新推导，才会让同样六条修改意见重复出现六次。
+跨 sibling repos 只复用已批准的 visual-system constraints。每个 repo 都要重新构建 claim、language、use 和 exclusions。
 
 ## 两次拒绝就是 Hard Stop
 
@@ -33,4 +33,4 @@
 
 ## Scope 要描述产品本身
 
-描述某一 version 改了什么的 asset，会在下一版发布当天过期。Diagram、cover 和 social card 应描述 product，不描述 release。Version string、changelog entry 和 “new in” framing 不要放进 frame；它们属于旁边易于更新的 text。
+Evergreen asset 描述 product，不描述 release。默认把 version string、changelog entry 和 “new in” framing 放进旁边的 text。用户明确要求 release card 或其他 release-specific asset 时，才加入指定 release content，并把较短的有效期视为有意选择。

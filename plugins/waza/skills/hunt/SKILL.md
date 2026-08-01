@@ -17,6 +17,7 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 - Done when:一句话能解释 cause，每个 observed symptom 都能被它解释，并且 fix 或 handoff 已通过 reproducible check 验证。
 - Evidence:source trace、repro command 或 UI path、logs 或 state、targeted test/build output，以及 UI 或 native defects 的 runtime evidence。
 - Output:root cause、fix 或 handoff、verification result，以及任何 unswept sibling risks。
+- Authorization：“diagnose”“investigate”“why”“look into”“排查”“看看”或同义表达都只授权报告。只有当前 turn 明确要求 fix、change、implement 或 optimize 时才应用 fix；仍必须先证明 root cause。
 
 **在能用一句话说清 root cause 前，不要碰代码：**
 > "I believe the root cause is [X] because [evidence]."

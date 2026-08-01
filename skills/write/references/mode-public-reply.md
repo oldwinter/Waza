@@ -4,7 +4,7 @@
 
 激活条件：“回复 issue”“reply to PR”“comment on #N”“回 issue”，或用户要求 GitHub issue / PR comment 文案。
 
-回复正文遵循五条硬规则：
+回复正文遵循硬规则：
 
 1. **以 `@<reporter>` 和一句感谢开头。** 匹配 reporter 的语言：中文用“感谢反馈”，英文用 “thanks for the detailed report”。不用感叹号，不用 emoji，不用“🙏”。
 2. **然后一句话说明原因，一句话说明影响。** 不写多段背景，不使用内部 symbol name，不逐步讲解修复过程。
