@@ -27,6 +27,15 @@ Waza 是面向 engineering workflows 的 skill collection。仓库包含八个 s
 - `Makefile` - smoke discovery 和 packaging entrypoints。新增一个 `tests/test_<name>.sh` 文件就会自动创建对应的 `smoke-<name>` target。
 - `tests/test_*.sh` - 每个 surface 一个 smoke；会 source `tests/test_helpers.sh` 来获取 tmpdir、repo-copy、stub-curl 和 instruction-file fixture factories。`tests/python/` 是 pytest unit layer（`make verify-unit`）。
 
+## Hotspot Ownership
+
+Verify hotspot changes with `make verify-unit` plus the matching smoke (`tests/test_health.sh`, `tests/test_maintainability.sh`).
+
+- `skills/health/scripts/collect-data.sh`: owns bounded, redacted discovery and receipt assembly. Keep shell to orchestration and simple presence checks; structured parsing belongs in Python helpers.
+- `skills/health/scripts/check_agent_context.py`: owns effective instruction, permission, hook, path-context, and active-skill routing evidence. It must not treat plugin caches as active installs or follow escaped symlinks.
+- `skills/health/scripts/conversation_audit.py`: owns project-scoped, redacted conversation signals and coverage receipts. Structured runtime events define interruptions; cloned history must not multiply corrections.
+- `skills/health/scripts/check_maintainability.py`: owns repository shape, verifier, doc-link, drift, and hotspot receipts. Generated mirrors count as one logical maintenance surface.
+
 ## Commands
 
 ```bash

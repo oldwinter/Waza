@@ -1,18 +1,22 @@
-# Public Reply Shape（maintainer, issue or PR）
+# Public Reply Shape (maintainer, issue or PR)
 
-Triage Mode 和 Ship / Release Follow-through 都复用此 shape。除非 target repo 中的 `AGENTS.md` 或 `CLAUDE.md` 与它冲突，否则默认使用此 shape。
+> **中文导读（下方英文为 canonical contract）：** 公开回复默认是一到两个短句的单段正文，准确说明当前 ship boundary 与 reporter 的 next step。每句话都必须以本轮实时状态为准；发布或编辑后还要读回 comment、author、target 和 issue/PR state，readback 未匹配前不算完成。
 
-1. posting 前，从 `gh issue view` / `gh pr view --json author` resolve `@<login>`。
-2. **Language:** 当 opener 使用中文或英文时，匹配 **opener's** language。如果 opener 使用日文或韩文，除非 project docs override，否则 maintainer reply 使用英文。
-3. 以 `@<login>` 开头，并且**最多一个**简短 thanks（`感谢反馈`、`thank you for the report` 等）。不要添加 closing thanks stacks（`再次感谢`、`Thanks again`、长 courtesy endings）。
-4. 一到两个短 paragraphs：factual reason、what shipped 或 what is blocked，不要 ceremony。
-5. 命名 exact boundary：already released、fixed on `main` but unreleased、available in nightly/beta/preview、next release、not planned、duplicate，或 still needs evidence。每句话在 posting 当下都必须为真：change 还没 commit 时不要写 "landed on main"；除非当前 turn 已检查该状态，不要写 "shipped"、"released" 或 "verified"；不要暗示未实际发生的 verification step（built a branch、ran an artifact）。
-6. 始终给一个**绑定 releases 或 verification 的 next step**：next App Store 或 GitHub release、nightly upgrade command、只需 clear 一次的 cache path，或仍需要的 exact info。
-7. 对 diagnostic bundles、logs、crash dumps、screenshots 或 local-state archives，不要要求 reporter 公开粘贴或上传 sensitive material。只索取最少 public facts；只有 public project context 提供 private support channel 时，才引导到该 channel。
-8. 更新 wording 时，优先 **editing** existing maintainer comment（`PATCH /repos/{owner}/{repo}/issues/comments/{comment_id}`）；除非 old text 必须从 history 消失，否则避免 delete plus repost。
+
+Reusable by both Triage Mode and Ship / Release Follow-through. Default to this shape unless `AGENTS.md` or `CLAUDE.md` in the target repo contradicts it.
+
+1. Resolve `@<login>` from `gh issue view` / `gh pr view --json author` before posting.
+2. **Language:** Match the **opener's** language when it is Chinese or English. If the opener used Japanese or Korean, use English for the maintainer reply unless project docs override.
+3. Open with `@<login>` and **at most one** short thanks (`感谢反馈`, `thank you for the report`, etc.). Do **not** add closing thanks stacks (`再次感谢`, `Thanks again`, long courtesy endings).
+4. Default to one paragraph and one or two sentences: `@reporter` + one thanks, then the factual state/boundary and the reporter's next step. Include root cause only when it changes what the reporter should do. Internal files, CI approval, and maintainer process stay out.
+5. Name the exact boundary: already released, fixed on `main` but unreleased, available in nightly/beta/preview, next release, not planned, duplicate, or still needs evidence. Every sentence must be true at the moment of posting: do not write "landed on main" while the change sits uncommitted, do not write "shipped", "released", or "verified" unless that state was checked in the current turn, and do not imply a verification step (built a branch, ran an artifact) that did not happen.
+6. Always give a **next step tied to releases or verification**: next App Store or GitHub release, nightly upgrade command, cache path to clear once, or exactly what info is still needed.
+7. For diagnostic bundles, logs, crash dumps, screenshots, or local-state archives, do not ask reporters to paste or attach sensitive material publicly. Ask for the minimum public facts, then use the project's private support channel only when public project context provides one.
+8. Prefer **editing** an existing maintainer comment (`PATCH /repos/{owner}/{repo}/issues/comments/{comment_id}`) when updating wording; avoid delete plus repost unless the old text must disappear from history.
+9. After posting or editing, re-read the comment body, author, target item, and issue/PR state. The public action is not complete without that receipt.
 
 ## When closing
 
-Closing comment 是给 reporter 的答案，不是调查报告。说明 fix 状态、交付 channel 和时间，然后结束；root cause、file names 和推导过程属于 commit。无论结构多清晰，需要滚动才能读完的 reply 都过长。
+The closing comment is the reporter's answer, not the investigation. State the fix state, the channel it arrives on, and when, then stop; root cause, file names, and the reasoning that got there belong in the commit. A reply that needs scrolling to read is over-length however well structured it is.
 
-只有当 fix 已 shipped、已在 latest release 可用、report invalid、report duplicate，或 maintainer 明确要求 closure 时，才 close。否则保持 open，并给 next-release acknowledgement。
+Close only when the fix is shipped, already available in the latest release, the report is invalid, the report is a duplicate, or the maintainer explicitly asked for closure. Otherwise leave open with the next-release acknowledgement.

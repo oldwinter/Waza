@@ -1,41 +1,48 @@
-# Release 价值分析与 Ship 后续操作
+# Release Worthiness And Ship Follow-through
 
-当用户询问“是否值得发版”，或要求 commit / push / publish / tag / issue closure 等后续操作时，由 `check` 的 Mode Picker 加载。Ship 扩展 review，不替代 review。
+> **中文导读（下方英文为 canonical contract）：** Ship mode 会把 review、verify、commit、push 和 public follow-through 视为一个 delivery ledger；授权链未完成前不返回控制。不要用空 commit 伪造交付，也不要把 source、CI、package、部署渠道和公开 thread 压成一个 done。所有 generated artifact、release surface 和远端状态都要逐层读回。
+
+
+Loaded from `check` Mode Picker for "is this worth a release" and for commit / push / publish / tag / issue-closure follow-through. Ship extends review; it does not replace it.
 
 ## Release Worthiness Analysis
 
-当用户询问“深入分析 X 是不是值得发新版本”“is this worth a new release”“值不值得发版”等问题时激活。
+Activate when the user asks "深入分析 X 是不是值得发新版本", "is this worth a new release", "值不值得发版", or similar.
 
-以最后一个已发布 tag 为基线，而不是 local VERSION file，对此后的每个 commit 分类，然后输出：
+Classify every commit since the last published tag (the tag is the baseline, not a local VERSION file), then output:
 
-- **Commit summary**：自上次 release 后有 N 个 feat、N 个 fix、N 个 chore
-- **Verdict**：release / skip，一行
-- **Recommended version bump**：只有 fix 为 patch，包含 feat 为 minor，存在 breaking change 为 major
-- **Key risk**：用一句话说明本批次最大风险
+- **Commit summary**: N feat, N fix, N chore since last release
+- **Verdict**: release / skip (one line)
+- **Recommended version bump**: patch (fixes only), minor (feat present), major (breaking change)
+- **Key risk**: one sentence on the biggest risk in this batch
 
-若 verdict 为 `release`，提出可以进入 Ship mode。
+If the verdict is "release", offer to transition into Ship mode.
 
 ## Ship / Release Follow-through
 
-当 change 已准备好，用户要求 commit、tag、release、publish、push、回复 issue/PR 或关闭 issue 时激活。
+Activate when the user asks to commit, tag, release, publish, push, reply on an issue/PR, or close an issue after a change is ready.
 
-本 mode 扩展 review，不跳过 review。执行任何公开或不可逆操作前：
+Treat an explicitly authorized chain such as review, fix, verify, commit, push, and public follow-through as one delivery ledger. Do not return control between its internal stages while safe authorized work remains. A local commit is not completion when push was included, and a no-op push is not completion when intended local changes remain uncommitted. Do not create an empty commit when the intended scope is already clean; prove the clean/up-to-date state instead.
 
-1. 从公开项目上下文提取 release rules：README、manifest、CI workflow、release note、package script、changelog，以及当前对话中的明确指示。
-2. 填写 `references/project-context.md` 中的 Release Gate 2.0 matrix。先运行 `python3 <skill-base-dir>/scripts/release_gate.py --root <project>`，为确定性行（worktree state、remote sync、tag baseline、version field sync、changelog mention）生成初始证据并粘贴 status lines；其余行（generated artifact、package/archive contents、release asset、registry/appcast/CI、公开 issue/PR state）仍需分别判断并提供证据。
-3. 验证 generated 或 bundled outputs、version fields、release notes、package contents 和必需 artifacts 保持同步。生态提供 dry-run 时优先使用。起草 release notes 或 update-feed 文案时，遵循 `/write` 的 release-note mode；中文文案要在初稿前加载中文 release-note 规则，翻译腔是缺陷，不是后续润色项。
-   起草前阅读仓库上一次已发布 release（GitHub 使用 `gh release view` 查看最新 tag），把 title convention、item count、每项长度和语言布局视为硬模板，只替换内容，不另造格式。
-   Generated deliverables 包括 tracked archive、ignored dist file、appcast、site/download copy、registry package、checksum 和 release asset。项目文档要求时，即使被 Git 忽略也必须重新生成、检查、stage 或上传；不能仅凭 source tests 判断 ready。对远端资产，优先下载或读回发布产物并比较 entries、checksum 或 manifest；release page 文本、文件大小或 workflow success 都不能单独证明 artifact 正确。
-   项目存在 preview、beta、nightly、stable 或 App Store lane 时，明确指出 lane。不能用 preview/beta artifact 证明 stable release ready，也不能在仅请求 preview 时触碰 stable appcast、registry 或 download surface，除非项目文档要求。
-   得出 live 状态前，按部署 surface 分类每项变更：打包进 app binary、bundled CLI 或 release archive 的代码要等下一次 release 才到达用户；site、serverless function、CDN config 和 infrastructure 可能在 default branch 更新后自动部署。同一批变更可能在一个 surface 尚未发布、在另一个 surface 已上线，必须分开说明。
-4. 只提交预期文件。保留无关 dirty work，串行执行 Git 操作以避免 index lock 或重叠 add，并在 push 前重新检查 HEAD/status，避免夹带并发 agent 或维护者的 commit。
-5. 只有用户明确批准，才执行 push、publish、tag 或 create release。若 auth、OTP、CI、registry 或 network state 阻塞，暂停并报告准确阻塞项。
-6. 处理 issue/PR 前，使用 host 的读取命令确认 item 身份。GitHub 使用 `gh issue view` 或 `gh pr view`；其他 host 使用项目文档或当前请求指定的 CLI/API。公开回复采用 `references/public-reply.md` 的模板和关闭标准。
-7. 只有项目上下文或当前请求明确要求时，才执行 GitHub release reaction 后续操作。release 存在且所需 asset 已验证后，从 tag 解析 release id，用 `gh api` 或可用 GitHub tool 向 `repos/<owner>/<repo>/releases/<id>/reactions` POST 全部正面 reaction，并重新读取确认。正面 reaction 为 `+1`、`laugh`、`heart`、`hooray`、`rocket` 和 `eyes`。
-8. 网络或 API 失败后重新读取最终状态，不要假定成功或失败。
+This mode extends review; it does not skip review. Before any public or irreversible action:
+
+1. Extract release rules from public project context: README, manifests, CI workflows, release notes, package scripts, changelogs, and explicit user instructions in the current thread.
+2. Fill the Release Gate 2.0 matrix from `references/project-context.md`. Seed the deterministic rows with `python3 <skill-base-dir>/scripts/release_gate.py --root <project>` (worktree state, remote sync, tag baseline, version field sync, changelog mention) and paste its status lines as evidence; the remaining rows (generated artifacts, package/archive contents, release assets, registry/appcast/CI, public issue/PR state) stay judgment calls with their own evidence.
+3. Verify generated or bundled outputs, version fields, release notes, package contents, and required artifacts are in sync. Prefer dry-run commands when the ecosystem provides them. When drafting release notes or update-feed copy, follow `/write` and its release-note mode; for Chinese copy, load its zh release-notes rules before the first draft, not after a tone complaint -- translation-flavored Chinese notes are a defect, not a polish item.
+   Before drafting release notes, read the repo's previous published release (`gh release view` the latest tag) and treat its title convention, item count, per-item length, and language layout as the hard template; replace content only, never invent a new format.
+   Generated deliverables include tracked archives, ignored dist files, appcasts, site/download copy, registry packages, checksums, and release assets. If project docs require them, regenerate, inspect, and stage or upload them explicitly even when they are ignored by git; do not infer readiness from source-only tests. For remote assets, prefer downloading or reading back the published artifact and comparing entries, checksums, or manifest contents; release page text, file size, or workflow success alone is not artifact proof.
+   If the project has preview, beta, nightly, stable, or App Store lanes, name the lane explicitly. Do not use a preview or beta artifact to claim stable release readiness, and do not touch stable appcast, registry, or download surfaces when the requested lane is preview-only unless project docs require it.
+   Classify each change by deployment surface before concluding what is live: code that ships inside a packaged artifact (app binary, bundled CLI, release archive) reaches users only at the next release, while sites, serverless functions, CDN config, and infrastructure deploy automatically when the default branch updates. One batch of changes can be unreleased on the first surface and already in production on the second; state each surface separately instead of letting "not released yet" cover auto-deployed code.
+4. Commit only intended files. Preserve unrelated dirty work, serialize git operations so index locks or overlapping adds do not corrupt the workflow, and re-check HEAD/status before pushing so concurrent agent or maintainer commits are not swept into your ship action.
+5. Push, publish, tag, or create a release only when the user has explicitly approved that action. If auth, OTP, CI, registry, or network state blocks the operation, pause and report the exact blocker.
+6. For issue/PR follow-through, confirm the item identity with the host's read command before posting. On GitHub, use `gh issue view` or `gh pr view`; on other hosts, use the CLI/API named by project docs or the current request. Use `references/public-reply.md` for the maintainer reply template (mention, single thanks, facts, explicit next release or verification step) and its closure criteria.
+7. For GitHub release reaction follow-through, only do it when project context or the current thread asks for it. After the release exists and required assets are verified, resolve the release id from the tag, POST every positive release reaction to `repos/<owner>/<repo>/releases/<id>/reactions` with `gh api` or the available GitHub tool, and re-read reactions to confirm. Positive release reactions are `+1`, `laugh`, `heart`, `hooray`, `rocket`, and `eyes`.
+8. After network or API failures, re-read the end state instead of assuming success or failure.
+
+Before handoff, reconcile every authorized item as `done`, `not applicable`, or `blocked`, then re-read the local `HEAD`, target remote ref/SHA, worktree status, CI or published artifact lane, and any public thread changed in this run. Never collapse source, CI, package, deployed channel, and public-thread state into one "done" claim.
 
 ### Reworked Or Cancelled Release Gate
 
-当 release candidate 被取消、preview/beta 经历多轮 bug-fix churn，或用户询问延迟的 release 是否终于安全时，激活此 gate。加载 `references/release-surfaces.md` 中的 Reworked Or Cancelled Release Gate：从最后一个公开 stable tag 到 `HEAD`，按实际交付风险 surface 完整 review，并分别判断 preview/beta 是否可以继续接收用户测试，以及 stable release 准备是否可以开始。
+Activate this gate when a release candidate was cancelled, a preview or beta had repeated bug-fix churn, or the user asks whether a delayed release is finally safe. Load `references/release-surfaces.md` (Reworked Or Cancelled Release Gate): review from the last public stable tag through `HEAD` by shipped risk surface, and output two decisions, whether the preview keeps taking user testing and whether stable release prep can start.
 
-先给明确的 go / no-go verdict（ship，或列出 blockers），再给 concrete shipped state：commit hash、tag、release URL、registry/version result、pushed branch、release asset state、release reaction state、issue/PR state 和任何 remaining blockers。不适用字段省略。
+Lead the verdict with an explicit go / no-go (ship, or the named blockers), then the concrete shipped state: commit hash, tag, release URL, registry/version result, pushed branch, release asset state, release reaction state, issue/PR state, and any remaining blockers. Omit fields that do not apply.

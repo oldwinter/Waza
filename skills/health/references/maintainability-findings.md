@@ -1,92 +1,95 @@
 # AI Maintainability Structural Findings
 
-由 `health` Step 3 为 AI-maintainability lane 加载。Summary mode 读取 `AI MAINTAINABILITY SUMMARY`；deep audit、Complex 项目和明确的 code-rot 请求读取 `DETAIL`。Agent-config lane（instruction drift）仍保留在 `SKILL.md`。下方 `$HEALTH_SCRIPT` 与 `$HEALTH_LAUNCHER` 是 Step 1 已经解析的变量。
+> 中文说明：本 reference 只负责 AI maintainability lane。优先区分 FAIL、WARN、coverage gap 与可迁移 invariant，conversation/scorecard 只能作为 evidence，不能直接复制进 project docs；需要 path-scoped instruction、deterministic verifier 或 redaction 时，保留原有强度。
 
-**AI-maintainability 缺口。** Summary mode 使用 `AI MAINTAINABILITY SUMMARY`，deep mode 使用 `AI MAINTAINABILITY DETAIL`。项目没有可执行验证命令、non-trivial repo 没有 agent instruction surface，或 doc reference 损坏时，报告 `FAIL`。以下情况报告 `WARN`：instructions 缺少 project map、verification guidance 或 boundary/non-goal language；TODO/HACK marker 过度集中；large source hotspot 缺少 ownership/boundary 和 verification guidance；durable docs 保存 raw one-off review report、scorecard、带日期的 line reference 或 diagnostic dump，而不是稳定 invariant；runtime 支持 path-scoped instruction loading（例如带 `paths` frontmatter 的 Claude Code `.claude/rules/*.md` 或 nested-directory `CLAUDE.md`），但大型 always-loaded instruction file 含有只适用于特定 path 的 domain/language rule，导致每个无关 session 都支付完整 context cost。最后一种情况应添加 `paths` frontmatter，或把 block 移到 nested `CLAUDE.md` / skill，不应删除 rule。缺少 `docs/`、`specs/`、`.specify/`、`HANDOFF.md`、`CHANGELOG`、issue template 或 PR template 默认只作 informational，除非项目复杂度使其成为 handoff 必需项。处理 stale report 时，先把稳定规则提取到公开 instructions、rules、references 或 verifier scripts，再移除或归档临时报告。
 
-**从 conversation 提炼 guidance。** Health audit 读取近期 agent conversation 时，不要建议把 conversation 或 scorecard 直接复制进 docs。改为执行 candidate-matrix 筛选：
+Loaded from `health` Step 3 for the AI-maintainability lane. Summary mode reads `AI MAINTAINABILITY SUMMARY`; deep audits, Complex projects, and explicit code-rot requests read `DETAIL`. The agent-config lane (instruction drift) stays in `SKILL.md`. The `$HEALTH_SCRIPT` and `$HEALTH_LAUNCHER` variables below are the ones Step 1 already resolved.
+
+**AI-maintainability gaps.** Use `AI MAINTAINABILITY SUMMARY` in summary mode and `AI MAINTAINABILITY DETAIL` in deep mode. Report `FAIL` when the project has no executable verification command, no agent instruction surface for a non-trivial repo, or broken doc references. Report `WARN` when instructions exist but lack a project map, verification guidance, boundary/non-goal language, when TODO/HACK markers are concentrated, when large source hotspots lack ownership/boundary and verification guidance, when durable docs contain raw one-off review reports, scorecards, dated line references, or diagnostic dumps instead of stable invariants, or when a runtime supports path-scoped instruction loading (Claude Code `.claude/rules/*.md` with `paths` frontmatter, nested-directory `CLAUDE.md`) but a large always-loaded instruction file carries domain- or language-specific rules that only apply under certain paths, so every unrelated session pays their full context cost. The action for the last case is to add `paths` frontmatter (or move the block to a nested `CLAUDE.md` / a skill), not to delete the rule. Treat missing `docs/`, `specs/`, `.specify/`, `HANDOFF.md`, `CHANGELOG`, issue templates, and PR templates as informational unless project complexity makes them necessary for handoff. The action for stale reports is to extract stable rules into public instructions, rules, references, or verifier scripts, then remove or archive the transient report.
+
+**Conversation-derived guidance.** When a health audit reads recent agent conversations, do not recommend copying the conversation or a scorecard into docs. Recommend a candidate-matrix pass instead:
 
 | Field | Question |
 |---|---|
-| Repeated failure | 是否在多次 fix、release、agent 或用户报告中复发？ |
-| Durable invariant | 能否把教训写成稳定规则，而不是带日期的 incident summary？ |
-| Target layer | 应放在项目 instructions、Waza skill、global rule 还是 private memory？ |
-| Verifier | 是否有 deterministic command、script、artifact check 或 runtime smoke 可以强制执行？ |
-| Redaction risk | 是否必须包含 local path、issue number、customer detail、machine state、secret 或未公开 release fact？ |
+| Independent recurrence | Were cloned prompts, retries, automated fan-out sessions, pasted assistant output, and platform-resume messages collapsed into one underlying event? |
+| Repeated failure | Did this recur across fixes, releases, agents, or user reports? |
+| Durable invariant | Can the lesson be stated as a stable rule, not a dated incident summary? |
+| Target layer | Should it live in project instructions, a Waza skill, a global rule, or private memory? |
+| Verifier | Is there a deterministic command, script, artifact check, or runtime smoke that can enforce it? |
+| Redaction risk | Does the lesson require local paths, issue numbers, customer details, machine state, secrets, or unpublished release facts? |
 
-Layering rule：项目特有的 command、app name、artifact name 和 release ritual 留在项目中；cancelled-release review gate、native-freeze evidence ladder 等可复用工作流属于 Waza skill；通用的诚实与验证规则属于 global CLAUDE/AGENTS；私人偏好和单机事实留在 memory。无法通过 redaction-risk 字段的教训，不得进入公开 guidance。
+Layering rule: project-specific commands, app names, artifact names, and release rituals stay in the project; reusable workflows such as cancelled-release review gates or native-freeze evidence ladders belong in Waza skills; universal honesty and verification rules belong in global CLAUDE/AGENTS; private user preferences and one-machine facts stay in memory. If the lesson cannot pass the redaction-risk field, keep it out of public guidance.
 
-Scope 不只按 layer，还按 load surface。规则即使保留在项目内，如果没有绑定适用位置，每个 session 仍会支付 context：language/framework rule 使用 file-type `paths` scope；project-domain rule 绑定 source directory（`paths` frontmatter 或 nested-directory `CLAUDE.md`）；只有真正 cross-cutting 的 constraint 才在 always-loaded root 无条件加载。只对一个 path 有意义的 rule 不属于 always-loaded file。
+Scope by load surface, not just by layer. A rule kept in the project still pays context on every session unless it is bound to where it applies: language and framework rules carry file-type `paths` scope, project-domain rules bind to their source directories (`paths` frontmatter or a nested-directory `CLAUDE.md`), and only genuinely cross-cutting constraints load unconditionally in the always-loaded root. A rule that only matters under one path does not belong in an always-loaded file.
 
-**集中的 fix chain。** 运行 `git -c core.fsmonitor=false log --oneline --since='2 weeks ago' | grep -i fix`，按 area（`:` 或 `(` 前的 prefix）分组。同一区域短期内出现 3 个以上 fix commit，表示缺少结构性 invariant：每次 fix 都是在猜一条尚未写下的规则。报告 Structural `WARN`，包含 area name 和 fix count，并建议在 `AGENTS.md` / `CLAUDE.md` / project rules 中加入明确规则，记录这些 fix 正在收敛的 invariant。同一文件被集中 fix 4 次以上，比不同文件上的分散 fix 信号更强。
+**Concentrated fix chains.** Run `git -c core.fsmonitor=false log --oneline --since='2 weeks ago' | grep -i fix` and group by area (the prefix before `:` or `(`). When the same area has 3+ fix commits in a short window, it signals a missing structural invariant: each fix is a guess at a rule that was never written down. Report a Structural `WARN` with the area name, fix count, and recommend adding an explicit rule to `AGENTS.md` / `CLAUDE.md` / project rules that captures the invariant those fixes were converging toward. A concentrated fix chain that touches the same file 4+ times is a stronger signal than scattered fixes across different files.
 
-**Hotspot ownership 缺口。** Deep mode 读取 `HOTSPOT OWNERSHIP SURFACE`。若最大的 source file 超过 hotspot threshold，而 `AGENTS.md` / `CLAUDE.md` / shared instruction files 没有说明 owner、必须保持稳定的 boundary 和覆盖它的 verification command，报告 Structural `WARN`。不要仅凭大小把已有文档说明的大文件视为 code rot；部分 module 本来就有意保持较大。
+**Hotspot ownership gaps.** In deep mode, read `HOTSPOT OWNERSHIP SURFACE`. If a largest source file exceeds the hotspot threshold and `AGENTS.md` / `CLAUDE.md` / shared instruction files do not name who owns the hotspot, what boundary should stay stable, and which verification command covers it, report a Structural `WARN`. Do not treat documented large files as code rot by size alone; some modules are intentionally large.
 
-**缺少稳定 verifier wrapper。** 若 repo 通过 CI、script 或 manifest 暴露多个 verification command，但 `Makefile` 没有 `check`、`test` 或 `verify` target，报告 Structural `WARN`。这是 AI-maintainability gap，因为 agent 需要一个稳定的默认入口，不代表项目本身已损坏。
+**Missing stable verifier wrapper.** If the repo exposes multiple verification commands through CI, scripts, or manifests but `Makefile` has no `check`, `test`, or `verify` target, report a Structural `WARN`. This is an AI-maintainability gap because agents need one stable default entrypoint, not because the project is broken.
 
-在项目根目录执行 quick check，复用 Step 1 解析的 `$HEALTH_SCRIPT`：
+Quick check from the project root, reusing `$HEALTH_SCRIPT` resolved in Step 1:
 
 ```powershell
 & "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" maintainability . summary
 ```
 
-Linux 与 macOS：
+On Linux and macOS:
 
 ```bash
 BASH_ENV= ENV= /bin/bash -p "${HEALTH_SCRIPT%/*}/check-maintainability.sh" . summary
 ```
 
-Deep audit：
+For deep audits:
 
 ```powershell
 & "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" maintainability . deep
 ```
 
-Linux 与 macOS：
+On Linux and macOS:
 
 ```bash
 BASH_ENV= ENV= /bin/bash -p "${HEALTH_SCRIPT%/*}/check-maintainability.sh" . deep
 ```
 
-Action 要具体且 non-invasive：添加或修复最小有用 instruction surface，增加一条可执行 validation command，记录 hotspot ownership 和 tests，只在 boundary 已清晰时拆分，或修复 broken reference。不能只凭 script output 提议大范围 rewrite。
+Keep actions concrete and non-invasive: add or fix the smallest useful instruction surface, add one executable validation command, document hotspot ownership and tests, split only when the boundary is already clear, or repair the broken reference. Do not propose broad rewrites from the script output alone.
 
-**Broken doc references。** 扫描 `AGENTS.md`、`CLAUDE.md`、`.claude/rules/*.md` 和所有 `.claude/skills/*/SKILL.md`，查找形如 `@<path>`、`~/.claude/rules/<name>.md`、`~/.claude/skills/<name>/`、`docs/<name>.md` 或 `references/<name>.md` 的 reference。逐一确认目标在磁盘上存在。报告每个“已引用但缺失”的 pointer，并附 source file 和 line。
+**Broken doc references.** Scan `AGENTS.md`, `CLAUDE.md`, `.claude/rules/*.md`, and every `.claude/skills/*/SKILL.md` for references shaped like `@<path>`, `~/.claude/rules/<name>.md`, `~/.claude/skills/<name>/`, `docs/<name>.md`, or `references/<name>.md`. For each match, check that the target exists on disk. Report every "referenced but missing" pointer with the source file and line.
 
-常见问题：
+Common offenders:
+- A project-level rule references a global rule file that was never created (e.g. `~/.claude/rules/swift.md`).
+- A `CLAUDE.md` uses an `@AGENTS.md` placeholder but the actual `AGENTS.md` is missing or empty.
+- A skill body references `references/<name>.md` but only `references/<name>-v2.md` exists.
+- A rule file references a deleted skill path.
 
-- project-level rule 引用了从未创建的 global rule file，例如 `~/.claude/rules/swift.md`。
-- `CLAUDE.md` 使用 `@AGENTS.md` placeholder，但实际 `AGENTS.md` 缺失或为空。
-- skill body 引用 `references/<name>.md`，实际只有 `references/<name>-v2.md`。
-- rule file 引用了已删除的 skill path。
-
-在项目根目录执行 quick check，复用 Step 1 解析的 `$HEALTH_SCRIPT`：
+Quick check from the project root, reusing `$HEALTH_SCRIPT` resolved in Step 1:
 
 ```powershell
 & "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" doc-refs .
 ```
 
-Linux 与 macOS：
+On Linux and macOS:
 
 ```bash
 BASH_ENV= ENV= /bin/bash -p "${HEALTH_SCRIPT%/*}/check-doc-refs.sh" .
 ```
 
-Checker 会从 project root 解析 `@...` 和 `docs/...`，展开 `~`，从每个 `.claude/skills/<name>/SKILL.md` 目录解析 `references/...`，检查一行中的所有 reference，跳过 fenced code example，并在任一目标缺失时以非零状态退出。
+The checker resolves `@...` and `docs/...` from the project root, expands `~`, resolves `references/...` from each `.claude/skills/<name>/SKILL.md` directory, checks every reference on a line, skips fenced code examples, and exits non-zero when any target is missing.
 
-缺失 reference 作为 Structural finding，而不是 Critical；只有该文件被声明为项目 hard dependency 时例外，例如项目 release skill 所需的 `release.md`。
+Report missing references as Structural findings, not Critical, unless the missing file is named as a hard dependency (e.g. `release.md` for the project's release skill).
 
-**Broken Markdown references。** Deep mode 中，`check-maintainability.sh` 还会扫描 repository Markdown links。当它们指向缺失的 local file 时，报告为 Structural finding，尤其是 agent 后续工作可能遵循的 design、security、release 或 handoff doc。
+**Broken Markdown references.** In deep mode, `check-maintainability.sh` also scans repository Markdown links. Report these as Structural findings when they point to missing local files, especially design, security, release, or handoff docs that agents may follow during future work.
 
-**Stale verifier cache output。** 若 validation output 指向已删除的 temp worktree，或不存在的 `/tmp` / `/private/tmp` file，使用下列命令解析 captured log：
+**Stale verifier cache output.** If validation output points at a deleted temp worktree or non-existent `/tmp` / `/private/tmp` file, parse the captured log with:
 
 ```powershell
 & "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" verifier-output . <log-file>
 ```
 
-Linux 与 macOS：
+On Linux and macOS:
 
 ```bash
 BASH_ENV= ENV= /bin/bash -p "${HEALTH_SCRIPT%/*}/check-verifier-output.sh" . <log-file>
 ```
 
-只对用户提供的既有 command output，或当前 audit 中生成的 output 使用此 script。不要为了给 checker 提供输入而运行项目测试。已知 action 包括 `golangci-lint cache clean`、`go clean -cache -testcache` 和 `npm cache verify`；未知 tool 使用 diagnostic rerun action。
+Only use this script for existing command output supplied by the user or generated during the current audit. Do not run project tests just to feed this checker. Known actions include `golangci-lint cache clean`, `go clean -cache -testcache`, and `npm cache verify`; unknown tools get a diagnostic rerun action.

@@ -1,23 +1,26 @@
 # Visual Quick-Fix Mode
 
-当请求是修正现有 screen 上边界清晰的视觉问题，而不是构建新界面时，由 `ui` 加载。
+> **中文导读（下方英文为 canonical contract）：** Quick fix 只处理既有 surface 的 bounded visual defect。编辑前锁定 target、preserve、evidence，修改后检查真实 rendered artifact、状态切换、localized string 和窄 viewport；触及三个以上 component 或方向问题时切换到 screenshot iteration。
 
-用户提出带具体症状的窄范围视觉修复时激活：overflow、文字被裁剪或异常换行、未对齐、间距失衡、对比度/可读性问题、本地化文字放不下，或紧凑响应式布局破损。本 mode 用于修复现有 surface，不用于重设计。
 
-流程：
+Loaded from `ui` when the ask is a bounded visual correction to an existing screen, not a new build.
 
-1. 阅读当前 UI 证据：截图、已渲染页面、native view 或负责该区域的 component。
-2. 用一句话说清准确的视觉缺陷。
-3. 进行能修复该缺陷的最小材质、几何、间距、对比度、排版或文字适配修改。
-4. 验证真实运行 surface 或生成 artifact。检查长单词、本地化字符串、紧凑状态，并在适用时至少检查一个窄 viewport。Terminal 输出也算 rendered surface：修改 CLI 文本或布局后，重新运行命令并阅读实际输出，检查整个输出中的列对齐、block 间距和 icon 一致性，而不只看改动行。
-5. 若修复涉及三个及以上 component、改变产品行为，或暴露出方向问题，停止并切换到 `references/mode-screenshot-iteration.md`，或 `SKILL.md` 的 Lock the Direction First section。
+Activate when the user asks for a narrow visual repair with a concrete symptom: overflow, clipped or wrapped text, misalignment, spacing imbalance, contrast/readability, localized text not fitting, or compact responsive breakage. This is for fixing an existing surface, not redesigning it.
 
-**间距统一规则。** 一个 spacing 或 sizing 值调了三次仍不对，问题就是结构而不是数值：把 N 个独立值合并为一个共享命名 token（`Spacing.s4`、`--gap-content`），outer container padding 默认等于 inner element gap。spacing system 细节见 `references/design-reference.md`。
+Flow:
 
-**固定高度 action slot，统一 typography。** 任何根据状态替换 children 的 container（status bar、action slot、toolbar row、menu item）都必须在所有状态使用同一 font size。只改变 fill、stroke、opacity、color 或 icon，不改变字号。`secondary 13px` 与 `primary 14px` 的 1pt 高度差会在状态转换时形成可见抖动。同一 slot 中的 CTA pill button 使用相同字号，通常为 14px，通过 background 和 border 区分，而不是 typography。
+1. Read the current UI evidence: screenshot, rendered page, native view, or responsible component.
+2. Name the exact visual defect in one sentence. Lock three fields before editing: `target` may change, `preserve` names the adjacent surface and product behavior that must stay stable, and `evidence` names the render or source that will prove the fix.
+3. Make the smallest material, geometry, spacing, contrast, typography, or text-fit change that fixes that defect. Do not redesign outside `target` to make the screenshot look coherent.
+4. Verify the real running surface or generated artifact against `target`, `preserve`, and `evidence`. When the component swaps content or state, check before/during/after and cold/warm paths; when one shared component or token is implicated, check every affected sibling rather than the reported instance. Also check long words, localized strings, compact states, and at least one narrow viewport when applicable. Terminal output counts as a rendered surface: after changing CLI-facing text or layout, re-run the command and read the actual output, checking column alignment, block spacing, and icon consistency across the whole output rather than only the changed line.
+5. If the fix touches three or more components, changes product behavior, or reveals a direction problem, stop and switch to `references/mode-screenshot-iteration.md` or the Lock the Direction First section of `SKILL.md`.
 
-**Loading 不是 empty。** 正在 loading、measuring、indexing、refreshing 或等待权限的 surface 必须呈现 pending state，不能显示最终空状态文案。只有请求完成且结果为空时才显示“nothing found”。刷新时若保留旧结果，应明确显示为 stale，或用 progress 替换；工作仍在进行时绝不能闪现最终 empty state。
+**Spacing unification rule.** A spacing or sizing value tuned three times that still looks off is structural, not numeric: collapse the N independent values into one shared named token (`Spacing.s4`, `--gap-content`), with outer container padding defaulting to the inner element gap. Spacing-as-a-system details live in `references/design-reference.md`.
 
-**有安全边界的 action design。** 对 cleanup、delete、uninstall、reset 或 permission-changing surface，不能为了看起来更简单而隐藏可恢复性。只有 target user 能理解每一行，并拥有足够身份信息来验证安全性（按需包括 name、source、owner、path、preview、recovery implication）时，才适合 bulk select、auto-select、one-tap delete 或 destructive “recommended” default。若行内容是 opaque identifier、推断出的 leftover 或仅机器可读的 path，应优先采用 review-first UI、current-target scope、禁用 destructive affordance 或说明性分组，而不是更快的批量控制。减少点击次数的 feature request 不足以剥夺用户验证变更的能力。
+**Fixed-height action slot, uniform typography.** Any container that swaps children based on state (status bar, action slot, toolbar row, menu item) must use one font size across every state. Vary fill, stroke, opacity, color, or icon, never font size. A 1pt height delta between `secondary 13px` and `primary 14px` becomes visible jitter at the state transition. CTA pill buttons in the same slot use the same size (typically 14px), distinguished by background and border, not by typography.
 
-**安静的产品边界。** 点击更少、control 更多，并不天然更好。先移除误导性 affordance，再添加替代 control；diagnostic 和 alert 使用安静的默认值；先修复不稳定的 motion cadence，再调整速度或新增 motion preference。当前 UI 暗示了无法支持的 action、state 或 promise 时，先移除这种暗示。完成 surface 也遵循同一原则：先突出用户要的唯一结果，解释放到 summary row 后的 details overlay；没有内容支撑的 affordance 必须隐藏，例如空的“0 skipped”入口或与点击整行重复的按钮。
+**Loading is not empty.** A surface that is still loading, measuring, indexing, refreshing, or waiting for permission must render a pending state, not final empty copy. Show "nothing found" only after the request completes with an empty result. If previous results are visible during refresh, keep them visibly stale or replace them with progress; never flash a final empty state while work is still in flight.
+
+**Safety-bound action design.** For cleanup, deletion, uninstall, reset, or permission-changing surfaces, do not make the UI feel simpler by hiding recoverability. Bulk select, auto-select, one-tap delete, or "recommended" destructive defaults are only appropriate when each row is understandable to the target user and carries enough identity to verify safety (name, source, owner, path, preview, or recovery implication as relevant). If rows are opaque identifiers, inferred leftovers, or machine-only paths, prefer review-first UI, current-target scoping, disabled destructive affordances, or explanatory grouping over faster batch controls. A feature request for fewer clicks is not enough to remove the user's ability to verify what will change.
+
+**Quiet product boundary.** Fewer clicks and richer controls are not automatically better. Remove misleading affordances before adding alternate controls, prefer quiet defaults for diagnostics and alerts, and fix unstable motion cadence before changing speed or adding a new motion preference. If the current UI implies an action, state, or promise it cannot support, remove that implication first. Completion surfaces follow the same stance: lead with the single result the user came for, keep explanations in a details overlay behind the summary row, and hide any affordance with nothing behind it (an empty "0 skipped" entry, a button duplicating what tapping the row already does).

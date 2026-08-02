@@ -73,6 +73,7 @@ def clean_windows_env(tmp_path: Path) -> dict[str, str]:
     env = os.environ.copy()
     env["PATH"] = os.pathsep.join(
         [
+            str(Path(sys.executable).parent),
             str(Path(POWERSHELL).parent),
             str(Path(os.environ["SystemRoot"]) / "System32"),
             str(Path(shutil.which("git")).parent),
@@ -231,8 +232,40 @@ def test_broken_app_aliases_do_not_win_python_discovery(tmp_path: Path):
     assert result.returncode == 0, result.stderr
     assert "=== AGENT CONFIG DETAIL ===" in result.stdout
     assert "=== AI MAINTAINABILITY DETAIL ===" in result.stdout
-    assert "(unavailable: check-agent-context.sh failed)" not in result.stdout
-    assert "(unavailable: check-maintainability.sh failed)" not in result.stdout
+    assert "=== AGENT CONFIG DETAIL ===\n(unavailable" not in result.stdout
+    assert "=== AI MAINTAINABILITY DETAIL ===\n(unavailable" not in result.stdout
+
+
+@WINDOWS_ONLY
+@pytest.mark.parametrize(
+    ("action", "extra_args", "receipt"),
+    [
+        ("agent-context", ("summary",), "=== AGENT INSTRUCTION SURFACE ==="),
+        ("maintainability", ("summary",), "maintainability_status:"),
+        ("doc-refs", (), "doc references: ok"),
+    ],
+)
+def test_real_python_backed_actions_run_through_git_bash(
+    tmp_path: Path,
+    action: str,
+    extra_args: tuple[str, ...],
+    receipt: str,
+):
+    target = tmp_path / "target project"
+    target.mkdir()
+    env = clean_windows_env(tmp_path)
+
+    result = run_launcher(
+        LAUNCHER,
+        action,
+        str(target),
+        *extra_args,
+        cwd=target,
+        env=env,
+    )
+
+    assert result.returncode == 0, result.stderr
+    assert receipt in result.stdout, result.stderr
 
 
 @WINDOWS_ONLY
@@ -467,13 +500,17 @@ def test_launcher_does_not_trust_runtime_selection_environment():
         "ENV",
     ):
         assert f'Remove-Item "Env:{name}"' in text
-    assert "--version" in text
+    assert 'waza-health-python-ok' in text
     assert "function Resolve-FinalPath" in text
     assert "function Resolve-SafePath" in text
+    assert "function ConvertTo-GitBashPath" in text
+    assert "& $bashPath -p $bashScriptPath @ScriptArgs" in text
+    assert "& $bashPath -p $scriptPath @ScriptArgs" not in text
     assert "function Test-GitBashRoot([string]$Root, [string]$TargetRoot)" in text
     assert "if ($gitRoot -and -not (Test-GitBashRoot $gitRoot $targetRoot))" in text
     assert "function Resolve-WorkingPython([string]$Candidate, [string]$TargetRoot)" in text
     assert "Resolve-Executable $Candidate $TargetRoot" in text
+    assert "$env:PATH.Split([IO.Path]::PathSeparator)" in text
     assert "$matches = @(" in text
     assert "foreach ($match in $matches)" in text
 

@@ -1,24 +1,28 @@
-# Public Reply Mode（GitHub issue / PR）
+# Public Reply Mode (GitHub issue / PR)
 
-当交付物是维护者在公开 issue 或 PR thread 中的回复时，由 `write` 加载。
+> **中文导读（下方英文为 canonical contract）：** 公共 issue/PR 回复必须简短、事实准确、匹配 opener 语言，明确 ship state 和 reporter next step，不暴露内部过程。发布或编辑后必须重新读取 comment、author、target item 和 issue/PR state。
 
-激活条件：“回复 issue”“reply to PR”“comment on #N”“回 issue”，或用户要求 GitHub issue / PR comment 文案。
 
-回复正文遵循硬规则：
+Loaded from `write` when the deliverable is a maintainer reply on a public issue or PR thread.
 
-1. **以 `@<reporter>` 和一句感谢开头。** 匹配 reporter 的语言：中文用“感谢反馈”，英文用 “thanks for the detailed report”。不用感叹号，不用 emoji，不用“🙏”。
-2. **然后一句话说明原因，一句话说明影响。** 不写多段背景，不使用内部 symbol name，不逐步讲解修复过程。
-3. **然后准确说明 ship state，** 且只能选一种：已随 v<X.Y.Z> 发布；已在 `main` 修复并将在下次 release 发布；计划用于 v<X.Y.Z>；不计划支持（附一行理由和替代路径）。每句话在发布当下都必须为真：本轮没有 release evidence 就不能说“已发布”，change 尚未 commit 就不能说“已落到 main”，没有实际发生的 branch build 或 artifact run 不能被暗示为已验证。
-4. **最多两个段落，** 中间空一行。不用 bullet list、section header 或 code block，确有需要时可以放一行命令。
+Activate when: "回复 issue", "reply to PR", "comment on #N", "回 issue", or the user asks for the text of a GitHub issue / PR comment.
 
-5. **批量回复是 N 条独立回复，不是同一 skeleton 填 N 次。** 一次关闭或回答多个 thread 时，posting 前把 drafts 并排阅读：三条以上回复使用相同 opening clause、相同 paragraph order 和相同 closing move，无论每条事实多准确，都会显得像模板。只能共享事实；尤其 opening sentence 必须来自该 thread 自己的 report。
+Hard rules for the reply body:
 
-回复是最终用户文案，不是 agent log。不要写“刚才我判断错了”“前面回复有误”“I re-read it and changed the comment”等关于自身过程的元叙事。编辑既有 maintainer comment 时，直接替换为干净的最终文案，就像它是用户唯一会读到的 comment。
+1. **Default to one paragraph and one or two sentences.** Open with `@<reporter>` and at most one short thanks. Match the reporter's language. No exclamation mark, emoji, or stacked courtesy ending.
+2. **State the factual boundary and the reporter's next step.** Name exactly one ship state: already shipped in v<X.Y.Z>, fixed on `main` and going out in the next release, planned for v<X.Y.Z>, not planned with one-line reason and an alternative path, or still needs specific evidence. Include root cause only when it changes what the reporter should do. Internal symbols, files, CI approval, and maintainer process stay out.
+3. **Every sentence must be currently true.** No "already shipped" without release evidence in the current turn, no "landed on main" while the change sits uncommitted, and no implied build or artifact verification that did not happen.
+4. **Two short paragraphs are the exception**, used only when a one-line command or necessary ambiguity cannot fit cleanly. No bullet lists, section headers, or code blocks except that one-line command.
+5. **A batch of replies is N replies, not one skeleton filled N times.** When closing or answering several threads in one pass, read the drafts side by side before posting: same opening clause, same paragraph order, and same closing move across three or more of them reads as template voice no matter how correct each one is. Only the facts are shared. The opening sentence in particular should come from that thread's own report.
 
-发布前使用 `gh issue view <num>` 或 `gh pr view <num>` 重新读取 live issue / PR。不要凭记忆回复；title、state 和 author language 可能在 session 之间变化。
+The reply is the final user-facing text, not an agent log. Do not write "刚才我判断错了", "前面回复有误", "I re-read it and changed the comment", or any meta narration about your own process. If editing an existing maintainer comment, replace it with the clean final wording as if it were the only comment the user will read.
 
-对付费或订阅用户，用一个短语承认购买关系和造成的不便，然后说明边界，不要过度解释。当前产品无法支持其环境时，给出最安全的实际路径，例如升级 macOS、等待下次 release、提供 logs 或退款方式，不要争辩。
+Before posting, re-read the live issue / PR with `gh issue view <num>` or `gh pr view <num>`. Do not reply from memory; titles, states, and author languages change between sessions.
 
-对私有 support channel（DM、in-app reply、support email），完全去掉报告体：使用维护者自身语气的简短口语句，先说用户能得到什么，而不是工作原理，句号比文档更少。
+After posting or editing, re-read the comment body, author, target item, and issue/PR state. Until that readback matches the intended final text, the public action is not done.
 
-关闭规则：以 `completed` 关闭时，comment 必须能独立说明修复内容和预计 release；以 `not planned` 关闭时，comment 必须能独立说明当前边界和替代路径。不能依赖 thread 中更早的上下文作为解释。
+For paid / subscribed users, acknowledge the purchase relationship and the inconvenience in one phrase, then state the boundary. Do not over-explain. When the current product cannot support their setup, suggest the safest practical path (upgrade macOS, wait for the next release, provide logs, refund route) without arguing.
+
+For private support channels (DM, in-app reply, support email), drop the report register entirely: short colloquial sentences in the maintainer's own voice, lead with what the user gets rather than how it works, and fewer full stops than documentation would carry.
+
+Closing rule: when closing as `completed`, the comment must independently explain what was fixed and the expected release. When closing as `not planned`, the comment must independently explain the current boundary and an alternative path. Do not rely on prior thread context as the explanation.

@@ -1,36 +1,39 @@
-# Mode：生成 Image Asset
+# Mode: Generated Image Asset
 
-用于由模型生成而非代码排版的 diagram、architecture illustration、cover 和 social card。本 mode 要阻止一种 rejection loop：生成，收到“难看”的反馈，改一个颜色，再生成；七轮以后才发现分歧从来不在颜色，而在 subject。
+> **中文导读（下方英文为 canonical contract）：** 生成图片前先锁定 claim、语言、aspect、palette、reference 和 exclusion list，不能用反复生成掩盖 spec 分歧。两次拒绝后停止并重新确认方向；生成资产必须检查真实输出、文字可读性、mattes/halos 和目标 surface。
 
-## 先定 Spec，再出 Pixels
 
-生成任何内容前，先写好 spec 并取得批准。只写六行，不得更多：
+For diagrams, architecture illustrations, covers, and social cards produced by generation rather than laid out in code. The failure this mode exists to stop is the rejection loop: generate, get "ugly", tweak a color, generate again, seven rounds later the subject was never the disagreement.
 
-- **一句话说明图片表达什么。** 写 claim，不写 topic。“一个清理 Mac 的 terminal tool”是 claim；“architecture diagram”只是 topic。
-- Frame 内每个 string 使用的**语言**。
-- **Aspect 和展示位置**（README header、social preview、release body、docs inline）。最小展示位置上的 legibility 决定 type size。
-- **Palette 数量**，用数字写明。Generated art 默认会使用超过 diagram 承载能力的颜色。
-- **Reference**：用户已经接受的 existing image，或这张 asset 要与之并列的 named product style。
-- **绝不能出现**：exclusion list。Version number 和 changelog content 默认放进这里。
+## Spec Before Pixels
 
-跨 sibling repos 只复用已批准的 visual-system constraints。每个 repo 都要重新构建 claim、language、use 和 exclusions。
+Resolve the spec from the user's prompt, accepted references, and destination before generating anything. Surface it in six lines, no more. Use the shared initial preflight clarification round from the UI mode picker, not an additional round; ask only when an unresolved spec field has two materially different interpretations, and do not turn a fully specified request into an approval ceremony.
 
-## 两次拒绝就是 Hard Stop
+- **One sentence on what the image says.** Not the topic, the claim. "A terminal tool that cleans a Mac" is a claim; "architecture diagram" is a topic.
+- **Language** of every string in the frame.
+- **Aspect and where it will be seen** (README header, social preview, release body, docs inline). Legibility at the smallest place it appears is the constraint that decides type size.
+- **Palette count**, stated as a number. Generated art defaults to more colors than a diagram can carry.
+- **Reference**: an existing image the user already accepted, or a named product whose asset style to sit next to.
+- **Must not appear**: the exclusion list. Version numbers and changelog content belong here by default.
 
-只统计对 look 的拒绝，不统计 content 修改。第二次拒绝后停止生成并重新对齐：重述那句 claim，询问应与哪张 existing image 并列，再确认 exclusion list。第三次盲目重新生成等于把 rejection 当作 parameter noise；如果新版反而比旧版更差，就证明整个过程没有 anchor。
+Across sibling repos, carry over only approved visual-system constraints. Rebuild the claim, language, use, and exclusions for each repo.
 
-某个 version 部分正确时，重新生成前先点名要保留的部分。“保留 composition，只改 palette”会收敛；“让它更好”不会。
+## Two Rejections Is A Hard Stop
+
+Count rejections on look, not on content. After the second, stop generating and re-align: restate the one sentence, ask which existing image to sit next to, confirm the exclusion list. This event-triggered recovery does not consume another preflight round; it reopens only the claim, reference, and exclusion fields for the affected asset. A third blind regeneration treats the rejection as parameter noise, and the version after it can be worse than the version before, which is the tell that nothing was anchored.
+
+When a version is partly right, name the part that survives before generating again. "Keep the composition, change the palette" converges; "make it better" does not.
 
 ## Decoration Debt
 
-每一个 mark 都必须编码信息。展示 output 前检查：
+Every mark must encode information. Sweep the output for these before showing it:
 
-- **对每条 rule、border、frame 和 divider 做 removable test。** 删除后不损失信息，它就只是 decoration。
-- **Arrowhead 使用最小可辨尺寸，** 不使用 generator 默认值。Oversized arrow 看起来像 clip art，是最常见的 rejection 原因。
-- **Logo 使用透明或匹配的背景。** Dark field 上的 logo 带 white halo，说明 source 自带 matte；修 source，不要涂盖。
-- **保持 flat field。** Diagram 中的 gradient、glow 和 drop shadow 会制造没有信息意义的 depth，并弄脏 darkest region。
-- **控制 line count。** Connector 和 separator 的增长速度比它们承载的信息更快；两个 box 已经相邻时，adjacency 本身就表达了关系。
+- **Removable-test each rule, border, frame, and divider.** If deleting it loses no information, it was decoration.
+- **Arrowheads at the smallest legible size**, not the generator's default. Oversized arrows read as clip art and are the single most common rejection.
+- **Logos on transparent or matched ground.** A white halo around a logo on a dark field means the source had a matte; fix the source, do not paint over it.
+- **Flat field.** Gradients, glows, and drop shadows in a diagram add depth that carries no meaning and muddies the darkest region.
+- **Line count.** Connectors and separators multiply faster than the information they carry; if two boxes are adjacent, adjacency already says it.
 
-## Scope 要描述产品本身
+## Scope It To What The Thing Is
 
-Evergreen asset 描述 product，不描述 release。默认把 version string、changelog entry 和 “new in” framing 放进旁边的 text。用户明确要求 release card 或其他 release-specific asset 时，才加入指定 release content，并把较短的有效期视为有意选择。
+Evergreen assets describe the product, not a release. Keep version strings, changelog entries, and "new in" framing in adjacent text by default. When the user explicitly asks for a release card or other release-specific asset, include the requested release content and treat its shorter shelf life as intentional.

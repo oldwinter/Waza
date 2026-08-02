@@ -1,29 +1,31 @@
 # Screenshot Iteration Mode
 
-当用户提供 rendered surface 的截图，并希望基于这份证据改进界面时，由 `ui` 加载。
+> **中文导读（下方英文为 canonical contract）：** Screenshot iteration 以用户截图和真实运行 surface 为最终证据，先命名具体视觉差异，再锁定 target/preserve/evidence。若存在 shared component、状态切换或 transition，按受影响 sibling、viewport 和 before/during/after 组成最小 visual matrix，并在渲染后重新检查 preserve 边界。
 
-当用户发送截图或图片，并附带“这里很丑”“这个不对”“fix this”“looks wrong”等反馈时激活。现有产品就是方向，跳过五问方向锁定。
 
-**流程：**
+Loaded from `ui` when the user supplies a screenshot of a rendered surface and wants it improved against that evidence.
 
-1. 阅读截图。用一句话描述具体问题：spacing、contrast、alignment、typeface、color、density 或 hierarchy 哪里不对。用户的负面描述有诊断价值时保留原词，不要把“丑”“乱”“不清晰”“怪”稀释为模糊的“更现代”。
-2. 修改代码前，等待用户确认诊断。
-3. 用户提供 reference screenshot、旧版本或“这个是好的”示例时，先比较当前与 reference，指出视觉差异，再选择修复方案。
-4. 若诊断属于已知 UX 问题（split-view sync、infinite scroll、virtualised list、sticky header），写代码前先用一轮调查同类产品中 2-3 个成熟实现，并引用各自做法。纯 cosmetic 修复（color、spacing、copy）可跳过。
-5. 找到负责代码：grep component name 或 class，并阅读实际文件。不要依靠记忆或假设文件位置。
-6. 应用最小修复。对现有产品，先尝试材质/透明度、几何、间距、排版或文字适配，再考虑重设计 surface。
-7. 在 browser、native app、screenshot tool 或 rendered artifact 中验证结果；适用时检查 desktop width 和 375px mobile width。检查长单词、本地化字符串、button label 和 compact state 是否 overflow。host 无法渲染时明确说明，并给出用户需要检查的准确 view。
-8. 请用户在 browser 中验证。不得省略此步骤直接交付。
+Activate when the user sends a screenshot or image alongside a complaint ("这里很丑", "这个不对", "fix this", "looks wrong"). The existing product is the direction. Skip the five-question direction lock.
 
-**校准规则：**
+**Flow:**
 
-- 用户截图是本轮最强的 design brief，在修复完成前始终把它作为判断依据。
-- 真实运行产品是最终标准。产品页面、app screenshot、release page 和当前 UI state 优先于通用风格直觉。
-- 不要把具体审美反馈压平为通用 UI 形容词。“More premium”不是诊断，“caption baseline 位于中文行上方”才是。
-- 若截图显示的是 regression、broken render、timing issue 或 generated asset defect，而不是审美问题，转到 `/hunt` 并保留视觉证据。
+1. Read the screenshot. State the problem in one sentence: what specifically looks wrong (spacing, contrast, alignment, typeface, color, density, hierarchy). Preserve the user's negative label when it is diagnostic; do not translate "丑", "乱", "不清晰", or "怪" into vague "make it modern" language.
+2. Lock the repair contract before touching code: `target` names the surface and viewport/state allowed to change; `preserve` names the adjacent surface, content, and product behavior that remain unchanged; `evidence` names the current render and any available reference renders that will prove the result. Ask only when two plausible targets would produce materially different behavior; otherwise act on the strongest screenshot evidence.
+3. If the user provides a reference screenshot, older version, or "this one is good" example, compare current vs. reference and name the visual deltas before choosing a fix.
+4. If the diagnosis is a genuinely unfamiliar UX problem and current product evidence remains underdetermined after reading references, source, and sibling components, spend one round surveying how 2-3 mature products in the same category solve it before writing code. Cite one concrete decision from each. Skip the survey when existing evidence settles the interaction or the fix is cosmetic.
+5. Find the responsible code: grep for the component name or class, read the actual file. Do not rely on memory or assumptions about file location.
+6. Apply the minimal fix. For existing products, try material/opacity, geometry, spacing, typography, or text-fit adjustments before redesigning the surface.
+7. If the complaint says "still" or exposes alignment, sizing, conditional rendering, animation, or shared-component inconsistency, freeze a minimal visual matrix before verification: affected sibling surfaces; desktop and 375px when applicable; default, selected/focused, loading, empty/error, and compact/localized states that the change can reach; and before/during/after plus cold/warm paths for transitions. Derive one shared invariant or token where the same defect repeats instead of tuning screenshots independently.
+8. Verify the matrix in a browser, native app, screenshot tool, or rendered artifact, then re-check every `preserve` boundary. A final-state screenshot does not prove copy feedback, touch behavior, first paint, or transition stability. If rendering is available, finish the loop yourself and report the checked states. If the host cannot render, say that explicitly and hand off the shortest exact view the user should check.
 
-**Native screenshot 交接。** 对 native app，一旦已证明 app 能 build、run 并到达目标 view，不要为了最终视觉证明反复与 focus、window ordering 或 coordinate-click automation 纠缠。只做一次边界明确的自动化尝试；若仍不稳定，指出准确 screen，并请用户提供截图继续迭代。这是 visual QA 边界，不能替代 build/run 验证。
+**Calibration rules:**
+- The user's screenshot is the strongest design brief in the turn. Keep it visible in the reasoning until the fix is done.
+- The real running product is the oracle. Product pages, app screenshots, release pages, and current UI state override generic style instincts.
+- Do not flatten specific taste feedback into generic UI adjectives. "More premium" is not a diagnosis; "caption baseline drifts above the Chinese line" is.
+- If the screenshot exposes a deterministic runtime regression or a broken coded render, state, or timing path, route to `/hunt` and preserve the visual evidence. Generated image assets remain in `mode-generated-asset.md` for both taste and output defects, including malformed labels, mattes, and halos.
 
-**边界：** 若修复需要修改三个及以上 component，或揭示的是方向问题而非具体 bug，暂停并执行完整 direction lock 后再继续。
+**Native screenshot handoff.** For native apps, once you have proven the app builds, runs, and can reach the target view, do not spend repeated cycles fighting focus, window ordering, or coordinate-click automation just to capture final visual proof. Make one bounded automation attempt. If it is flaky, name the exact screen and ask the user for the screenshot to iterate against. This is a visual QA boundary, not a substitute for build/run verification.
 
-**重设计优先顺序**（重做现有 UI，而非从零构建）：font replacement -> color cleanup -> hover/active states -> layout and whitespace -> replace generic components -> add loading/empty/error states -> typographic polish。此顺序能在控制每轮 blast radius 的同时获得最大的视觉提升。完整规则、常见陷阱和 CSS absolute bans 见 `references/design-reference.md`。
+**Boundary**: if the fix requires changing 3 or more components, or if it reveals a direction problem rather than a specific bug, pause and run the full direction lock before continuing.
+
+**Redesign priority order** (when reworking an existing UI rather than building from scratch): font replacement → color cleanup → hover/active states → layout and whitespace → replace generic components → add loading/empty/error states → typographic polish. This order maximizes visual lift while minimizing the blast radius of each pass. Full rules, common traps, and absolute CSS bans all live in `references/design-reference.md`.
