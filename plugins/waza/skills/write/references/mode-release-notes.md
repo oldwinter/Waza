@@ -22,9 +22,9 @@ Before drafting, gather style references:
 
 ### Release Notes Content Rules
 
-- **Build a complete user-visible inventory before drafting.** Resolve the last published release through `HEAD`, include relevant dirty/generated delivery changes, map each change to the user outcome it alters, and state omissions explicitly. Then merge items with the same outcome and order them by user impact. Commit-title order is not release-note priority.
+- **起草前建立完整的用户可见清单。** 从最后一个已发布 release 一直核对到 `HEAD`，纳入相关 dirty/generated delivery changes，把每项 change 映射到它改变的 user outcome，并明确说明 omissions。随后合并 outcome 相同的 items，按 user impact 排序。Commit title 的顺序不是 release-note priority。先写产品自身 domain，install、build 和 packaging plumbing 放在后面，即使 plumbing fix 是本次 release 风险最高的改动。
 - **Group by user-perceivable feature**, not by internal taxonomy. "Polish", "细节打磨", "Misc improvements", "Chores" are not categories users can act on. Group by product surface (Clean / Uninstall / Status / Settings) or by user-visible verb (Faster startup / New keyboard shortcut / Fixed crash on M3).
 - **Extract from `git log <last-tag>..HEAD`** rather than from memory. Read every `feat:` and `fix:` commit; do not omit small items just because they look minor in commit form (iOS wrapper support, Dock cleanup, AV-vendor protection boundary are not "minor" from a user point of view).
-- **One sentence per item, naming the user-visible change**, not the implementation. "Use `CKDownloadQueue` observer for App Store updates" is not a release note; "App Store updates now run inside the app instead of opening App Store" is.
+- **每项只用一句话，写清用户可见变化**，不要写 implementation。“Use `CKDownloadQueue` observer for App Store updates”不是 release note；“App Store updates now run inside the app instead of opening App Store”才是。即使完全不涉及代码，internal vocabulary 也有同样问题：你在自己的 rules 或 docs 中创造的术语，对从未打开过它们的读者就是 jargon。新增 rule 的名称永远不是 release item；工具现在对用户做了什么不同的事，才是。
 - **Bilingual structure**: when the project ships bilingual release notes, put the English block and the Chinese block as two parallel sections inside the same release item; do not interleave per bullet. For HTML-capable update-feed CDATA, separate language blocks with headings so the rendered update window does not collapse them together.
 - **Punctuation**: Chinese full-width in Chinese blocks, ASCII in English blocks.

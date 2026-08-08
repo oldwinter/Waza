@@ -137,6 +137,9 @@ Common native freeze traps：
 | 切换 theme / mode / locale 后出错，restart 后正常 | Toggle path 没有重新应用 state。先 trace toggle 的 recompute 或 invalidation route；state path 坏着时，不要逐像素调整 styles |
 | 改了 algorithm，但 output 仍然错误 | Reader 可能命中了旧代码写入的 persisted output（scan results、analysis cache、带 TTL 的 snapshot）。修改 generated-then-persisted data 时，必须在同一 change 中 invalidate 或 bump 旧 cache version；重新诊断前先确认 runtime 没在读取 stale data |
 | Reporter 能复现，本地机器正常，agent 直接盲改 | 先生成一条可 copy-paste 的 diagnostic command（single command、silent collection、one output file，并附 privacy note），再根据返回的 evidence 诊断和修复 |
+| 只修了已复现的一种原因，发布后同一 gate 又因另一原因拦住下一个用户 | 会拒绝请求的 guard 对应的是一组原因，不是单一原因。发布前枚举每条可能拒绝的 branch，并为每条提供可区分的 code、一行 reason 和 next command |
+| 用户数到 N 次，log 只显示 M 次，最终却相信了 log | 相信用户观察，把差值视为未被 instrument 的 path。Probe 在 happy path 通过，不能说明 failing path；probe 无法复现时，说明 probe 无效，不代表 defect 不存在 |
+| 在从未提供该 capability 的 surface 上修补 capability-gated feature | 写 fix 前确认运行 surface（simulator、device、sandbox、restricted entitlement）确实支持该 capability。不支持就明确说明并停止；修改 source 无法凭空提供它 |
 
 ## Rendering Bug Mode
 

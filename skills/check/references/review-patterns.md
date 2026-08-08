@@ -26,6 +26,12 @@ When a diff restores a recently removed symbol, string, asset, enum case, locali
 
 Before making an outlier match its siblings, inspect the change or comment that introduced the divergence. The asymmetry may deliberately avoid a known defect; normalization must preserve that protection.
 
+## 非原子替换用户文件
+
+当 diff 写入用户已有的 path（`curl -o`、`>`、`tee`、open-truncate-write）时，先检查中途失败后还能保留什么。若先 truncate 目标文件，connection drop、timeout 或 non-zero exit 会留下损坏文件，原文件也已丢失。必须先写入同目录 temp file，只在内容完整后才替换目标文件。
+
+Staging 只能覆盖代码明确检查的失败路径，不能自动覆盖 signals。没有 trap 时，写入中途的 interrupt 既可能遗留 temp file，也可能让 shell 越过 interrupt，继续安装不完整内容。若 fetch 同时使用 `-fsSL`、`2>/dev/null` 或吞掉 exit code，用户还会完全不知道哪里失败、哪些内容仍然完整。
+
 ## Destructive matcher breadth
 
 For recursion, mass deletion, traversal, ID-prefix wildcards, or fallback regex branches feeding a destructive sink, inspect:

@@ -100,6 +100,8 @@ For production or multi-page UIs, expand the thesis into the 9-section DESIGN.md
 
 Give at least 3 variations across genuinely different dimensions (density, typography, color, layout, motion). See "Options guide" in `references/design-reference.md` for the full variation framework. Three options differing only by accent color are not three variations.
 
+当决定属于 taste 而不是 correctness 时，主动给出选项：icon、weight、accent、motion feel。两个带 label 的候选优于直接落地一个猜测，因为用户只需回复一个字母，不必再经历一轮重写。涉及 structural change 时，先用一两句话描述 end state，得到确认后再写代码。
+
 ## Hard Rules
 
 Always-on bans for every mode: no thick side-border accents, gradient text, default glass cards, reflex purple-to-blue/cyan-on-dark palettes, generic rounded shadow-card grids, modal escapes for ordinary overflow, `transition: all`, or layout-property animation. Before handoff, scan the first viewport for default-prompt tells and remove any that were not an explicit part of the product's direction.
