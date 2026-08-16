@@ -12,7 +12,7 @@
 <br/>
 
 > [!NOTE]
-> 这是基于 [`tw93/Waza`](https://github.com/tw93/Waza) 的社区维护中文 fork，当前同步到上游 `fb4e1d3`。下方 `oldwinter/Waza` 安装命令会加载本 fork 中已中文化的 `skills/`；Codex plugin 还会加载生成的 `plugins/waza/` 镜像。
+> 这是基于 [`tw93/Waza`](https://github.com/tw93/Waza) 的社区维护中文 fork，当前同步到上游 `30bf563`。下方 `oldwinter/Waza` 安装命令会加载本 fork 中已中文化的 `skills/`；Codex plugin 还会加载生成的 `plugins/waza/` 镜像。
 
 ## 为什么
 

@@ -27,14 +27,14 @@ Waza 是面向 engineering workflows 的 skill collection。仓库包含八个 s
 - `Makefile` - smoke discovery 和 packaging entrypoints。新增一个 `tests/test_<name>.sh` 文件就会自动创建对应的 `smoke-<name>` target。
 - `tests/test_*.sh` - 每个 surface 一个 smoke；会 source `tests/test_helpers.sh` 来获取 tmpdir、repo-copy、stub-curl 和 instruction-file fixture factories。`tests/python/` 是 pytest unit layer（`make verify-unit`）。
 
-## Hotspot Ownership
+## Health Implementation Ownership
 
-Verify hotspot changes with `make verify-unit` plus the matching smoke (`tests/test_health.sh`, `tests/test_maintainability.sh`).
+Verify Health changes with `make verify-unit` plus the matching smoke (`tests/test_health.sh`, `tests/test_maintainability.sh`).
 
 - `skills/health/scripts/collect-data.sh`: owns bounded, redacted discovery and receipt assembly. Keep shell to orchestration and simple presence checks; structured parsing belongs in Python helpers.
 - `skills/health/scripts/check_agent_context.py`: owns effective instruction, permission, hook, path-context, and active-skill routing evidence. It must not treat plugin caches as active installs or follow escaped symlinks.
 - `skills/health/scripts/conversation_audit.py`: owns project-scoped, redacted conversation signals and coverage receipts. Structured runtime events define interruptions; cloned history must not multiply corrections.
-- `skills/health/scripts/check_maintainability.py`: owns repository shape, verifier, doc-link, drift, and hotspot receipts. Generated mirrors count as one logical maintenance surface.
+- `skills/health/scripts/check_maintainability.py`: owns repository-signal, verifier, doc-link, generated-mirror, and drift receipts. Counts, missing maps, and large files stay informational unless tied to risk or real failure evidence.
 
 ## Commands
 
@@ -166,5 +166,5 @@ Update: `npx skills update -g -y` · [Claude Desktop](https://github.com/tw93/Wa
 ```
 
 - 每个 item：`**Label**: one sentence`。加粗 label 是 skill 或 module name；description 先说清发生了什么变化。
-- Style：面向工程师，不用营销语言。英文和中文 items 必须按编号一一对应，共 5 到 8 项，每项一句。
+- Style：面向工程师，不用营销语言。英文和中文 items 必须按编号一一对应；使用能覆盖 distinct user outcomes 的最小完整集合，每项一句。
 - Footer：update command + star + repo link，用 `·` 分隔。

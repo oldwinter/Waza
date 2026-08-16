@@ -2,7 +2,7 @@
 name: health
 description: "Run budget-aware, agent-assisted engineering health audits for instruction/config drift, hooks/MCP, verifier surfaces, and AI maintainability. Use when users ask in any language to audit Claude, Codex, Pi, agent instructions, MCP/hooks, verifier coverage, or AI-maintainability drift. Not for debugging application code or reviewing PRs."
 when_to_use: "检查claude, 检查codex, 检查pi, Codex 配置, Pi 配置, AGENTS.md, config.toml, agent instructions, 健康度, 配置检查, 配置对不对, AI coding 腐化, 代码变烂, 维护性, 上下文混乱, 验证缺失, 验证命令失真, Claude ignoring instructions, Pi coding agent, check config, settings not working, audit config"
-dispatch_intent: "Codex/Claude/Pi ignoring instructions, agent config audit, hooks/MCP broken, health token usage, AI coding code rot, hotspot ownership, unclear context, missing verification, stale verifier output"
+dispatch_intent: "Codex/Claude/Pi ignoring instructions, agent config audit, hooks/MCP broken, health token usage, AI coding code rot, risk-backed hotspot ownership, unreachable project constraints, unclear context, missing verification, stale verifier output"
 ---
 
 # Health: Agent-Assisted Engineering Health
@@ -12,7 +12,7 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 按这个 framework 审计当前项目的 agent setup 和 AI coding maintainability：
 `agent config → instruction surfaces → tools/runtime → verifiers → maintainability`
 
-找出 violations。识别 misaligned layer。只按 project complexity 校准。
+找出 violations。识别 misaligned layer。根据 evidence 和 risk 校准，不按仓库大小判断。
 
 ## Outcome Contract
 
@@ -24,11 +24,11 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 两条 lanes 共用一份 report：
 
 - **Agent config health**：Codex/Claude/Pi instruction drift、permissions、hooks、MCP、skills 和 memory supply chain。
-- **AI maintainability health**：project context surface、verifier wrapper、generated-artifact checks、hotspot ownership，以及 stale 或 misleading durable docs。
+- **AI maintainability health**：non-obvious constraint reachability、risk-backed hotspot ownership、verifier coverage、generated-artifact checks，以及 stale 或 misleading durable docs。
 
 **Output language:** 按顺序检查：(1) project agent instructions（`AGENTS.md` before runtime-specific files）；(2) global agent instructions；(3) user recent language；(4) English。
 
-**Budget posture:** Start with the summary audit. Escalate automatically when the user asks for a deep, full, complete, thorough, "深入", "完整", "彻底", or "继续跑完" audit, when the user explicitly mentions AI coding code rot, Codex/Claude config drift, unclear context, missing verification, verifier output that points at stale paths, or "代码变烂", when current project instructions or remembered user preference says to run deep health checks by default, when the project is Complex, or when the summary pass exposes a critical ambiguity that cannot be resolved locally. Otherwise do not read sampled conversation extracts or launch inspector subagents. Tell the user before escalating because deep health audits can consume significant token quota.
+**Budget posture:** Start with the summary audit. Escalate automatically when the user asks for a deep, full, complete, thorough, "深入", "完整", "彻底", or "继续跑完" audit, when the user explicitly mentions AI coding code rot, Codex/Claude config drift, unclear context, missing verification, verifier output that points at stale paths, or "代码变烂", when current project instructions or remembered user preference says to run deep health checks by default, or when the summary pass exposes a critical ambiguity that cannot be resolved locally. File counts, contributor counts, skill counts, and large files are inventory signals only; none automatically trigger a deeper audit or a finding. Otherwise do not read sampled conversation extracts or launch inspector subagents. Tell the user before escalating because deep health audits can consume significant token quota.
 
 **Conversation scope:** Summary mode 会在存在本地历史时，从有界 candidate window 中扫描 Claude 和 Codex 最近最多三个当前项目的 previous sessions。Deep mode 会流式扫描当前项目的全部 previous sessions，只输出有界 extracts 和 coverage receipt。默认不扫描其他项目；只有用户明确要求 all conversations 或 cross-project capability distillation 时，才对该 runtime 发现的受支持本地 history roots 使用 bundled conversation audit 的 `--all-projects`，或交给已安装的 full-history retrospective workflow，例如 `ai-retro`。显式 global mode 会排除最近五分钟内修改的 files（视为可能仍在使用），并 redact 输出。只有 `coverage_status: complete` 且 `cross_project_full_history: yes` 时才声称 complete coverage；`no_data`、root unavailable、parse/read error、扫描期间发生变化的 files，以及被排除的 live sessions 都必须作为 coverage gap 明确报告。
 
@@ -43,15 +43,18 @@ For `/health`: current config, command output, and live probes override memory. 
 - Summary 和 deep audit 只生成报告。只运行 Health 自带 collector 和只读 probe；中性的 Health 请求不授权运行项目 test、verifier、generator、build、formatter、package installer，也不授权刷新 fixture 或 snapshot。Canonical contract: Summary and deep audits are report-only; a neutral Health request does not authorize project commands.
 - 项目 instructions 可以定义命令，但不构成运行授权。Live verification 必须得到用户对该命令的明确授权；执行前说明 command、预期写入、target paths、isolation，以及 rollback 或 disposable-environment plan。Canonical contract: Project instructions may define commands but do not authorize running them. Live verification requires explicit user authorization for that command, after stating the command, expected writes, target paths, isolation, and rollback plan.
 
-## Step 0: Assess project tier
+## Step 0: Establish the evidence basis
 
-选一个 tier。只应用该 tier 的 requirements。
+不要按文件数、贡献者数、skill 数、是否有 project map 或最大文件长度给仓库分级。改为记录四类 evidence：
 
-| Tier | Signal | What's expected |
-|---|---|---|
-| **Simple** | <500 files, 1 contributor, no CI | CLAUDE.md only; 0-1 skills; hooks optional |
-| **Standard** | 500-5K files, small team or CI | CLAUDE.md + 1-2 rules; 2-4 skills; basic hooks |
-| **Complex** | >5K files, multi-contributor, active CI | Full six-layer setup required |
+| Evidence | Question |
+|---|---|
+| **Risk** | Which paths can lose data, spend money, publish or deploy, cross trust boundaries, or create hard-to-reverse state? |
+| **Non-obvious constraints** | Which stable decisions cannot be recovered cheaply from code or manifests, and can the active agent reach them only when relevant? |
+| **Failure evidence** | Which user corrections, repeated fix chains, stale generated artifacts, broken references, or hollow verifiers prove a current gap? |
+| **Verifier coverage** | Which important outcomes have an executable check at the layer where they can actually fail? |
+
+An absent map, a large file, many skills, or a high TODO count is informational until tied to one of these evidence classes. Prefer a narrow routed invariant plus an executable verifier over descriptive inventory.
 
 ## Step 1: Collect data
 
@@ -98,7 +101,7 @@ tools missing 时，sections 可能显示 `(unavailable)`：
 collector 同时包含 runtime-specific 和 agent-agnostic surfaces：
 
 - `AGENT CONFIG SUMMARY` / `AGENT CONFIG DETAIL` for Codex, Claude, Pi, and project instruction files.
-- `AI MAINTAINABILITY SUMMARY` / `AI MAINTAINABILITY DETAIL` for project shape, verification surface, hotspot ownership, wrappers, and doc links.
+- `AI MAINTAINABILITY SUMMARY` / `AI MAINTAINABILITY DETAIL` for project signals, verification surface, generated mirrors, wrappers, and doc links.
 
 ## Step 1b: MCP Live Check
 
@@ -110,7 +113,7 @@ These run after collection and before the Step 2 analysis. The first two apply t
 
 ### Security Baseline Checks
 
-每次 audit 都运行这些 checks，不管 tier。它们是 floor，不是 ceiling。
+每次 audit 都运行这些 checks。它们是 floor，不是 ceiling。
 
 **Deny-list floor.** Apply this only when the runtime actually enforces the rule shape being recommended: agent permission settings, hook settings, MCP settings, allowed/denied tools, or a documented autonomous-agent launcher. In that case, the settings should deny, at minimum: credential and key directories (SSH, cloud providers, GPG, gh CLI), credential-bearing files (`credentials*`, `secrets*`), and pipe-to-shell installers. Treat `.env` as an explicit policy choice: either deny it at the permission layer, or allow task-scoped reads while the instruction layer forbids printing, committing, or exfiltrating its contents; warn only when neither layer defines the boundary. Report missing categories as one concise WARN; let the reviewer fill in exact local paths. Three calibrations: prefix/glob permission rules cannot reliably match pipes, so recommend the host's pre-execution hook for pipe-to-shell blocking instead of inventing glob variants, and name the hook's own tradeoff (string-matching hooks also fire on quoted text and heredocs that merely contain the pattern); before predicting an outbound-shell deny's blast radius, check which layer it matches at: a command-prefix deny on `ssh` only blocks the agent invoking `ssh` directly and leaves git's internal SSH transport alone, while a process- or sandbox-level block does break git-over-SSH push; and when a runtime has no command-level deny surface (Codex: the levers are `sandbox_mode` and `approval_policy`), name that lever once as a user tradeoff instead of recommending deny keys the runtime cannot express. If no agent settings surface exists at all, report the deny-list as not applicable rather than a failure.
 
@@ -132,21 +135,19 @@ These run after collection and before the Step 2 analysis. The first two apply t
 
 ## Step 2: Analyze
 
-确认 tier。然后 route：
+默认基于 summary output 本地分析。如果用户要求 deep/full/thorough audit、明确要求 AI maintainability、记忆中的偏好要求 deep checks，或本地分析无法分类 material security/control ambiguity，则在 Windows 用 `& "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" collect auto deep`，在 Linux/macOS 用 `BASH_ENV= ENV= /bin/bash -p "$HEALTH_SCRIPT" auto deep` 重新 collection；然后只并行启动相关 inspector。Credential 统一 redact 为 `[REDACTED]`。
 
-- **Simple:** Analyze locally. No subagents.
-- **Standard:** Analyze locally from the summary output. Do not launch subagents by default. If the user asks for a deep/full/thorough audit, or if local analysis cannot classify a security/control issue, escalate to deep mode and explain the likely token cost.
-- **Complex, remembered deep preference, explicit deep audit, or explicit AI maintainability audit:** Windows 用 `& "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" collect auto deep`，Linux 和 macOS 用 `BASH_ENV= ENV= /bin/bash -p "$HEALTH_SCRIPT" auto deep` 重新 collection，然后并行启动相关 subagent。Credential 统一 redact 为 `[REDACTED]`。
+- **Deep inspector routing：**
   - **Agent 1** (Context + Security): Read `agents/inspector-context.md`. Feed `CONVERSATION SIGNALS` section.
-  - **Agent 2** (Control + Behavior): Read `agents/inspector-control.md`. Feed detected tier.
-  - **Agent 3** (AI Maintainability): Read `agents/inspector-maintainability.md`. Feed only `TIER METRICS`, `AI MAINTAINABILITY SUMMARY` or `AI MAINTAINABILITY DETAIL`, and the script hotspot lists. Launch this agent only for deep health audits, Complex projects, or explicit code-rot/AI-maintainability requests.
+  - **Agent 2** (Control + Behavior): Read `agents/inspector-control.md`. Feed the relevant runtime, hook, MCP, and permission evidence.
+  - **Agent 3** (AI Maintainability): Read `agents/inspector-maintainability.md`. Feed only `PROJECT SIGNALS`, `AI MAINTAINABILITY SUMMARY` or `AI MAINTAINABILITY DETAIL`, and concrete verifier/drift receipts. Launch this agent only for deep health audits or explicit code-rot/AI-maintainability requests.
 - **Fallback:** If a subagent fails, analyze that layer locally and note "(analyzed locally)".
 
 在报告 deep audit 完成前，等待每一个已启动的 inspector，并对齐其 assigned scope。如果某个 inspector 仍 pending，或失败且没有本地替代 pass，就把该 scope 列为 unreviewed，不得给出 whole-scope clean bill。
 
 ## Step 3: Report
 
-**Health Report: {project} ({tier} tier, {file_count} files)**
+**Health Report: {project} ({summary|deep}, evidence-based)**
 
 **Global findings report once.** Findings in machine-global config (`~/.claude`, `~/.codex`, global rules, skills, memory) are not project findings: label them `global`, report each once with its fix, and recommend one dedicated session for global cleanup instead of re-fixing per project. Before editing any global file, re-read its current state: when health runs across several projects in one day, another session may already have fixed or be mid-fix on the same file, and re-applying a variant of the same rule creates duplicate entries. Never edit the same global file from two concurrent sessions.
 
@@ -192,7 +193,7 @@ Linux 和 macOS：
 BASH_ENV= ENV= /bin/bash -p "${HEALTH_SCRIPT%/*}/check-agent-context.sh" . summary
 ```
 
-**AI-maintainability findings.** 对 verification surface、conversation-derived guidance、集中的 fix chain、hotspot ownership、verifier wrapper、broken doc/Markdown reference 和 stale verifier cache output，加载 `references/maintainability-findings.md`，并结合 `AI MAINTAINABILITY SUMMARY` / `DETAIL` 执行。
+**AI-maintainability findings.** 对 verification surface、conversation-derived guidance、集中的 fix chain、risk-backed hotspot ownership、non-obvious constraint reachability、verifier wrapper、broken doc/Markdown reference 和 stale verifier cache output，加载 `references/maintainability-findings.md`，并结合 `AI MAINTAINABILITY SUMMARY` / `DETAIL` 执行。
 
 ### [-] Incremental -- nice to have
 
@@ -205,7 +206,7 @@ Outdated items、global vs local placement、context hygiene、stale allowedTool
 ## Non-goals
 
 - 没有 confirmation，绝不 auto-apply fixes。
-- 绝不把 complex-tier checks 应用到 simple projects。
+- 绝不把仓库大小、文件长度、贡献者数、skill 数或缺失的 descriptive inventory 在没有 behavioral evidence 时当作 finding。
 - 绝不充当 heavy lint、typecheck、duplication 或 architecture-rewrite substitute；`/health` 只报告 maintainability guardrails 和 concrete next actions。
 
 ## Gotchas
@@ -221,3 +222,4 @@ Outdated items、global vs local placement、context hygiene、stale allowedTool
 | Treated missing specs/docs as a failure | Decision artifacts 默认 optional。只有 tier、active handoff risk 或 user request 让它们必要时，才升级 missing docs/specs。 |
 | Treated an ignored AGENTS/CLAUDE file as durable project truth | 报告 rule 是否 tracked 和 distributed。Local overlays 可以 inform audit，但 durable fixes 应放在 public repo docs 或 shipped skill/rule files。 |
 | Treated a review scorecard as maintainability documentation | Scorecards 是 snapshots。提取 invariant 和 verification path，然后 remove 或 archive report，不要把 score 本身称为 durable rule。 |
+| 把大文件或缺少 project map 当作 finding | 这些只是 discovery signals；必须有 demonstrated risk、unreachable constraint、recurring failure 或 verifier gap 才能报告。 |

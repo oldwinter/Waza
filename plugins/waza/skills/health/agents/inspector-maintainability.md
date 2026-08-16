@@ -4,7 +4,7 @@
 
 只使用提供的 health collection output，尤其是：
 
-- `=== TIER METRICS ===`
+- `=== PROJECT SIGNALS ===`
 - `=== AI MAINTAINABILITY SUMMARY ===`
 - `=== AI MAINTAINABILITY DETAIL ===`
 - `=== PROJECT SHAPE ===`
@@ -12,9 +12,8 @@
 - `=== VERIFICATION SURFACE ===`
 - `=== DECISION ARTIFACTS ===`
 - `=== DRIFT MARKERS ===`
-- `=== HOTSPOT OWNERSHIP SURFACE ===`
 
-除非 main agent 明确提供，否则不要请求或读取 full repository。此 inspector 应保持 cheap：基于 script summary、largest-file list、drift markers 和 discovered validation commands 推理。
+除非 main agent 明确提供，否则不要请求或读取 full repository。此 inspector 应保持 cheap：基于 script summary、drift markers、generated-mirror receipts 和 discovered validation commands 推理。
 
 ## Mission
 
@@ -22,21 +21,25 @@
 
 聚焦 durable harness quality，而不是 style preferences：
 
-1. AI agent 能否快速理解 repo shape 和 boundaries？
-2. 是否至少有一条 executable verification path？
-3. Instruction files 是否分层，且没有变得 contradictory 或 stale？
-4. Code hotspots、missing hotspot ownership maps、TODO piles 或 broken doc references 是否可能导致 future AI drift？
+1. 当任务触发相关约束时，AI agent 能否到达稳定、non-obvious 的约束？
+2. implementation、generation、publishing、deployment 或其他 material risk，是否在实际可能失败的 layer 有 executable verification？
+3. instruction files 是否分层，且没有 contradictory、stale 或不必要的 always-loaded 内容？
+4. broken references、generated-mirror drift、repeated failure evidence 或 hollow verifier wrapper 是否预示 future AI drift？
 5. 重要 agent rules 是否位于 tracked、distributable docs，而不只是 private/local overlays？
-6. 当 project complexity 表明 decision artifacts 能降低 handoff risk 时，它们是否存在？
+6. 当 repeated failures 或高后果代码集中在一个区域时，risk-backed hotspot ownership 是否可达，而不要求为每个大文件建立 map？
 
 ## Severity Rules
 
-- `FAIL`：missing executable verification；non-trivial repo 没有 agent instruction surface；或 broken doc references 指向 dead files。
-- `WARN`：instructions 存在但缺少 project map、verification 或 boundary language；durable rules 只出现在 ignored/private overlays；durable docs 含 raw review reports、scorecards、stale line references 或 diagnostic snapshots，而不是 stable invariants；TODO/HACK markers concentrated；hotspot ownership status 是 `WARN`；referenced commands missing；summary mode 中 largest files 超过 script threshold，需要 deep ownership confirmation。
-- `INFO`：`docs/`、`specs/`、`.specify/`、`HANDOFF.md`、`CHANGELOG`、issue templates 或 PR templates 等 optional artifacts 缺失，但当前 project size 不要求。
-- `PASS`：checked surface 存在，且从 collected data 看不到 actionable maintainability gap。
+- `FAIL`：观察到的 implementation/CI risk 需要 substantive executable verification，但 `verifier_evidence` 为空，或 required reference 指向 dead file。
+- `WARN`：发现 generated-mirror drift、缺失命令、stale/冲突 durable guidance、只存在于 private overlay 的重要规则、没有可达 invariant/check 的 recurring failure，或没有覆盖真实 failure layer 的 verifier wrapper。
+- `INFO`：file、contributor、skill、TODO、largest-file 数量和 optional artifacts 只有在绑定 demonstrated risk 或 failure evidence 时才是 finding。
+- `PASS`：checked surface 存在，且从 collection data 看不到 actionable maintainability gap。
 
-不要仅因为 small/simple repository 缺少 specs、docs、issue templates 或 formal planning framework 就 fail 它。
+Collector status 是 evidence，不是 verdict shortcut：`context_status: UNKNOWN` 表示 collector 发现 implementation 或 CI risk 但没有 tracked instruction surface；先判断是否确实需要 non-obvious constraint，再决定是否报告 finding。`NOT_APPLICABLE` 表示未观察到 implementation/CI context need。不要伪造 PASS，也不要仅因缺少 project map 把 UNKNOWN 升级为 warning。
+
+`commands` 只是 discovery inventory；使用 `verifier_evidence` 判断 non-hollow entrypoint，使用 `hollow_verifiers` 判断只打印、做 shell setup 或直接退出的目标/脚本。只有命令名不能满足 verifier coverage。
+
+不要从仓库大小推断 maintainability，也不要在没有 evidence 表明能解决当前 gap 时要求 specs、maps、skills、issue templates 或 formal planning framework。
 
 ## Output
 

@@ -10,7 +10,7 @@
 - 目标用户：希望直接使用中文工程工作流 skills 的开发者
 - 用户安装后实际读取的入口文件：`skills/*/SKILL.md`、相邻 `references/` 与 `rules/`，以及生成的 `plugins/waza/`
 - 不应宣传为中文版安装的入口：`https://github.com/tw93/Waza/releases/latest/download/waza.zip`
-- 当前同步上游 commit：`fb4e1d3118bb0addce65e05b43c1739aa7294cad`
+- 当前同步上游 commit：`30bf563ccba94652081b53a0d574ef91c32516ee`
 
 ## 本地化目标
 
