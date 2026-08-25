@@ -246,7 +246,7 @@ def build_package_json(version: str) -> str:
             "type": "git",
             "url": "git+https://github.com/tw93/Waza.git",
         },
-        "homepage": "https://github.com/tw93/Waza#readme",
+        "homepage": "https://yobi.tw93.fun/projects/waza",
         "keywords": [
             "pi-package",
             "agent-skills",
@@ -259,6 +259,7 @@ def build_package_json(version: str) -> str:
         ],
         "files": [
             "LICENSE",
+            "llms.txt",
             "README.md",
             "rules",
             "scripts/setup-rule.sh",

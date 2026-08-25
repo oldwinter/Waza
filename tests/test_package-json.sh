@@ -9,6 +9,8 @@ copy_repo "$tmpdir/repo"
 
 version=$(cat "$tmpdir/repo/VERSION")
 test "$(jq -r '.name' "$tmpdir/repo/package.json")" = "@tw93/waza"
+test "$(jq -r '.homepage' "$tmpdir/repo/package.json")" = "https://yobi.tw93.fun/projects/waza"
+test "$(jq -r '.files | index("llms.txt") != null' "$tmpdir/repo/package.json")" = "true"
 test "$(jq -r '.version' "$tmpdir/repo/package.json")" = "$version"
 test "$(jq -r '.pi.skills[0]' "$tmpdir/repo/package.json")" = "./skills"
 # Pi scans root-level *.md as skills; the routing index must be excluded.
