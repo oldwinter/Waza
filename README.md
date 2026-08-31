@@ -2,6 +2,7 @@
   <img src="https://gw.alipayobjects.com/zos/k/2h/waza.svg" width="120" />
   <h1>Waza</h1>
   <p><b>把你已经熟悉的工程习惯，变成 AI agents 可以执行的 skills。</b></p>
+  <p><a href="https://yobi.tw93.fun/projects/waza">产品事实与选择器</a> · <a href="llms.txt">LLM 指南</a></p>
   <a href="https://github.com/tw93/Waza/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/tw93/Waza/test.yml?branch=main&style=flat-square&label=tests" alt="Tests"></a>
   <a href="https://github.com/tw93/Waza/stargazers"><img src="https://img.shields.io/github/stars/tw93/Waza?style=flat-square" alt="Stars"></a>
   <a href="https://github.com/tw93/Waza/releases"><img src="https://img.shields.io/github/v/tag/tw93/Waza?label=version&style=flat-square" alt="Version"></a>
@@ -12,7 +13,7 @@
 <br/>
 
 > [!NOTE]
-> 这是基于 [`tw93/Waza`](https://github.com/tw93/Waza) 的社区维护中文 fork，当前同步到上游 `30bf563`。下方 `oldwinter/Waza` 安装命令会加载本 fork 中已中文化的 `skills/`；Codex plugin 还会加载生成的 `plugins/waza/` 镜像。
+> 这是基于 [`tw93/Waza`](https://github.com/tw93/Waza) 的社区维护中文 fork，当前同步到上游 `9fbf0ab`。下方 `oldwinter/Waza` 安装命令会加载本 fork 中已中文化的 `skills/`；Codex plugin 还会加载生成的 `plugins/waza/` 镜像。
 
 ## 为什么
 

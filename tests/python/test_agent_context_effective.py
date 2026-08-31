@@ -642,6 +642,26 @@ def test_generated_plugin_mirror_is_not_a_second_direct_skill_surface(tmp_path: 
 
 
 @pytest.mark.skipif(not hasattr(os, "symlink"), reason="symlink support required")
+def test_same_physical_skill_across_runtimes_is_collapsed_with_receipt(tmp_path: Path):
+    project = tmp_path / "project"
+    home = tmp_path / "home"
+    source = home / "src" / "demo" / "SKILL.md"
+    project.mkdir()
+    (project / "AGENTS.md").write_text("# Guide\n", encoding="utf-8")
+    write_skill(source, "demo")
+    for runtime in (".agents", ".claude"):
+        link = home / runtime / "skills" / "demo"
+        link.parent.mkdir(parents=True)
+        link.symlink_to(source.parent, target_is_directory=True)
+
+    output = run_context(project, home)
+
+    assert "skill_files_scanned: 1" in output
+    assert "mirrored_skill_files_collapsed: 1" in output
+    assert "duplicate_skill_names: 0" in output
+
+
+@pytest.mark.skipif(not hasattr(os, "symlink"), reason="symlink support required")
 def test_project_instruction_and_settings_symlinks_cannot_escape_root(tmp_path: Path):
     project = tmp_path / "project"
     home = tmp_path / "home"

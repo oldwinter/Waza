@@ -163,8 +163,8 @@ Close casually with an invitation, not a CTA. End with one short sentence inviti
 | Polished a review report until it sounded timeless | Keep snapshots labeled as snapshots, or distill them into stable rules. Do not make dated claims sound evergreen |
 | 用户指出一个词 "not my voice"，只修了那一处 | 被指出的词代表一类 smell，不是一个 typo。返回前扫描全文中的同一类问题（相同 register、相同 template shape） |
 | 为达到目标字数，从四个角度解释同样三个观点 | 先清点材料。调研、一次最多询问三个问题，或交付更短版本。Padding 不是长文，而是失败的 draft |
-| Flagged or rewrote a phrase that was the author's own wording | 有 source material 时，先 grep 再 flag 或修改；恢复原文，不要 paraphrase |
-| Fixed an AI phrase with fresh invented color; the author flagged the new words too | 用 subtraction 修复：只保留材料中的事实，不新增 imagery |
+| 标记或改写了作者原本的措辞 | 有 source material 时，先 grep 再 flag 或修改；恢复原文，不要 paraphrase |
+| 用新编的 imagery 修复 AI 味短语，作者又指出新增措辞 | 用 subtraction 修复：只保留材料中的事实，不新增 imagery |
 
 ## Output
 

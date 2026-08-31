@@ -10,9 +10,9 @@
 
 **状态回答顺序：** 对“都解决了吗”“is this fixed”“is this ready”等状态问题，依次回答：code 或 commit 状态、branch 或 CI 状态、release artifact 或 registry 状态、公开 issue 或 PR 状态。不要把 fixed-on-main、available in pre-release、next stable release 和 already shipped 混为一谈。
 
-**流程：** 从公开上下文识别项目使用的 issue/PR host，并调用该平台的 CLI/API；若不存在对应集成，停止并报告缺口，不要假定 GitHub 命令适用。针对每个 open item，对照项目 release boundary 检查最新公开 release、main branch、preview/nightly/beta channel、registry/appcast 和目标 issue/PR 状态。已经进入公开 release 或有文档记录的 pre-release channel 时，用准确的升级路径关闭。已在 `main` 修复但尚未发布时，回复“已修复，等下一个版本 release”；只有项目惯例或当前请求允许 fixed-on-main closure 时才关闭，否则保持 open 并注明 next release。尚无修复时，继续分析和行动：能修则立即修复（commit 使用 `fix: closes #N`）；valid-but-unreleased item 先确认并保持 open；invalid item 用一两句说明原因后关闭。
+**流程：** 从公开上下文识别项目使用的 issue/PR host，并调用该平台的 CLI/API；若不存在对应集成，停止并报告缺口，不要假定 GitHub 命令适用。行动前，冻结初始队列的 exact IDs 和 counts。针对每个 open item，对照项目 release boundary 检查最新公开 release、main branch、preview/nightly/beta channel、registry/appcast 和目标 issue/PR 状态。已经进入公开 release 或有文档记录的 pre-release channel 时，用准确的升级路径关闭。已在 `main` 修复但尚未发布时，回复“已修复，等下一个版本 release”；只有项目惯例或当前请求允许 fixed-on-main closure 时才关闭，否则保持 open 并注明 next release。尚无修复时，继续分析和行动：能修则立即修复（commit 使用 `fix: closes #N`）；valid-but-unreleased item 先确认并保持 open；invalid item 用一两句说明原因后关闭。
 
-在 live queue 中给出最终结论前，再刷新一次 issue/PR 列表，并重读本次运行期间有变化的 item。证据不完整时保留 item，不要猜测后关闭。
+在 live queue 中给出最终结论前，再刷新一次 issue/PR 列表，并重读本次运行期间有变化的 item。将每个初始 ID 对账为 done、deferred 或 blocked，再报告最终 IDs 和 counts；新到的 item 单独列出。证据不完整时保留 item，不要猜测后关闭。
 
 **PR 处理：** 把 check 状态当作数量，而不是颜色。Fork PR 的 workflows 从未运行时，会显示 0 次 check run 和非绿色 mergeability；这不代表验证失败，而是从未验证。贡献者所说“CI is green”也可能指其上游 base，而不是当前 patch。合并前先在本地复现验证，并明确 green 来自哪一层。
 
