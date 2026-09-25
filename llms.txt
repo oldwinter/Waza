@@ -3,7 +3,8 @@
 > 面向 AI coding agent 的八个专注工程 skills：think、ui、check、hunt、write、learn、read 和 health。
 
 官方产品页：https://yobi.tw93.fun/projects/waza
-源代码：https://github.com/tw93/Waza
+源代码：https://github.com/oldwinter/Waza
+上游：https://github.com/tw93/Waza
 npm package：https://www.npmjs.com/package/@tw93/waza
 最新 release：https://github.com/tw93/Waza/releases/latest
 作者：Tw93，https://tw93.fun/
