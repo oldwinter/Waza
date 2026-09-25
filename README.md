@@ -31,18 +31,18 @@ AI 在原始产出能力上已经强过大多数工程师。但没有结构时�
 
 ## Skills
 
-每个工程习惯都对应一个安装好的 skill。在 Claude Code 里输入 slash command。在 Codex 里按名称调用已安装的 skill，并沿用同一套 playbook。
+每个工程习惯都对应一个安装好的 skill。Skill 列是安装名和文件夹名，Codex / Cursor 按这个名称调用。Claude Code 列是 slash command。各 harness 沿用同一套 playbook。
 
-| Skill | 何时使用 | 作用 |
-| :--- | :--- | :--- |
-| [`/think`](skills/think/SKILL.md) | 构建任何新东西之前 | 挑战问题、压力测试设计，并产出另一个 agent 可以直接执行的决策完备计划。 |
-| [`/ui`](skills/ui/SKILL.md) | 构建前端界面 | 产出有辨识度的 UI，包括基于截图的审美迭代，方向明确，而不是套用泛化默认值。 |
-| [`/check`](skills/check/SKILL.md) | 任务完成后、合并或发布前 | 审查 diff，提炼项目特定约束，处理已批准的 release/publish/push/reaction 收尾，并用证据验证。 |
-| [`/hunt`](skills/hunt/SKILL.md) | 任何 bug、回归或异常行为 | 系统性调试。先确认 root cause，再应用任何 fix，尤其适用于以前能工作的东西。 |
-| [`/write`](skills/write/SKILL.md) | 写作或编辑 prose | 重写中文和英文 prose，使其自然，删掉僵硬、模板化的表达。 |
-| [`/learn`](skills/learn/SKILL.md) | 深入陌生领域 | 六阶段研究 workflow：收集、消化、拟提纲、填充、精修，然后自审并准备发布。 |
-| [`/read`](skills/read/SKILL.md) | 任何 URL 或 PDF | 按平台特性路由读取 URL 和 PDF。普通读取返回简洁总结；当用户要求转换、引用、保存或供下游工作使用时输出 Markdown。 |
-| [`/health`](skills/health/SKILL.md) | 审计 Agent Health | 检查 Codex、Claude Code、项目指令、verifier 输出和 AI maintainability，在深度检查前做预算感知的摘要扫描。 |
+| Skill | Claude Code | 何时使用 | 作用 |
+| :--- | :--- | :--- | :--- |
+| [`think`](skills/think/SKILL.md) | `/think` | 构建任何新东西之前 | 挑战问题、压力测试设计，并产出另一个 agent 可以直接执行的决策完备计划。 |
+| [`ui`](skills/ui/SKILL.md) | `/ui` | 构建前端界面 | 产出有辨识度的 UI，包括基于截图的审美迭代，方向明确，而不是套用泛化默认值。 |
+| [`check`](skills/check/SKILL.md) | `/check` | 任务完成后、合并或发布前 | 审查 diff，提炼项目特定约束，处理已批准的 release/publish/push/reaction 收尾，并用证据验证。 |
+| [`hunt`](skills/hunt/SKILL.md) | `/hunt` | 任何 bug、回归或异常行为 | 系统性调试。先确认 root cause，再应用任何 fix，尤其适用于以前能工作的东西。 |
+| [`write`](skills/write/SKILL.md) | `/write` | 写作或编辑 prose | 重写中文和英文 prose，使其自然，删掉僵硬、模板化的表达。 |
+| [`learn`](skills/learn/SKILL.md) | `/learn` | 深入陌生领域 | 六阶段研究 workflow：收集、消化、拟提纲、填充、精修，然后自审并准备发布。 |
+| [`read`](skills/read/SKILL.md) | `/read` | 任何 URL 或 PDF | 按平台特性路由读取 URL 和 PDF。普通读取返回简洁总结；当用户要求转换、引用、保存或供下游工作使用时输出 Markdown。 |
+| [`health`](skills/health/SKILL.md) | `/health` | 审计 Agent Health | 检查 Codex、Claude Code、项目指令、verifier 输出和 AI maintainability，在深度检查前做预算感知的摘要扫描。 |
 
 每个 skill 都是一个文件夹，里面有 reference docs、helper scripts，以及来自真实失败的 gotchas。
 
