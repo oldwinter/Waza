@@ -29,5 +29,9 @@ if WAZA_REF='../main' PATH="$bin_dir" HOME="$home_dir" /bin/bash "$ROOT/scripts/
   echo "setup-rule should reject unsafe WAZA_REF"; exit 1
 fi
 grep -q 'WAZA_REF must be main or a release tag' "$tmpdir/ref.err"
+if WAZA_REF='v3evil.4.5' PATH="$bin_dir" HOME="$home_dir" /bin/bash "$ROOT/scripts/setup-rule.sh" anti-patterns claude-code >"$tmpdir/ref-glob.out" 2>"$tmpdir/ref-glob.err"; then
+  echo "setup-rule should reject malformed release tags"; exit 1
+fi
+grep -q 'WAZA_REF must be main or a release tag' "$tmpdir/ref-glob.err"
 
 echo "Anti-Patterns installer smoke: ok"

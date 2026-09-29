@@ -79,7 +79,9 @@ def parse_url(url):
         m = re.search(pattern, url)
         if m:
             return m.group(1), doc_type
-    return url, "docx"
+    if re.fullmatch(r"[A-Za-z0-9]+", url):
+        return url, "docx"
+    return None, None
 
 
 def resolve_wiki(token, wiki_token):
@@ -96,6 +98,7 @@ def resolve_wiki(token, wiki_token):
 
 def get_blocks(token, doc_id):
     blocks, page_token = [], None
+    seen_tokens = set()
     while True:
         params = {"page_size": 500}
         if page_token:
@@ -110,7 +113,11 @@ def get_blocks(token, doc_id):
         blocks.extend(d["data"].get("items", []))
         if not d["data"].get("has_more"):
             break
-        page_token = d["data"].get("page_token")
+        next_token = d["data"].get("page_token")
+        if not next_token or next_token in seen_tokens:
+            return None, "Blocks fetch failed: pagination token missing or repeated"
+        seen_tokens.add(next_token)
+        page_token = next_token
     return blocks, None
 
 
@@ -201,6 +208,8 @@ def blocks_to_md(blocks):
 
 def fetch_feishu(url):
     doc_id, doc_type = parse_url(url)
+    if not doc_id:
+        return {"error": "Unsupported Feishu/Lark URL or document token"}
 
     if doc_type == "legacy_doc":
         return {
@@ -210,23 +219,31 @@ def fetch_feishu(url):
             )
         }
 
-    token, err = get_token()
+    try:
+        token, err = get_token()
+    except (requests.RequestException, ValueError, KeyError) as exc:
+        return {"error": f"Feishu request failed: {exc}"}
     if err:
         return {"error": err}
 
     if doc_type == "wiki":
-        real_id, real_type = resolve_wiki(token, doc_id)
+        try:
+            real_id, real_type = resolve_wiki(token, doc_id)
+        except (requests.RequestException, ValueError, KeyError) as exc:
+            return {"error": f"Feishu request failed: {exc}"}
         if not real_id:
             return {"error": f"Cannot resolve wiki node: {doc_id}"}
         doc_id, doc_type = real_id, real_type or "docx"
 
-    info_resp = requests.get(f"{API}/docx/v1/documents/{doc_id}",
-                             headers={"Authorization": f"Bearer {token}"},
-                             timeout=TIMEOUT)
-    doc_info = (info_resp.json().get("data") or {}).get("document") or {}
-    title = doc_info.get("title", "")
-
-    blocks, err = get_blocks(token, doc_id)
+    try:
+        info_resp = requests.get(f"{API}/docx/v1/documents/{doc_id}",
+                                 headers={"Authorization": f"Bearer {token}"},
+                                 timeout=TIMEOUT)
+        doc_info = (info_resp.json().get("data") or {}).get("document") or {}
+        title = doc_info.get("title", "")
+        blocks, err = get_blocks(token, doc_id)
+    except (requests.RequestException, ValueError, KeyError) as exc:
+        return {"error": f"Feishu request failed: {exc}"}
     if err:
         return {"error": err}
 
