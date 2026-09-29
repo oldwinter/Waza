@@ -30,6 +30,8 @@ if [ "${WAZA_TEST_CURL_INTERRUPT:-}" = "1" ]; then
   kill -INT "$PPID"
   exit 0
 fi
+if [ "${WAZA_TEST_CURL_EMPTY:-}" = "1" ]; then : > "$outfile"; exit 0; fi
+if [ "${WAZA_TEST_CURL_INVALID:-}" = "1" ]; then printf '%s\n' '<html>bad gateway</html>' > "$outfile"; exit 0; fi
 printf "%s\n" "#!/bin/bash" "echo statusline" > "$outfile"
 CURL
 
@@ -48,6 +50,9 @@ if WAZA_REF='../../main' BREW_LOG="$tmpdir/brew.log" PATH="$bin_dir" HOME="$home
   echo "setup-statusline should reject unsafe WAZA_REF"; exit 1
 fi
 grep -q 'WAZA_REF must be main or a release tag' "$tmpdir/bad-ref.err"
+if WAZA_REF='v3evil.4.5' BREW_LOG="$tmpdir/brew.log" PATH="$bin_dir" HOME="$home_dir" /bin/bash "$ROOT/scripts/setup-statusline.sh" >"$tmpdir/bad-ref-glob.out" 2>"$tmpdir/bad-ref-glob.err"; then
+  echo "setup-statusline should reject malformed release tags"; exit 1
+fi
 if BREW_LOG="$tmpdir/brew.log" PATH="$bin_dir" HOME="$home_dir" /bin/bash "$ROOT/scripts/setup-statusline.sh" >"$tmpdir/install.out" 2>"$tmpdir/install.err"; then
   echo "setup-statusline should refuse invalid JSON"; exit 1
 fi
@@ -61,6 +66,23 @@ BREW_LOG="$tmpdir/brew.log" PATH="$bin_dir" HOME="$home_dir" /bin/bash "$ROOT/sc
 python3 -c "import json, sys; data=json.load(open(sys.argv[1])); assert data['theme'] == 'dark'; assert data['statusLine']['command'] == 'bash ~/.claude/statusline.sh'" "$home_dir/.claude/settings.json"
 test -x "$home_dir/.claude/statusline.sh"
 test ! -f "$tmpdir/brew.log"
+
+cp "$home_dir/.claude/statusline.sh" "$tmpdir/statusline.valid"
+for mode in EMPTY INVALID; do
+  if env "WAZA_TEST_CURL_${mode}=1" BREW_LOG="$tmpdir/brew.log" PATH="$bin_dir" HOME="$home_dir" /bin/bash "$ROOT/scripts/setup-statusline.sh" >/dev/null 2>"$tmpdir/$mode.err"; then
+    echo "invalid statusline payload should fail: $mode"; exit 1
+  fi
+  cmp "$tmpdir/statusline.valid" "$home_dir/.claude/statusline.sh"
+done
+
+printf '%s\n' '{"theme":"linked"}' > "$tmpdir/settings-target.json"
+rm "$home_dir/.claude/settings.json"
+ln -s "$tmpdir/settings-target.json" "$home_dir/.claude/settings.json"
+BREW_LOG="$tmpdir/brew.log" PATH="$bin_dir" HOME="$home_dir" /bin/bash "$ROOT/scripts/setup-statusline.sh" >/dev/null
+test -L "$home_dir/.claude/settings.json"
+python3 -c "import json,sys; d=json.load(open(sys.argv[1])); assert d['theme']=='linked' and 'statusLine' in d" "$tmpdir/settings-target.json"
+rm "$home_dir/.claude/settings.json"
+printf '%s\n' '{"theme":"dark","statusLine":{"type":"command","command":"bash ~/.claude/statusline.sh"}}' > "$home_dir/.claude/settings.json"
 
 # A failed update after curl writes partial output must preserve the installed script.
 cp "$home_dir/.claude/statusline.sh" "$tmpdir/statusline.before"

@@ -27,6 +27,7 @@ import argparse
 import re
 import sys
 import urllib.error
+import urllib.parse
 import urllib.request
 from html.parser import HTMLParser
 
@@ -36,12 +37,21 @@ USER_AGENT = (
     "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120 Safari/537.36"
 )
 FETCH_TIMEOUT_SECS = 20
+MAX_RESPONSE_BYTES = 10 * 1024 * 1024
 
 
 def fetch_html(url: str) -> str:
+    parsed = urllib.parse.urlparse(url)
+    if parsed.scheme not in {"http", "https"} or not parsed.hostname:
+        raise ValueError("URL must use http:// or https://")
     req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     with urllib.request.urlopen(req, timeout=FETCH_TIMEOUT_SECS) as resp:
-        raw = resp.read()
+        declared = resp.headers.get("Content-Length")
+        if declared and declared.isdigit() and int(declared) > MAX_RESPONSE_BYTES:
+            raise ValueError(f"response exceeds {MAX_RESPONSE_BYTES} bytes")
+        raw = resp.read(MAX_RESPONSE_BYTES + 1)
+        if len(raw) > MAX_RESPONSE_BYTES:
+            raise ValueError(f"response exceeds {MAX_RESPONSE_BYTES} bytes")
     # Detect charset from Content-Type header; fall back to utf-8 with replace.
     charset = "utf-8"
     ctype = resp.headers.get("Content-Type", "")
@@ -164,7 +174,7 @@ def main() -> int:
 
     try:
         html = fetch_html(args.url)
-    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError) as exc:
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError, ValueError) as exc:
         print(
             f"[fetch] tier=local status=fail reason=\"fetch failed: {exc}\"",
             file=sys.stderr,

@@ -29,13 +29,10 @@ case "$RULE" in
     ;;
 esac
 
-case "$WAZA_REF" in
-  main|v[0-9]*.[0-9]*.[0-9]*) ;;
-  *)
-    echo "Error: WAZA_REF must be main or a release tag like v3.24.0." >&2
-    exit 1
-    ;;
-esac
+if [[ "$WAZA_REF" != "main" && ! "$WAZA_REF" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "Error: WAZA_REF must be main or a release tag like v3.24.0." >&2
+  exit 1
+fi
 
 RAW="https://raw.githubusercontent.com/tw93/Waza/${WAZA_REF}/rules/${RULE}.md"
 
@@ -81,6 +78,7 @@ download_rule_atomically() {
   local destination="$1"
   STAGED_DOWNLOAD="$(mktemp "${destination}.tmp.XXXXXX")" || return 1
   curl -fsSL --connect-timeout 10 --max-time 60 "$RAW" -o "$STAGED_DOWNLOAD" || return
+  [ -s "$STAGED_DOWNLOAD" ] || return 65
   mv -f "$STAGED_DOWNLOAD" "$destination" || return
   STAGED_DOWNLOAD=""
 }
@@ -101,6 +99,7 @@ case "$TARGET" in
     mkdir -p "$HOME/.codex"
     STAGED_DOWNLOAD="$(mktemp)"
     curl -fsSL --connect-timeout 10 --max-time 60 "$RAW" -o "$STAGED_DOWNLOAD" || download_failed $?
+    [ -s "$STAGED_DOWNLOAD" ] || download_failed 65
 
     # Inline Python: this standalone download has no companion .py file on the
     # user's machine, so the AGENTS.md edit logic stays self-
