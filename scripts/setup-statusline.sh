@@ -7,13 +7,10 @@ DEST="$CLAUDE_DIR/statusline.sh"
 SETTINGS_FILE="$CLAUDE_DIR/settings.json"
 WAZA_REF="${WAZA_REF:-v3.38.0}"
 
-case "$WAZA_REF" in
-  main|v[0-9]*.[0-9]*.[0-9]*) ;;
-  *)
-    echo "Error: WAZA_REF must be main or a release tag like v3.24.0." >&2
-    exit 1
-    ;;
-esac
+if [[ "$WAZA_REF" != "main" && ! "$WAZA_REF" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+  echo "Error: WAZA_REF must be main or a release tag like v3.24.0." >&2
+  exit 1
+fi
 
 RAW="https://raw.githubusercontent.com/tw93/Waza/${WAZA_REF}/scripts/statusline.sh"
 
@@ -64,6 +61,11 @@ download_failed() {
 download_statusline_atomically() {
   STAGED_DOWNLOAD="$(mktemp "${DEST}.tmp.XXXXXX")" || return 1
   curl -fsSL --connect-timeout 10 --max-time 60 "$RAW" -o "$STAGED_DOWNLOAD" || return
+  [ -s "$STAGED_DOWNLOAD" ] || return 65
+  local first_line=""
+  IFS= read -r first_line < "$STAGED_DOWNLOAD" || true
+  case "$first_line" in '#!'*sh*) ;; *) return 65 ;; esac
+  /bin/bash -n "$STAGED_DOWNLOAD" || return 65
   chmod +x "$STAGED_DOWNLOAD" || return
   mv -f "$STAGED_DOWNLOAD" "$DEST" || return
   STAGED_DOWNLOAD=""
@@ -135,19 +137,20 @@ import os
 import tempfile
 
 path = os.environ["SETTINGS_FILE"]
+destination = os.path.realpath(path) if os.path.islink(path) else path
 d = {}
-if os.path.exists(path):
-    with open(path) as f:
+if os.path.exists(destination):
+    with open(destination) as f:
         d = json.load(f)
 
 d["statusLine"] = {"type": "command", "command": "bash ~/.claude/statusline.sh"}
 
-directory = os.path.dirname(path)
+directory = os.path.dirname(destination)
 fd, tmp_path = tempfile.mkstemp(prefix="settings.", suffix=".json.tmp", dir=directory)
 with os.fdopen(fd, "w") as f:
     json.dump(d, f, indent=2)
     f.write("\n")
-os.replace(tmp_path, path)
+os.replace(tmp_path, destination)
 PYEOF
 
 echo "Waza statusline installed. Restart Claude Code to activate."

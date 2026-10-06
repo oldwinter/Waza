@@ -9,7 +9,9 @@ case "$OUT" in
 esac
 
 mkdir -p "$(dirname "$OUT")"
-rm -f "$OUT"
+FINAL_OUT="$OUT"
+OUT_TMP_DIR="$(mktemp -d "$(dirname "$FINAL_OUT")/.waza-package.XXXXXX")"
+OUT="$OUT_TMP_DIR/$(basename "$FINAL_OUT")"
 
 cd "$ROOT"
 
@@ -17,7 +19,12 @@ MANIFEST="$(mktemp)"
 FILTERED_MANIFEST="$(mktemp)"
 STAGE="$(mktemp -d)"
 VALIDATE_DIR="$(mktemp -d)"
-trap 'rm -f "$MANIFEST" "$FILTERED_MANIFEST"; rm -rf "$STAGE" "$VALIDATE_DIR"' EXIT
+cleanup() {
+  rm -f "$MANIFEST" "$FILTERED_MANIFEST"
+  rm -rf "$OUT_TMP_DIR" "$STAGE" "$VALIDATE_DIR"
+  return 0
+}
+trap cleanup EXIT
 
 git ls-files --cached --others --exclude-standard > "$MANIFEST"
 
@@ -80,9 +87,11 @@ if [ "$SKILL_COUNT" -ne 1 ]; then
 fi
 
 SIZE=$(wc -c < "$OUT" | tr -d ' ')
-echo "OK: wrote $OUT (${SIZE} bytes)"
 
 # Post-package validation lives in scripts/validate_package.py so it's
 # py_compile-checked in CI and unit-testable.
 unzip -q "$OUT" -d "$VALIDATE_DIR"
 python3 "$ROOT/scripts/validate_package.py" "$VALIDATE_DIR"
+mv -f "$OUT" "$FINAL_OUT"
+OUT=""
+echo "OK: wrote $FINAL_OUT (${SIZE} bytes)"

@@ -46,6 +46,24 @@ if find "$home_dir" -name '*.tmp.*' -print -quit | grep -q .; then
   echo "failed installer left a temporary rule file"; exit 1
 fi
 
+cat > "$bin_dir/curl" <<'CURL'
+#!/bin/bash
+outfile=""
+while [ "$#" -gt 0 ]; do
+  if [ "$1" = "-o" ]; then outfile="$2"; shift 2; else shift; fi
+done
+: > "$outfile"
+CURL
+chmod +x "$bin_dir/curl"
+for target in claude-code codex antigravity-cli; do
+  if PATH="$bin_dir" HOME="$home_dir" /bin/bash "$ROOT/scripts/setup-rule.sh" anti-patterns "$target" >/dev/null 2>"$tmpdir/$target-empty.err"; then
+    echo "empty rule download should fail for $target"; exit 1
+  fi
+done
+grep -qx 'original claude rule' "$home_dir/.claude/rules/anti-patterns.md"
+grep -qx 'original codex guide' "$home_dir/.codex/AGENTS.md"
+grep -qx 'original antigravity rule' "$home_dir/.gemini/antigravity-cli/rules/anti-patterns.md"
+
 # Ctrl-C mid-download must clean up the staged file, which no return path covers.
 cat > "$bin_dir/curl" <<'CURL'
 #!/bin/bash

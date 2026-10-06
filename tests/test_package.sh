@@ -5,6 +5,17 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$SCRIPT_DIR/test_helpers.sh"
 
 tmpdir=$(make_tmpdir)
+printf '%s\n' 'last known good archive' > "$tmpdir/preserved.zip"
+mkdir -p "$tmpdir/bin"
+cat > "$tmpdir/bin/git" <<'GIT'
+#!/bin/bash
+exit 42
+GIT
+chmod +x "$tmpdir/bin/git"
+if PATH="$tmpdir/bin:$PATH" "$ROOT/scripts/package-skill.sh" "$tmpdir/preserved.zip" >/dev/null 2>&1; then
+  echo "package should fail when manifest discovery fails"; exit 1
+fi
+grep -qx 'last known good archive' "$tmpdir/preserved.zip"
 "$ROOT/scripts/package-skill.sh" "$tmpdir/waza.zip" >/dev/null
 zipinfo -1 "$tmpdir/waza.zip" >"$tmpdir/manifest"
 
