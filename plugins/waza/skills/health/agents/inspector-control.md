@@ -15,9 +15,14 @@ Credential exposure：project-scoped secrets 只有在 committed、shared 或存
 
 MCP configuration：根据 measured tool/token cost 和 observed use 评估 enabled MCP，count alone 不是 finding；检查 filesystem MCP 是否有 `allowedDirectories`。若 `~/.claude/projects/.../tool-results/*` denials 显示 breakage，输出 append narrowest missing path 的 `python3` one-liner。
 
-Model name validation：检查 `settings.local.json` 的 `model` fields。有效 ID 遵循 `claude-*` pattern；任何 non-`claude-*` ID 都是 [!]。看起来像 third-party alias 或含 unusual characters 时要求人工核验。
+Model name validation：
+- 根据选定的 runtime 和 provider 检查已配置的 `model` 值。`sonnet`、`opus` 和 `haiku` 等官方 alias、完整 model ID 与 provider deployment name 各有不同的有效形式；不存在能证明有效性的通用 prefix test。使用当前 runtime 文档或实际观察到的 resolution error。未知名称保持 unverified，不要标记 Critical。
 
-Prompt cache hygiene：检查 system context 中的 dynamic timestamps/dates、hooks/skills 是否 non-deterministically reorder tool definitions，以及 mid-session model switches；检测到 model switching 时建议改用 subagents。
+Prompt cache hygiene：
+- 检查 CLAUDE.md 或 hooks 是否在 system context 中引入 dynamic timestamps/dates；它们会破坏 prompt cache。
+- 检查 hooks 或 skills 是否不确定地重排 tool definitions。
+- Flag 会重建 cache 并增加成本的 mid-session model switches（例如 Opus 切到 Haiku 再切回）。
+- 如检测到 model switching，建议改用 subagents。
 
 Three-layer defense consistency：对有 repeated failure evidence 的 high-risk rules 检查 intent（CLAUDE.md）、knowledge（Skill）和 control（Hook）三层。不要为每条 rule 强求三层；只有 consequence 和 evidence 足以支持时才 flag missing layer。优先关注 file protection、test requirements、deploy gates。
 

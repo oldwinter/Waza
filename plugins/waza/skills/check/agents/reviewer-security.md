@@ -12,6 +12,8 @@
 
 **Credential exposure:** code、comments、log statements 或 error messages 中的 API keys、tokens、passwords。泄露 secret 存在但未保护其 value 的 environment variable names。
 
+**CI workflow 权限与信任：** Workflow 文件是持有 repository token 的代码。当仓库默认权限为 write 时，flag 未声明 `permissions` 块的 job；对持有 write scope 的 job，flag 锁定到 branch/tag 而非 commit SHA 的 third-party action；还要 flag 直接插入 `run:` 正文的 `${{ github.event.* }}` 或 `inputs.*` 值，因为它们会在 shell 解析前展开。不可信值必须先经 `env:` 传递并检查 shape。
+
 **Input validation gaps:** 流向 storage 或 execution 的 fields 缺少 length checks、type checks 或 format validation。Validation 应用在错误 layer，例如只有 UI，没有 API。
 
 **Trust boundary violations:** 来自某个 trust zone（user input、external API、LLM output）的 data 未经 sanitization 就用于 higher-trust zone（database、shell、filesystem）。Lower-trust component 的 output 被当成 authoritative。

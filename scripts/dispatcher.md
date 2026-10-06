@@ -48,6 +48,6 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 
 ## Chaining
 
-Skills 手动 chain，不会自动 chain。每个 skill 完成后等待用户下一步 action。
+每个 skill 都在用户请求的 outcome 处停止。如果用户明确授权了跨 skill 工作流，就完成整条工作流，无需在每次转换时重复请求批准；不要推定用户授权了后续动作。
 
 Common chains：`/think` -> implement approved plan -> `/check` | `/hunt` -> fix -> `/check` -> release/push/issue follow-through | `/read` -> `/learn` -> `/write`

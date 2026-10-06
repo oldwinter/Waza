@@ -13,7 +13,7 @@
 <br/>
 
 > [!NOTE]
-> 这是基于 [`tw93/Waza`](https://github.com/tw93/Waza) 的社区维护中文 fork，当前同步到上游 `9fbf0ab`。下方 `oldwinter/Waza` 安装命令会加载本 fork 中已中文化的 `skills/`；Codex plugin 还会加载生成的 `plugins/waza/` 镜像。
+> 这是基于 [`tw93/Waza`](https://github.com/tw93/Waza) 的社区维护中文 fork，当前同步到上游 `c3b74dd`。下方 `oldwinter/Waza` 安装命令会加载本 fork 中已中文化的 `skills/`；Codex plugin 还会加载生成的 `plugins/waza/` 镜像。
 
 ## 为什么
 
@@ -51,10 +51,10 @@ AI 在原始产出能力上已经强过大多数工程师。但没有结构时�
 一条命令会无提示、无报错地安装全部八个 skills。复制并运行：
 
 ```bash
-npx skills add oldwinter/Waza -a claude-code codex cursor antigravity-cli -g -y
+npx skills add oldwinter/Waza -a claude-code codex cursor -g -y
 ```
 
-这会把一份 canonical copy 安装到共享的 `~/.agents/skills` store（agents.md standard directory），并为 Claude Code 建好 symlink；Codex、Cursor、Kimi Code CLI、Amp、Cline、Antigravity CLI，以及所有读取该目录的 agent 都会自动加载 Waza。通过这些 harness 路由的模型（例如 Claude Code-compatible endpoints 后面的 GLM 或 Kimi K2）不需要额外配置；私有 skills 目录的工具可以追加自己的 agent id，例如 `-a qwen-code iflow-cli antigravity-cli`。后续用 `npx skills update -g -y` 更新。
+一份 copy 会安装到共享 skills 目录 `~/.agents/skills`，并为 Claude Code 建立 symlink；Codex、Cursor、Gemini CLI、Copilot、Amp、Kimi Code CLI 及所有读取该目录的 agent 都会以 `/check`、`/think` 等名称加载八个 skills。使用私有 skills 目录的 agent 可在 `-a` 后传入自己的 id，例如 `antigravity-cli` 或 `qwen-code`。后续用 `npx skills update -g -y` 更新。
 
 **Native plugin**（用于 host-native update commands）
 
@@ -86,7 +86,7 @@ review context template 见 [`skills/check/references/project-context.md`](skill
 
 ## 串联 Skills
 
-Skills 被设计成可以串联，但切换是手动的。每个 skill 完成自己的任务后都会停下，等待你决定下一步。
+你决定 skills 如何串联。每个 skill 在用户请求的 outcome 处停止；已明确授权的工作流会继续执行，无需在每次转换时再要求批准。
 
 **常见 workflows：**
 
@@ -95,7 +95,7 @@ Skills 被设计成可以串联，但切换是手动的。每个 skill 完成自
 - **研究并写作**：`/read`（fetch sources）→ `/learn`（synthesize）→ `/write`（polish）
 - **调试并验证**：`/hunt`（find root cause）→ fix → `/check`（review changes）
 
-每个箭头都代表一次手动用户动作。Skills 不会自动互相触发。
+每个箭头都是一个清晰的工作流转换；只执行用户已授权的完整链路。
 
 ## 额外功能
 

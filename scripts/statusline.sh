@@ -29,16 +29,16 @@ jq_full='[
   (.cost.total_api_duration_ms // 0 | tonumber? // 0 | floor | tostring),
   (.context_window.total_output_tokens // 0 | tonumber? // 0 | floor | tostring),
   (.rate_limits.five_hour.used_percentage // null | if . then (. | round | tostring) else "null" end),
-  (.rate_limits.five_hour.resets_at // "" | tostring),
+  (.rate_limits.five_hour.resets_at // "null" | tostring),
   (.rate_limits.seven_day.used_percentage // null | if . then (. | round | tostring) else "null" end),
-  (.rate_limits.seven_day.resets_at // "" | tostring)
+  (.rate_limits.seven_day.resets_at // "null" | tostring)
 ] | @tsv'
 
 jq_rl='[
   (.rate_limits.five_hour.used_percentage // null | if . then (. | round | tostring) else "null" end),
-  (.rate_limits.five_hour.resets_at // "" | tostring),
+  (.rate_limits.five_hour.resets_at // "null" | tostring),
   (.rate_limits.seven_day.used_percentage // null | if . then (. | round | tostring) else "null" end),
-  (.rate_limits.seven_day.resets_at // "" | tostring)
+  (.rate_limits.seven_day.resets_at // "null" | tostring)
 ] | @tsv'
 
 jq_hw='[
@@ -312,6 +312,11 @@ EOF
     fi
   fi
 fi
+
+# resets_at uses a "null" placeholder: tab is IFS whitespace, so an empty TSV
+# field would collapse and shift every later field one slot left.
+[ "$five_reset" = "null" ] && five_reset=""
+[ "$seven_reset" = "null" ] && seven_reset=""
 
 # Persist live rate_limits only when present (atomic write)
 if [ "${live_five_pct:-}" != "null" ] && [ -n "${live_five_pct:-}" ] && [ -n "$input" ]; then

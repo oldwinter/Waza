@@ -14,7 +14,7 @@
 
 | 触发 | 技能 |
 |------|------|
-| 新功能 / 架构决策 / "怎么设计" / "应该用什么方案" / "判断一下" / "有没有必要" / "值不值得" / 商业化/产品 pivot / 需要可执行计划或 handoff | `skills/think/SKILL.md` |
+| 新功能 / 架构决策 / "怎么设计" / "应该用什么方案" / "有没有必要" / "值不值得" / 商业化/产品 pivot / 需要可执行计划或 handoff | `skills/think/SKILL.md` |
 | UI / 组件 / 页面 / 视觉界面 / 前端 / 截图里说"丑"、"不清晰"、"很怪" / 真实截图视觉 polish | `skills/ui/SKILL.md` |
 
 ### Post-build（交付前）
@@ -24,14 +24,14 @@
 | 实现完成 / 合并前 / "review 一下" / "看看这段代码" / release gate / 生成产物检查 / safety sink 审查 / `code-review` | `skills/check/SKILL.md` |
 | release / publish / push / release reaction / 发布 / 提交 / 关闭 issue / 发布前检查 / "值得发布了吗" / 发布表情 / registry/appcast/asset 检查 | `skills/check/references/mode-ship.md` |
 | review issue / review PR / triage / 批量处理 / "看看有没有 issue" / close issue | `skills/check/references/mode-triage.md` |
-| 项目体检 / project audit / 项目评分 / 给项目打分 / 深入分析项目代码 / 评估项目质量 / 代码质量评分 / scorecard / linus 风格 review / rate this codebase / score this project | `skills/check/references/mode-audit.md` |
+| audit / 项目体检 / 项目评分 / 给项目打分 / 深入分析项目代码 / scorecard / linus 风格 review | `skills/check/references/mode-audit.md` |
 
 ### Diagnostic（出问题了）
 
 | 触发 | 技能 |
 |------|------|
 | 报错 / 崩溃 / 测试失败 / 行为异常 / "为什么不工作" / 以前是好的 / 回归 / 截图回归 / 反复修不好 / stale cache / 队列或生成物边界 | `skills/hunt/SKILL.md` |
-| Claude/Codex/Pi 忽略指令 / hook 失灵 / MCP 异常 / Codex 配置 / Pi 配置 / AGENTS.md / config.toml / agent instructions / 配置审计 / health 消耗 token / AI coding 腐化 / 代码变烂 / 维护性 / hotspot ownership / 上下文混乱 / 验证缺失 / 验证命令失真 | `skills/health/SKILL.md` |
+| Claude/Codex/Pi 忽略指令 / hook 失灵 / MCP 异常 / Codex 或 Pi 配置 / agent instructions / 配置审计 / AI coding 腐化 | `skills/health/SKILL.md` |
 
 ### Content（内容进出）
 
@@ -53,14 +53,14 @@
 5. **发布动作 vs 发布文案**：要写 release notes / changelog → `/write`；要提交、打 tag、publish、push、上传 release asset、补 GitHub release reactions、回复/关闭 issue → `/check`。
 6. **截图审美 vs 截图回归**：截图里说"丑/不好看/不清晰"且是审美校准 → `/ui`；截图证明以前好的现在坏了、渲染错、状态错、生成物错 → `/hunt`。
 7. **长文产出 vs 润色**：从零到成稿 → `/learn`；已有稿子要改 → `/write`。
-8. **判断 vs 调试**："判断一下" + 报错/异常/不工作 → `/hunt`（诊断问题）；"判断一下" + 有没有必要/该不该保留/值不值得 → `/think` Evaluation Mode（价值判断）。
-9. **继续优化 vs 调试**："继续优化" / "优化代码" 不含报错或异常现象 → `/check`（代码质量改善）；有具体报错或回归 → `/hunt`。
+8. **判断 vs 调试**：报错/异常/不工作 → `/hunt`；有没有必要/该不该保留/值不值得 → `/think` Evaluation Mode。
+9. **质量改善 vs 调试**：已有可审 diff、要改善代码质量且没有报错 → `/check`；有具体报错或回归 → `/hunt`。
 10. **需求包 vs issue 队列**：两个技能都有 Triage Mode。对象是还没实施的一批诉求/截图（判断接受与否）→ `/think` Triage Mode；对象是仓库里已存在的 issue/PR（处置、回复、关闭）→ `/check` Triage Mode。
 11. **兜底**：两个都模糊时读两个 SKILL.md 的 "Not for" 段，用排除法；还是模糊就问用户。
 
 ## Chaining（常见串联）
 
-技能之间默认不自动串联。每个技能完成后会停下来，等用户决定下一步，除非当前请求或项目公开上下文已经明确授权后续动作（例如 "implement this plan", "review then ship if green", "triage and close"）。
+技能边界用于分工，不缩小用户已授权的任务。单项请求不自动扩大；同一请求明确包含多个技能的工作时，按对应技能或现有能力继续完成，共用完成清单，不在内部交接点再次索要授权。提交、发布等动作仍需其对应授权。
 
 - `/think` 出方案 → **用户说"实现"** → 实施 → **用户说"/check"** → `/check` 把关
 - `/think` 出可执行计划 → **用户说"Implement the plan / 可以干 / 直接改"** → 按计划实施，不重新争论方向

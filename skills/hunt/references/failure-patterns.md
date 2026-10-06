@@ -170,7 +170,7 @@ Checks：
 Signals：某个 metric 对部分 subject 正确，对另一些错误，分界与 ownership 一致：自己的 process/file 正确，root-owned 或其他用户的结果是 zero、stale 或 absent。API 给出了 response，因此没有 error log。
 
 Checks：
-- 实测 boundary，不要只读 docs：对 owned 和 non-owned subject 分别调用并统计成功数量。“自己的 33/33，root 的 0/5”才是 evidence，猜测不是。
+- 实测 boundary，不要只读 docs：对 owned 和 non-owned subject 分别调用并统计每组成功数量。这两个 count 才是 evidence，猜测不是。
 - 检查 denied read 的 fallback 与 primary source 是否表达同一含义。即使每个 value 单独看都说得通，同一 column 混入两种含义仍然是 bug。
 - 优先使用能对所有 subject 一致回答的 source（例如不区分 owner、报告全部 process 的 tool），不要选一个更精确但会对部分 subject 静默降级的 source。
 
@@ -190,6 +190,7 @@ Signals：实际健康的 operation 被报告为 failed、stalled 或 “no prog
 
 Checks：
 - 对每个 timeout constant，命名最慢的*健康* case（slow link 上数百 MB download、每天第一次 index rebuild、cleanup 后 tool 重建 cache），并确认 constant 留有余量地覆盖它。这与 magic-wait coupling 相反：前者 timer 太松，不能作为真实 signal；这里 timer 太紧，容不下健康的慢路径。
+- Detector threshold 和 timeout 一样有两个方向。使用促成该检查的 incident 中的实测值，把 threshold 设在其下；凭感觉选一个更整的数会排除本检查原本要捕获的唯一 case。再用健康 population 验证它不会对所有东西触发，并检查无项目跨过阈值时 detector 输出什么：在需要名称时却报“什么都没找到”，是同一缺陷的反向表现。
 - 用真实 liveness probe（持续增长的 temp file、byte counter、heartbeat）替换“N 秒无 output”，只把 timeout 保留为真正的 stall guard。
 - 对每个 watchdog，枚举它所守护区域的所有 exit，包括 thrown error 和 fork 到 alternate path。若 watchdog 在 fork 后仍存活，它会在替代路径执行到一半时触发。
 - 检查是否已有第二个 bound 覆盖真正 hung 的 run。如果有，额外 timer 只可能提前误触发。

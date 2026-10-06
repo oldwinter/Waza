@@ -2,7 +2,7 @@
 
 ## Proxy Cascade
 
-按顺序尝试。Success = 有可读内容的非空输出。如果 proxy 返回空内容、error page，或少于 5 行，就视为失败并尝试下一个：
+按顺序尝试。Success = 有可读内容的非空输出。下列 proxy 和 reader plugin 只能用于用户已明确 opt in 的 public URL；不要将 authenticated、internal 或 sensitive URL 传给第三方，extraction failure 不等于 consent。如果 proxy 返回空内容、error page，或少于 5 行，就视为失败并尝试下一个：
 
 ### 1. defuddle.md
 

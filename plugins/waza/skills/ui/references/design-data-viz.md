@@ -6,7 +6,7 @@
 
 Dashboards 是 utility surfaces：帮助用户定位、显示 status、支持 action。不要 hero sections，不要 marketing copy。每个 element 都必须回答用户的某个问题，才配占据位置。
 
-- Primary layout：顶部 status summary，下方 detail；或 sidebar filters + main chart area。
+- Primary layout：顶部 status summary，下方 detail；或 sidebar filters + main chart area。不展开即可回答主要问题；只把补充记录收起，不要隐藏答案本身。用稀疏数据和典型数据分别检查，不要用填充物补空白。
 - Whitespace：比 marketing pages 更紧；用户是 scan，不是 read。使用 generous column spacing，不要 generous row height。
 - Number density：屏幕上同时出现很多 numbers 不是问题。没有 alignment 的 crowding 才是问题。所有 numeric columns 使用 `font-variant-numeric: tabular-nums`。Numbers right-align，labels left-align。
 
@@ -31,4 +31,4 @@ Dashboards 是 utility surfaces：帮助用户定位、显示 status、支持 ac
 
 ## Using a product as a benchmark
 
-当用户引用某个 product 作为 visual benchmark（"make it feel like Grafana" / "similar to Linear analytics"）时：从该 product 提取 3-5 个 concrete data-visualization-specific properties，而不是 general aesthetic properties。可用 properties：chart color palette（exact values）、grid line weight and opacity、axis label size and color、tooltip border-radius and shadow、empty-state treatment。不要提取 "minimal" 或 "clean" 作为 properties；它们不可执行。
+当用户引用某个 product 作为 visual benchmark（"make it feel like Grafana" / "similar to Linear analytics"）时：按 `SKILL.md` 中方向问题 2 做三属性拆解，使用具体的 data-visualization properties，不要用 general aesthetic properties。可用 properties：chart color palette（exact values）、grid line weight and opacity、axis label size and color、tooltip border-radius and shadow、empty-state treatment。不要提取 "minimal" 或 "clean"；它们不可执行。

@@ -1,13 +1,13 @@
 {
   "name": "@tw93/waza",
-  "version": "3.34.1",
+  "version": "3.38.0",
   "description": "Waza engineering skills for Claude Code, Codex, Antigravity, OpenCode, Pi, and compatible coding agents.",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/tw93/Waza.git"
   },
-  "homepage": "https://yobi.tw93.fun/projects/waza",
+  "homepage": "https://github.com/tw93/Waza",
   "keywords": [
     "pi-package",
     "agent-skills",

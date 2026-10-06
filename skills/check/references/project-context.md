@@ -83,7 +83,7 @@
 
 ## Public Replies
 
-完整 reply template 见 `public-reply.md`（language match、`@user` + thanks、factual paragraphs、ship-state line、closure criteria）。它是单一事实源；不要在这里重复规则。
+发布、编辑或新评论、读回和关闭标准见 `public-reply.md`；reply 正文遵循 `/write` Public Reply Mode。不要在这里重复规则。
 
 ## Release Follow-through
 

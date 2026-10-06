@@ -1,7 +1,7 @@
 ---
 name: hunt
-description: "Find the root cause before applying fixes for errors, crashes, regressions, failing tests, broken behavior, and screenshot-reported defects. Use when users report in any language that something is broken, regressed, failing, crashing, or no longer works. Not for code review or new features."
-when_to_use: "排查, 查查, 报错, 崩溃, 不工作, 不对, 跑不通, 以前是好的, 回归, 截图回归, 判断错误原因, 判断为什么报错, 反复修不好, debug, regression, used to work, broke after update, why broken, not working, what's wrong, fix error, stack trace"
+description: "Finds root cause before any fix. Use when something errors, crashes, regresses, or used to work. Not for code review or new features."
+when_to_use: "排查, 报错, 崩溃, 回归, 截图回归, 判断错误原因, 判断为什么报错, 反复修不好, debug, regression, used to work, broke after update, why broken, not working, what's wrong, fix error, stack trace, 以前是好的"
 dispatch_intent: "Error, crash, regression, screenshot-reported defect, test failure, stale cache, runtime boundary, why broken"
 ---
 
@@ -17,7 +17,7 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 - Done when:一句话能解释 cause，每个 observed symptom 都能被它解释，并且 fix 或 handoff 已通过 reproducible check 验证。
 - Evidence:source trace、repro command 或 UI path、logs 或 state、targeted test/build output，以及 UI 或 native defects 的 runtime evidence。
 - Output:root cause、fix 或 handoff、verification result，以及任何 unswept sibling risks。
-- Authorization：“diagnose”“investigate”“why”“look into”“排查”“看看”或同义表达都只授权报告。只有当前 turn 明确要求 fix、change、implement 或 optimize 时才应用 fix；仍必须先证明 root cause。
+- Authorization：“diagnose”“investigate”“why”“look into”“排查”“看看”或同义表达都只授权报告。只有当前请求明确要求 fix、change、implement 或 optimize，或该授权对同一未完成任务仍然有效、且 action、scope 和 goal 未变时，才应用 fix；仍必须先证明 root cause。Fix 授权绝不自动包含 commit、push、publish 或任何 destructive action。
 
 **在能用一句话说清 root cause 前，不要碰代码：**
 > "I believe the root cause is [X] because [evidence]."
@@ -26,7 +26,7 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 
 ## Diagnosis Signals
 
-Hypothesis quality gate：Hypothesis 必须解释所有 observable symptoms，而不只是用户最先报告的那个；只覆盖一部分就是 symptom-level guess，不是 root cause。对 timing-dependent issues（flicker、intermittent failure、race），诊断前先可靠复现。
+Hypothesis quality gate：Hypothesis 必须解释所有 observable symptoms，而不只是用户最先报告的那个；只覆盖一部分就是 symptom-level guess，不是 root cause。即使 reporter 把某个 symptom 称为无关，hypothesis 仍必须覆盖它。对 timing-dependent issues（flicker、intermittent failure、race），诊断前先可靠复现。
 
 Rationalization smells："I'll just try this" = 没有 hypothesis，先写出来。"I'm confident" = 运行 instrument 证明它。"Probably the same issue" = 从头重读 execution path。"It works on my machine" = 先枚举每个 env difference 再排除。"One more restart" = 逐字读取 last error；没有 new evidence 时，绝不 restart 超过两次。
 
@@ -96,6 +96,8 @@ Instrument-first rule 已在上方 Hard Rules（behavioral/async bugs）中定�
 对 recurring classes of failures，在添加第二个 fix 前加载 `references/failure-patterns.md`。
 
 ## Native App Freeze Mode
+
+对 beachball、not responding、tab-switch freeze、first-open lag、idle wake stall、overlay lockup 或 frozen-app screenshot，改代码前加载 `references/logging-techniques.md`（Native App Freeze Mode）。
 
 当 desktop 或 mobile native app 报告 beachball、not responding、tab-switch freeze、first-open lag、idle wake stall、overlay lockup，或 screenshot 显示 app frozen 时激活。
 

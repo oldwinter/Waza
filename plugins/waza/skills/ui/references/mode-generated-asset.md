@@ -1,9 +1,6 @@
 # Mode: Generated Image Asset
 
-> **中文导读（下方英文为 canonical contract）：** 生成图片前先锁定 claim、语言、aspect、palette、reference 和 exclusion list，不能用反复生成掩盖 spec 分歧。两次拒绝后停止并重新确认方向；生成资产必须检查真实输出、文字可读性、mattes/halos 和目标 surface。
-
-
-For diagrams, architecture illustrations, covers, and social cards produced by generation rather than laid out in code. The failure this mode exists to stop is the rejection loop: generate, get "ugly", tweak a color, generate again, seven rounds later the subject was never the disagreement.
+适用于通过生成得到、而不是用代码排版的图表、架构插图、封面和社交卡片。本 mode 要阻止的是这种拒绝循环：生成、收到“不好看”、调一个颜色、再生成，但真正分歧从来不在颜色。
 
 ## Spec Before Pixels
 
@@ -22,7 +19,7 @@ Across sibling repos, carry over only approved visual-system constraints. Rebuil
 
 Count rejections on look, not on content. After the second, stop generating and re-align: restate the one sentence, ask which existing image to sit next to, confirm the exclusion list. This event-triggered recovery does not consume another preflight round; it reopens only the claim, reference, and exclusion fields for the affected asset. A third blind regeneration treats the rejection as parameter noise, and the version after it can be worse than the version before, which is the tell that nothing was anchored.
 
-When a version is partly right, name the part that survives before generating again. "Keep the composition, change the palette" converges; "make it better" does not.
+When a version is partly right, name the part that survives before generating again. "Keep the composition, change the palette" converges; "make it better" does not. A rejection restores the last accepted asset before any further change, and the next iteration changes one named property of it. When the user picks "the first one", echo the file name back before editing. A logo or mascot reuses the existing product mark or a recognisable real subject; do not invent one unasked.
 
 ## Decoration Debt
 

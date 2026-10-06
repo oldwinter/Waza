@@ -729,3 +729,111 @@ def test_project_controlled_values_cannot_forge_evidence_lines(tmp_path: Path):
 
     assert "\n=== FORGED ===\n" not in output
     assert "\\n=== FORGED ===\\n" in output
+
+
+def test_agents_md_alone_is_a_claude_surface_when_the_fallback_is_on(tmp_path: Path):
+    project = tmp_path / "project"
+    home = tmp_path / "home"
+    project.mkdir()
+    (project / "AGENTS.md").write_text("# Guide\n\n## Git Safety\n", encoding="utf-8")
+    write_json(
+        home / ".claude" / "settings.json",
+        {
+            "pluginConfigs": {
+                "agents-md@builtin": {
+                    "options": {"instructionFiles": "claude-md-or-agents-md"}
+                }
+            }
+        },
+    )
+    out = run_context(project, home)
+    assert "Claude instruction surface not found" not in out
+    assert "project_instructions_mode: claude-md-or-agents-md" in out
+
+
+def test_agents_md_alone_is_not_a_claude_surface_while_the_fallback_is_off(
+    tmp_path: Path,
+):
+    project = tmp_path / "project"
+    home = tmp_path / "home"
+    project.mkdir()
+    (project / "AGENTS.md").write_text("# Guide\n\n## Git Safety\n", encoding="utf-8")
+    write_json(home / ".claude" / "settings.json", {})
+    out = run_context(project, home)
+    assert "Claude instruction surface not found" in out
+    assert "project_instructions_mode: claude-md" in out
+
+
+def test_root_claude_md_hides_nested_agents_md_from_claude(tmp_path: Path):
+    project = tmp_path / "project"
+    home = tmp_path / "home"
+    project.mkdir()
+    (project / "AGENTS.md").write_text("# Guide\n", encoding="utf-8")
+    (project / "CLAUDE.md").symlink_to("AGENTS.md")
+    nested = project / "crates"
+    nested.mkdir()
+    (nested / "AGENTS.md").write_text("# Crate guide\n", encoding="utf-8")
+    out = run_context(project, home)
+    assert "nested_agents_md: 1" in out
+    assert "a root CLAUDE.md hides 1 nested AGENTS.md from Claude" in out
+    assert "claude_status: WARN" in out
+
+
+def test_nested_agents_md_is_not_flagged_without_a_root_claude_md(tmp_path: Path):
+    project = tmp_path / "project"
+    home = tmp_path / "home"
+    project.mkdir()
+    (project / "AGENTS.md").write_text("# Guide\n", encoding="utf-8")
+    nested = project / "crates"
+    nested.mkdir()
+    (nested / "AGENTS.md").write_text("# Crate guide\n", encoding="utf-8")
+    out = run_context(project, home)
+    assert "nested_agents_md: 1" in out
+    assert "hides" not in out
+
+
+def test_both_mode_does_not_hide_nested_agents_md(tmp_path: Path):
+    project = tmp_path / "project"
+    home = tmp_path / "home"
+    project.mkdir()
+    (project / "AGENTS.md").write_text("# Guide\n", encoding="utf-8")
+    (project / "CLAUDE.md").write_text("# Claude only\n", encoding="utf-8")
+    nested = project / "crates"
+    nested.mkdir()
+    (nested / "AGENTS.md").write_text("# Crate guide\n", encoding="utf-8")
+    write_json(
+        home / ".claude" / "settings.json",
+        {
+            "pluginConfigs": {
+                "agents-md@builtin": {
+                    "options": {"instructionFiles": "claude-md-and-agents-md"}
+                }
+            }
+        },
+    )
+    out = run_context(project, home)
+    assert "nested_agents_md: 1" in out
+    assert "hides" not in out
+
+
+def test_both_mode_still_hides_nested_when_claude_md_aliases_agents(tmp_path: Path):
+    project = tmp_path / "project"
+    home = tmp_path / "home"
+    project.mkdir()
+    (project / "AGENTS.md").write_text("# Guide\n", encoding="utf-8")
+    (project / "CLAUDE.md").symlink_to("AGENTS.md")
+    nested = project / "crates"
+    nested.mkdir()
+    (nested / "AGENTS.md").write_text("# Crate guide\n", encoding="utf-8")
+    write_json(
+        home / ".claude" / "settings.json",
+        {
+            "pluginConfigs": {
+                "agents-md@builtin": {
+                    "options": {"instructionFiles": "claude-md-and-agents-md"}
+                }
+            }
+        },
+    )
+    out = run_context(project, home)
+    assert "a root CLAUDE.md hides 1 nested AGENTS.md from Claude" in out

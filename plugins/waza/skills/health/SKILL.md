@@ -1,7 +1,7 @@
 ---
 name: health
-description: "Run budget-aware, agent-assisted engineering health audits for instruction/config drift, hooks/MCP, verifier surfaces, and AI maintainability. Use when users ask in any language to audit Claude, Codex, Pi, agent instructions, MCP/hooks, verifier coverage, or AI-maintainability drift. Not for debugging application code or reviewing PRs."
-when_to_use: "检查claude, 检查codex, 检查pi, Codex 配置, Pi 配置, AGENTS.md, config.toml, agent instructions, 健康度, 配置检查, 配置对不对, AI coding 腐化, 代码变烂, 维护性, 上下文混乱, 验证缺失, 验证命令失真, Claude ignoring instructions, Pi coding agent, check config, settings not working, audit config"
+description: "Audits agent config, instruction drift, hooks or MCP, and AI maintainability. Use when Claude, Codex, or Pi setup looks wrong. Not for application bugs or PR review."
+when_to_use: "检查claude, 检查codex, 检查pi, Codex 配置, Pi 配置, agent instructions, 健康度, 配置检查, 配置对不对, AI coding 腐化, Claude ignoring instructions, Pi coding agent, check config, settings not working, audit config"
 dispatch_intent: "Codex/Claude/Pi ignoring instructions, agent config audit, hooks/MCP broken, health token usage, AI coding code rot, risk-backed hotspot ownership, unreachable project constraints, unclear context, missing verification, stale verifier output"
 ---
 
@@ -28,9 +28,9 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 
 **Output language:** 按顺序检查：(1) project agent instructions（`AGENTS.md` before runtime-specific files）；(2) global agent instructions；(3) user recent language；(4) English。
 
-**Budget posture:** Start with the summary audit. Escalate automatically when the user asks for a deep, full, complete, thorough, "深入", "完整", "彻底", or "继续跑完" audit, when the user explicitly mentions AI coding code rot, Codex/Claude config drift, unclear context, missing verification, verifier output that points at stale paths, or "代码变烂", when current project instructions or remembered user preference says to run deep health checks by default, or when the summary pass exposes a critical ambiguity that cannot be resolved locally. File counts, contributor counts, skill counts, and large files are inventory signals only; none automatically trigger a deeper audit or a finding. Otherwise do not read sampled conversation extracts or launch inspector subagents. Tell the user before escalating because deep health audits can consume significant token quota.
+**Budget posture:** Start with the summary audit. Escalate automatically when the user asks for a deep, full, complete, thorough, "深入", "完整", "彻底", or "继续跑完" audit, when the user explicitly mentions AI coding code rot, Codex/Claude config drift, unclear context, missing verification, verifier output that points at stale paths, or "代码变烂", when current project instructions or remembered user preference says to run deep health checks by default, or when the summary pass exposes a critical ambiguity that cannot be resolved locally. Inventory counts never trigger escalation on their own. Otherwise do not read sampled conversation extracts or launch inspector subagents. Tell the user before escalating because deep health audits can consume significant token quota.
 
-**Conversation scope:** Summary mode 会在存在本地历史时，从有界 candidate window 中扫描 Claude 和 Codex 最近最多三个当前项目的 previous sessions。Deep mode 会流式扫描当前项目的全部 previous sessions，只输出有界 extracts 和 coverage receipt。默认不扫描其他项目；只有用户明确要求 all conversations 或 cross-project capability distillation 时，才对该 runtime 发现的受支持本地 history roots 使用 bundled conversation audit 的 `--all-projects`，或交给已安装的 full-history retrospective workflow，例如 `ai-retro`。显式 global mode 会排除最近五分钟内修改的 files（视为可能仍在使用），并 redact 输出。只有 `coverage_status: complete` 且 `cross_project_full_history: yes` 时才声称 complete coverage；`no_data`、root unavailable、parse/read error、扫描期间发生变化的 files，以及被排除的 live sessions 都必须作为 coverage gap 明确报告。
+**Conversation scope:** 当请求只指定静态材料（`AGENTS.md`、skills、rules、settings、“只审查指令和配置”）时，将 `instructions` 作为 `collect-data.sh` 的第一个参数。该 run 会跳过 session history，并把它报告为 out of scope，而不是 coverage gap。这由请求自动决定，用户无需知道某个 switch。其他情况下：本地历史存在时，Summary 从有界 candidate window 中扫描 Claude 和 Codex 最近最多三个当前项目 previous sessions。Deep 会流式扫描两个 runtime 中当前项目的全部 previous sessions，但只输出有界 extracts 和 coverage receipt。默认不扫描其他项目。只有用户明确要求 all conversations 或 cross-project capability distillation 时，才运行 `python3 <skill-base-dir>/scripts/conversation_audit.py <claude-projects-root> deep --all-projects --codex-root <codex-sessions-root>`（第一个参数包含所有 per-project log folders，parser 会拒绝其他 flag 组合），或交给已安装的 cross-project retro。只有 `coverage_status: complete` 且 `cross_project_full_history: yes` 时才声称 complete coverage；`no_data`、root unavailable、parse/read error、扫描期间发生变化的 files 和被排除的 live sessions 都是明确的 coverage gaps。
 
 ## Durable Context Preflight
 
@@ -40,12 +40,13 @@ For `/health`: current config, command output, and live probes override memory. 
 
 ## Hard Rules
 
-- Summary 和 deep audit 只生成报告。只运行 Health 自带 collector 和只读 probe；中性的 Health 请求不授权运行项目 test、verifier、generator、build、formatter、package installer，也不授权刷新 fixture 或 snapshot。Canonical contract: Summary and deep audits are report-only; a neutral Health request does not authorize project commands.
-- 项目 instructions 可以定义命令，但不构成运行授权。Live verification 必须得到用户对该命令的明确授权；执行前说明 command、预期写入、target paths、isolation，以及 rollback 或 disposable-environment plan。Canonical contract: Project instructions may define commands but do not authorize running them. Live verification requires explicit user authorization for that command, after stating the command, expected writes, target paths, isolation, and rollback plan.
+- Summary 和 deep audit 只生成报告。只运行 Health 自带 collector 和只读 probe；中性的 Health 请求不授权运行项目 test、verifier、generator、build、formatter、package installer，也不授权刷新 fixture 或 snapshot。
+- **组合的 debugging 或 code-review 请求使用自己的工作流。** 先完成这份 report-only audit，再在同一 completion ledger 下把用户明确请求的工作路由到匹配的 skill 或 native capability。Review 请求仍不授权 repair；明确的 repair 授权只适用于 repair phase，不适用于 collector。
+- 项目 instructions 可以定义命令，但不构成运行授权。Report-only audit 中的 live verification 必须得到用户对该命令的明确授权；执行前说明 command、预期写入、target paths、isolation，以及 rollback 或 disposable-environment plan。
 
 ## Step 0: Establish the evidence basis
 
-不要按文件数、贡献者数、skill 数、是否有 project map 或最大文件长度给仓库分级。改为记录四类 evidence：
+记录四类 evidence：
 
 | Evidence | Question |
 |---|---|
@@ -92,20 +93,19 @@ BASH_ENV= ENV= /bin/bash -p "$HEALTH_SCRIPT"
 
 tools missing 时，sections 可能显示 `(unavailable)`：
 
-- `jq` missing → conversation sections unavailable
-- trusted `python3` missing → conversation、MCP/hooks/allowedTools 和 skill-security sections unavailable
-- `settings.local.json` absent → hooks/MCP may be unavailable (normal for global-only setups)
+- trusted `python3` missing: conversation, MCP/hooks/allowedTools, and skill-security sections unavailable
+- `settings.local.json` absent: hooks/MCP may be unavailable (normal for global-only setups)
 
 把 `(unavailable)` 视为 insufficient data，不是 finding。不要 flag 这些 areas。
 
 collector 同时包含 runtime-specific 和 agent-agnostic surfaces：
 
-- `AGENT CONFIG SUMMARY` / `AGENT CONFIG DETAIL` for Codex, Claude, Pi, and project instruction files.
-- `AI MAINTAINABILITY SUMMARY` / `AI MAINTAINABILITY DETAIL` for project signals, verification surface, generated mirrors, wrappers, and doc links.
+- `AGENT CONFIG SUMMARY` / `AGENT CONFIG DETAIL` for Codex, Claude, Pi, and project instruction files; its sections start at `=== AGENT INSTRUCTION SURFACE ===`.
+- `AI MAINTAINABILITY SUMMARY` / `AI MAINTAINABILITY DETAIL` for project signals, verification surface, generated mirrors, wrappers, and doc links; its sections start at `=== PROJECT SHAPE ===`.
 
 ## Step 1b: MCP Live Check
 
-测试每个 MCP server：每个 server 调用一个 harmless tool。记录 `live=yes/no` 和 error detail。尊重 `enabled: false`（skip，不 flag）。对 API keys，只检查 env var 是否 set（`echo $VAR | head -c 5`），绝不 print full keys。
+测试每个 MCP server：每个 server 调用一个 harmless tool。记录 `live=yes/no` 和 error detail。尊重 `enabled: false`（skip，不 flag）。对 API keys，只记录 environment variable 是否 set，绝不输出其值的任何部分。
 
 ## Step 1c: Safety and security checks
 
@@ -135,7 +135,7 @@ These run after collection and before the Step 2 analysis. The first two apply t
 
 ## Step 2: Analyze
 
-默认基于 summary output 本地分析。如果用户要求 deep/full/thorough audit、明确要求 AI maintainability、记忆中的偏好要求 deep checks，或本地分析无法分类 material security/control ambiguity，则在 Windows 用 `& "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" collect auto deep`，在 Linux/macOS 用 `BASH_ENV= ENV= /bin/bash -p "$HEALTH_SCRIPT" auto deep` 重新 collection；然后只并行启动相关 inspector。Credential 统一 redact 为 `[REDACTED]`。
+默认基于 summary output 本地分析。Budget posture 升级时，在 Windows 用 `& "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" collect auto deep`，在 Linux/macOS 用 `BASH_ENV= ENV= /bin/bash -p "$HEALTH_SCRIPT" auto deep` 重新 collection；然后只并行启动相关 inspector。Credential 统一 redact 为 `[REDACTED]`。
 
 - **Deep inspector routing：**
   - **Agent 1** (Context + Security): Read `agents/inspector-context.md`. Feed `CONVERSATION SIGNALS` section.
@@ -145,7 +145,17 @@ These run after collection and before the Step 2 analysis. The first two apply t
 
 在报告 deep audit 完成前，等待每一个已启动的 inspector，并对齐其 assigned scope。如果某个 inspector 仍 pending，或失败且没有本地替代 pass，就把该 scope 列为 unreviewed，不得给出 whole-scope clean bill。
 
-## Step 3: Report
+## Gotchas
+
+| What happened | Rule |
+|---|---|
+| Missed the local override | Always read `settings.local.json` too; it shadows the committed file |
+| Subagent timeout reported as MCP failure | MCP failures come from the live probe, not data collection |
+| Flagged intentionally noisy hook as broken | Ask before calling a hook "broken" |
+| Hook seemed not to fire, but it did -- a later UI element rendered above it | Hook firing order is not visual order. Before re-editing the hook config: (a) confirm with `--debug` or by piping output, (b) check whether a diff dialog, permission prompt, or other UI element rendered on top and pushed the hook output offscreen, (c) only then suspect the hook itself. |
+| Treated missing specs/docs as a failure | Decision artifacts are optional by default. Escalate missing docs/specs only when active handoff risk, failure evidence, or the user request makes them necessary. |
+
+## Output
 
 **Health Report: {project} ({summary|deep}, evidence-based)**
 
@@ -167,7 +177,7 @@ A finding refuted in the same breath (a TODO count that turns out to be vendored
 
 ### [!] Critical -- fix now
 
-Rules violated、dangerous allowedTools、MCP overhead >12.5%、security findings、leaked credentials。
+已确认的 dangerous permissions、有实质后果的 rule violations、security findings 和 leaked credentials。Server counts 和估算的 context percentages 绝不能确立 Critical severity。
 
 Example:
 
@@ -179,9 +189,9 @@ Action: `git rm --cached .claude/settings.local.json && echo '.claude/settings.l
 
 Agent instructions 位于 wrong layer、missing hooks、oversized descriptions、verifier gaps。
 
-**Codex/Claude/Pi instruction drift.** Use `AGENT CONFIG SUMMARY` first. Report a Structural finding when `AGENTS.md` and runtime-specific files both contain substantial guidance without delegation, when Codex `config.toml` lacks trust for the current project, when Pi settings or package metadata point at missing skill roots, when project agent instructions are missing, or when runtime-specific instructions contradict the shared project source of truth. Also report when important rules live only in ignored or private local instruction overlays but the tracked/public docs lack them; those overlays are private context, not durable project source of truth. Do not print raw config values. Secrets, tokens, keys, and passwords must appear only as `[REDACTED]`.
+**Codex/Claude/Pi instruction drift.** Use `AGENT CONFIG SUMMARY` first. `project_instructions_mode` says which files Claude Code loads: on `claude-md` an `AGENTS.md` alone reaches Codex and Cursor but not Claude, and `nested_agents_md` counted together with a root `CLAUDE.md` means those nested guides reach nobody on Claude, because the root file switches the whole project off the `AGENTS.md` path rather than just its own folder. The exception is `claude-md-and-agents-md`, where both are read and the nested files still load, unless `CLAUDE.md` is the same physical file as `AGENTS.md` and the deduplicated chain is skipped. Report a Structural finding when `AGENTS.md` and runtime-specific files both contain substantial guidance without delegation, when Codex `config.toml` lacks trust for the current project, when Pi settings or package metadata point at missing skill roots, when project agent instructions are missing, or when runtime-specific instructions contradict the shared project source of truth. Also report when important rules live only in ignored or private local instruction overlays but the tracked/public docs lack them; those overlays are private context, not durable project source of truth. Do not print raw config values. Secrets, tokens, keys, and passwords must appear only as `[REDACTED]`.
 
-从 project root 运行 quick check。Windows：
+从 project root 运行 quick check，复用 Step 1 解析的 `$HEALTH_SCRIPT`（standalone output 没有 `AGENT CONFIG SUMMARY` wrapper）：
 
 ```powershell
 & "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" agent-context . summary
@@ -199,27 +209,6 @@ BASH_ENV= ENV= /bin/bash -p "${HEALTH_SCRIPT%/*}/check-agent-context.sh" . summa
 
 Outdated items、global vs local placement、context hygiene、stale allowedTools entries。
 
----
+If no issues: `All relevant checks passed. Nothing to fix.`
 
-如果没有 issues：`All relevant checks passed. Nothing to fix.`
-
-## Non-goals
-
-- 没有 confirmation，绝不 auto-apply fixes。
-- 绝不把仓库大小、文件长度、贡献者数、skill 数或缺失的 descriptive inventory 在没有 behavioral evidence 时当作 finding。
-- 绝不充当 heavy lint、typecheck、duplication 或 architecture-rewrite substitute；`/health` 只报告 maintainability guardrails 和 concrete next actions。
-
-## Gotchas
-
-| What happened | Rule |
-|---|---|
-| Missed the local override | 也要读取 `settings.local.json`；它会 shadow committed file |
-| Subagent timeout reported as MCP failure | MCP failures 来自 live probe，不来自 data collection |
-| Reported issues in wrong language | 优先遵守 CLAUDE.md Communication rule |
-| Flagged intentionally noisy hook as broken | 把 hook 称为 "broken" 前先询问 |
-| Hook seemed not to fire, but it did -- a later UI element rendered above it | Hook firing order 不是 visual order。重新编辑 hook config 前：(a) 用 `--debug` 或 piping output 确认，(b) 检查 diff dialog、permission prompt 或其他 UI element 是否渲染在上层并把 hook output 推出屏幕，(c) 然后才怀疑 hook 本身。 |
-| `/health` burned too much quota on first run | 先 stay in summary mode。Full conversation extracts 和 inspector subagents 是 deep-audit tools，不是 Standard projects 的 default path。 |
-| Treated missing specs/docs as a failure | Decision artifacts 默认 optional。只有 tier、active handoff risk 或 user request 让它们必要时，才升级 missing docs/specs。 |
-| Treated an ignored AGENTS/CLAUDE file as durable project truth | 报告 rule 是否 tracked 和 distributed。Local overlays 可以 inform audit，但 durable fixes 应放在 public repo docs 或 shipped skill/rule files。 |
-| Treated a review scorecard as maintainability documentation | Scorecards 是 snapshots。提取 invariant 和 verification path，然后 remove 或 archive report，不要把 score 本身称为 durable rule。 |
-| 把大文件或缺少 project map 当作 finding | 这些只是 discovery signals；必须有 demonstrated risk、unreachable constraint、recurring failure 或 verifier gap 才能报告。 |
+本报告绝不在未经 confirmation 时自动应用修复，也不会充当 heavy lint、typecheck、duplication 或 architecture-rewrite 的替代品；`/health` 只报告 maintainability guardrails 和 concrete next actions。

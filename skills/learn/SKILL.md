@@ -1,6 +1,6 @@
 ---
 name: learn
-description: "Run a six-phase research workflow that turns unfamiliar domains, source bundles, or collected material into publish-ready output. Use when users ask in any language to research, study, deep-dive, compile sources, synthesize unfamiliar material, or turn source bundles into coherent references. Not for quick lookups or single-file reads."
+description: "Runs a six-phase research workflow from source bundle to publish-ready output. Use when researching an unfamiliar domain or compiling materials into one reference. Not for quick lookups or single-file reads."
 when_to_use: "学习一下, 深入研究, 研究一下, 整理成文章, 把这批材料整理, 一站式参考, 一篇就够, 整理成长文, research, deep dive, help me understand, compile sources, unfamiliar domain"
 dispatch_intent: "Deep research, unfamiliar domain, compile sources into output"
 ---
@@ -28,7 +28,7 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 
 ## Choose Mode
 
-请用户确认 mode；如果环境有 native question 或 approval mechanism，使用它：
+根据请求的 artifact 和已提供材料推断 mode。只有多个可行 mode 会改变 scope 或 deliverable，且用户意图无法解决选择时才询问：
 
 | Mode | Goal | Entry | Exit |
 |------|------|-------|------|
@@ -101,7 +101,7 @@ outline solid 前不要开始 Phase 4。
 
 ## Phase 5: Refine
 
-只做 edits：在不改变 meaning 或 voice 的前提下剪掉 redundancy，标出 argument flow 断裂处，并标记 gaps（先使用后解释的 concepts、需要 sources 的 claims）。不要从零 draft new sections。然后移除 AI patterns：已安装 `/write` 时调用它，否则手工扫描 filler、binary contrasts 和 dramatic fragmentation。
+只做 edits：在不改变 meaning 或 voice 的前提下剪掉 redundancy，标出 argument flow 断裂处，并标记 gaps（先使用后解释的 concepts、需要 sources 的 claims）。不要从零 draft new sections。然后移除 AI patterns：已安装 `/write` 时调用它，否则先 warning 一次，再手工扫描 filler、binary contrasts 和 dramatic fragmentation。
 
 ## Phase 6: Self-review and Publish Readiness
 

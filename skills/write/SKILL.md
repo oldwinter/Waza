@@ -1,7 +1,7 @@
 ---
 name: write
-description: "Rewrite and polish Chinese or English prose, remove AI-like wording, and review product localization copy while preserving intent for drafts, docs, release notes, launch copy, and social posts. Use when users ask in any language to draft, rewrite, proofread, localize, polish release notes, remove AI-like wording, or prepare launch/social copy. Not for code comments, commit messages, or inline docs."
-when_to_use: "帮我写, 改稿, 润色, 去AI味, 写一段, 审稿, 文档review, 本地化文案, 多语言文案, i18n copy, localization copy, check this document, 推特, twitter, X推文, tweet, social post, 连贯性, 段落连贯, draft, edit text, proofread, sound natural, polish, rewrite"
+description: "Rewrites and polishes Chinese or English prose and product copy. Use when drafting, editing, localizing, or cutting AI tone. Not for code comments or commit messages."
+when_to_use: "改稿, 润色, 去AI味, 帮我写文案, 审稿, 文档review, 本地化文案, 多语言文案, i18n copy, localization copy, check this document, 推特, twitter, X推文, tweet, social post, draft, edit text, proofread, sound natural, polish, rewrite"
 dispatch_intent: "Writing, editing prose, polish, release notes, launch/social copy, remove AI tone"
 ---
 
@@ -37,7 +37,7 @@ When distilling a new lesson into this skill, fold it into an existing principle
    - Contains Chinese characters + release notes or social post mode → load `references/write-zh-release-notes.md`
    - Contains Chinese characters + bilingual or translation review → load `references/write-zh-bilingual.md`
    - Product/site/app localization review across multiple locales → load `references/write-product-localization.md`; also load `references/write-zh-bilingual.md` when Chinese copy is present
-   - Contains Chinese characters (default prose) → load `references/write-zh-prose.md` (quick rules); load `references/write-zh.md` for the full AI-taste pattern catalog
+   - Contains Chinese characters (default prose) → load `references/write-zh.md`
    - Otherwise → load `references/write-en.md`
 
 读取 loaded reference file。然后编辑。除非明确要求，不要 summary、commentary 或 explanation of changes。

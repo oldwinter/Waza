@@ -5,9 +5,9 @@ Waza 发布八个 installed skills。当请求匹配下面某个 trigger 时，�
 | skill   | use when                                                                                  |
 |---------|-------------------------------------------------------------------------------------------|
 | think   | new feature / architecture / "怎么设计" / "有没有必要" / "值不值得" / product judgment    |
-| ui      | UI / page / component / frontend / typography / screenshot 说 "丑/不清晰/不和谐"          |
-| check   | review / "看看代码" / pre-merge / "继续优化" / release / push / close issue / project audit |
-| hunt    | error / crash / regression / test failure / "以前是好的" / screenshot 证明 regression      |
+| ui      | UI / page / component / frontend / typography / screenshot 说“丑/不清晰/不和谐”        |
+| check   | review / “看看代码” / pre-merge / release / push / close issue / project audit |
+| hunt    | error / crash / regression / test failure / “以前是好的” / screenshot 证明 regression    |
 | write   | draft / rewrite / proofread / "去 AI 味" / tweet / launch copy / document review          |
 | learn   | deep dive into unfamiliar domain / 把一批 sources 编译成一篇文章                          |
 | read    | message 含 http(s) URL 或 PDF path / "看这个链接" / "读一下"                              |

@@ -64,12 +64,13 @@ make package          # build dist/waza.zip from packaging.allowlist
 
 - 把 adaptive、judgment-heavy workflows 放进 skills。
 - 把 deterministic checks、lookups 和 table-driven validation 放进 scripts。
-- `rules/anti-patterns.md` 负责跨 skill 的 always-on behavioral guardrails，也就是无论 active skill 是哪个都适用的 AI failure modes。每个 skill 自己的 gotchas 留在各自 `skills/*/SKILL.md` 的 Gotchas table；只有当某个 gotcha 对八个 skills 都完全适用时，才放进 `rules/anti-patterns.md`。
+- `rules/anti-patterns.md` 负责跨 skill 的 behavioral guardrails，也就是无论 active skill 是哪个都适用的 AI failure modes。它会进入 full plugin、Codex plugin 和 Desktop ZIP，但 `npx skills add` 和 per-skill plugin entry 只安装 skill directory，因此必须在所有安装面生效的 guardrail，还需要在 skill body 中包含其操作性语句；table 是 canonical statement，不是 delivery。每个 skill 自己的 gotchas 留在各自 `skills/*/SKILL.md` 的 Gotchas table；只有当某个 gotcha 对八个 skills 都完全适用时，才放进 `rules/anti-patterns.md`。
 - Catalogs 的职责是合并，不是累积。这适用于 `rules/anti-patterns.md` rows，也适用于每个 reference example list、banned-phrase list 和 replacement table（`skills/write/references/*`、`skills/ui/references/*` 等）。添加 row、pattern、banned phrase 或 example 前，先找到它实例化的现有 row 或 principle，并折叠进去；不要追加近义词，也不要为已经在上文表达过的 rule 加第三种编码。措辞要足够通用，可以发布到本仓库之外。Reference file 如果在 numbered pattern 下重复列出已经覆盖的 items，那是 drift，不是 coverage。
-- no-op test 会逐句修剪 skill prose：一行只有在相对模型默认行为确实改变行为时才值得保留。重新教一个有能力模型本来就会做的事（例如对已经 thorough 的 agent 说 `be thorough`）就是 no-op，只会消耗 context，却什么都没表达；删除整句，不要只删几个词。拿不准某行是不是默认行为时，先假定它是默认行为并删掉。
+- no-op test 会逐句修剪 skill prose：一行只有在相对模型默认行为确实改变行为时才值得保留。删除已证实的 no-op，例如泛化的勉励，并合并重复约束，同时不丢失 trigger、exception 或 scope。拿不准某行是否改变行为时，先保留，直到 concrete comparison 解决不确定性。
+- Rule 和 reference prose 命名 smell，不要说教 virtue。这同样适用于 `rules/*.md` 和 `skills/*/references/*`：按文件已有约定，以名词命名失败（`报告腔`、`讲解腔`、`专家腔`），让 NO/OK 示例完成纠正。不要声明 `be X` 目标，也不要用说教式引言开启 anti-preaching rule；imperative heading 应改为名词 smell-name。
 - Leading words 会把被反复陈述的品质压缩成一个模型已经会联想到的 pretrained token：`fast, deterministic, low-overhead` 可以变成一个 `tight` loop；`a repro you trust` 可以变成会在 bug 上 `red` 的 loop。一个 token 能锚定整片行为区域，比展开三连词更锋利、更省 token。当某个 skill 三次表达同一种品质时，就把那段压缩成一个 leading word。
 - skill description、trigger 或 scope 改变时，同步更新 `skills/RESOLVER.md`。
-- 每个 `description` 都要足够具体，便于 automatic routing。
+- 每个 `description` 都要简短精确：说明它做什么、何时使用，并包含 `Not for` exclusion。不要用近义词列表或“in any language”范围填充；多语言 aliases 属于 `when_to_use`。
 - 写 skill entrypoints 时 outcome-first：说清目标结果、什么算完成、哪些约束和证据重要、最终回答或 artifact 应该长什么样。详细流程放到 mode sections 和 references。
 - `SKILL.md` 只承载该 skill 每次运行都需要的内容；只有部分运行需要的正文放进 `references/`，并通过 picker row 或明确命名 trigger 的 conditional line 到达。Mutually exclusive modes 是最典型的情况：diff review 不应为 release、triage 和 audit playbook 支付 context。Deterministic checks 仍然放进 `scripts/`；本规则决定 judgment prose 在何时加载，不是拆分 skill。
 - 八个 `SKILL.md` 要保持同一套 skeleton，读起来像一个 set：第一行是 `🥷` 加一句 tagline，然后是 Outcome Contract；会读 memory 的 skills 紧接着放 Durable Context Preflight；再放 modes、must-obey list、Gotchas 和 Output。同一个概念在各 skills 中只用一个名字（skill 的 must-obey constraints 叫 `Hard Rules`；`Hard Stops` 是 check 里单独的 merge-blocker list）。Tables 保持紧凑的 `| a | b |`，不要手工对齐；numbered step sequence 要连续，side-checks 放在某一步下面，不要插在两个步骤之间。
@@ -77,15 +78,16 @@ make package          # build dist/waza.zip from packaging.allowlist
 - 八个 skills 是硬上限。不要提出第 9 个 skill，也不要拆分现有 skill。Behavior additions 应落在 `references/`、`rules/`、`scripts/` 或 `rules/anti-patterns.md`，不要新增 skill。
 - Waza 保留通用程序员能力。Project-specific constraints 应从公开 repository context 或用户提供的 task context 中提取。
 - 把 `code-review` 视为 Waza `check` 的 invocation alias，不要当成另一个通用 skill。
+- Skill names 保持短动词（`check`、`think`）。拒绝重命名或添加 `waza-` 前缀的请求；与其他已安装 skill 发生冲突时，应精简用户安装的 skills，而不是重命名 Waza skill。`.claude-plugin/marketplace.json` 中的 `waza-<name>` per-skill plugin id 是 host install namespace，不是 skill name，不受影响；invocation 已通过 `/waza:check` 命名空间化。
 - Waza `check` 必须保持 project-aware，但不能依赖未发布的本地文件。它从 target diff、public docs、manifests、CI config 和 user-provided context 中提取 commands、generated artifacts、risk areas 和 release rules。
 - Distribution files 要对 Claude Desktop 和 plugin installs 自包含。release ZIP 可以把 sub-skill bodies inline 到 generated root `SKILL.md`；source-of-truth skill content 仍保留在 `skills/*/SKILL.md`。
-- README 保持简短：新读者应能在 30 秒内理解 Waza。详细 rules 属于 `skills/<name>/SKILL.md`、`rules/*.md` 或本文件。不要在顶部堆 promotional sections。
+- README 要容易进入：新读者应能在 30 秒内理解 Waza。保留作者声音、已接受的结构和有用示例；删除重复，但不要强制整体缩短。详细 workflow rules 属于 `skills/<name>/SKILL.md`、`rules/*.md` 或本文件。不要在顶部堆 promotional sections；promotional 或 provider-advertising PR（banner、model list、UTM link）应用一句话关闭，不要合并；README 保持简短且 provider-neutral。
 
 ## Adding Or Changing A Skill
 
 任何 new skill 或 meaningful behavior change 都走这条路径：
 
-1. 创建或更新 `skills/<name>/SKILL.md`；description 保持具体、可触发，并包含 `Not for ...` exclusion。不要在 frontmatter 中添加 version 字段；`VERSION` 是单一事实源，validator 会拒绝 `metadata.version`。
+1. 创建或更新 `skills/<name>/SKILL.md`；description 保持简短、精确、可触发，并包含 `Not for ...` exclusion。不要在 frontmatter 中添加 version 字段；`VERSION` 是单一事实源，validator 会拒绝 `metadata.version`。
 2. 更新 `skills/RESOLVER.md` routing rows，让新 skill 或变化后的 scope 可达；不要手工编辑 `.claude-plugin/marketplace.json`，改用 `make regenerate`。
 3. 保持 Waza public：在 runtime 从 public repo context 中提取 project-specific details，不要硬编码 private paths、credentials 或 one-machine workflow。
 4. 把 deterministic enforcement 放进 `scripts/` 或 `rules/`；skill body 只保留 adaptive judgment。

@@ -1,6 +1,10 @@
 import importlib.util
+import json
+import subprocess
 import sys
 from pathlib import Path
+
+import pytest
 
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -9,6 +13,40 @@ SPEC = importlib.util.spec_from_file_location("health_maintainability_regression
 maint = importlib.util.module_from_spec(SPEC)
 sys.modules[SPEC.name] = maint
 SPEC.loader.exec_module(maint)
+
+
+def test_command_labels_redact_credentials_without_hiding_status_fields():
+    label = (
+        "workflow.yml: PROVIDER_API_KEY=provider-namespaced-value "
+        '\"DATABASE_PASSWORD\": \"database-json-value\" '
+        "CLOUD_SECRET_ACCESS_KEY='cloud-namespaced-value' "
+        "SSH_PRIVATE_KEY=ssh-private-value "
+        "--token=maintainability-flag-value "
+        "token_count=42 api_key_status=missing secret_scan_status=ok "
+        "foo-token_count=7 "
+        "password_hash=sha256 notsecret=value secretary=value "
+        "CLOUD_ACCESS_KEY_ID=identifier"
+    )
+
+    redacted = maint.redact_command_label(label)
+
+    for leaked in (
+        "provider-namespaced-value",
+        "database-json-value",
+        "cloud-namespaced-value",
+        "ssh-private-value",
+        "maintainability-flag-value",
+    ):
+        assert leaked not in redacted
+    assert "PROVIDER_API_KEY=[REDACTED]" in redacted
+    assert '\"DATABASE_PASSWORD\": [REDACTED]' in redacted
+    assert "CLOUD_SECRET_ACCESS_KEY=[REDACTED]" in redacted
+    assert "SSH_PRIVATE_KEY=[REDACTED]" in redacted
+    assert "--token=[REDACTED]" in redacted
+    assert "token_count=42 api_key_status=missing secret_scan_status=ok" in redacted
+    assert "foo-token_count=7" in redacted
+    assert "password_hash=sha256 notsecret=value secretary=value" in redacted
+    assert "CLOUD_ACCESS_KEY_ID=identifier" in redacted
 
 
 def test_markdown_links_ignore_fenced_and_inline_code(tmp_path: Path):
@@ -85,3 +123,32 @@ def test_swift_package_has_native_verifier_surface(tmp_path: Path):
 
     assert "swift test" in commands
     assert "swift test" in evidence
+
+
+@pytest.mark.parametrize("default", ["check", "test", "verify"])
+def test_package_default_avoids_make_wrapper_warning(tmp_path: Path, default: str):
+    (tmp_path / "Makefile").write_text("build:\n\t@test -s package.json\n")
+    (tmp_path / "package.json").write_text(json.dumps({"scripts": {
+        default: "npm run lint && npm run typecheck",
+        "lint": "eslint .",
+        "typecheck": "tsc --noEmit",
+    }}))
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), str(tmp_path)], capture_output=True, text=True,
+        check=True,
+    )
+    assert f"npm run {default}" in result.stdout
+    assert "wrapper_status: PASS" in result.stdout
+
+
+def test_hollow_package_default_does_not_clear_wrapper_gap(tmp_path: Path):
+    (tmp_path / "Makefile").write_text("build:\n\t@test -s package.json\n")
+    (tmp_path / "package.json").write_text(json.dumps({"scripts": {
+        "check": "echo passed", "lint": "eslint .",
+    }}))
+    result = subprocess.run(
+        [sys.executable, str(SCRIPT), str(tmp_path)], capture_output=True, text=True,
+        check=True,
+    )
+    assert "wrapper_status: WARN" in result.stdout
+    assert "hollow_verifiers:" in result.stdout

@@ -28,7 +28,7 @@ Waza 有意保持八个 skills。当用户希望比大型 agent-workflow 集合�
 
 全部 skills：
 
-`npx skills add oldwinter/Waza -a claude-code codex cursor antigravity-cli -g -y`
+`npx skills add oldwinter/Waza -a claude-code codex cursor -g -y`
 
 Pi package（上游包，不是本 fork 的中文 runtime）：
 

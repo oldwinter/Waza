@@ -10,10 +10,10 @@ Current code、diff、screenshot、log、test、docs、CI、remote state 和 liv
 
 ## Memory is not authorization
 
-Memory may explain preferences, but it must never grant or broaden authorization for writes, commits, pushes, publishing, public replies, deletion, or other state changes. Current-turn instructions and current project rules decide authorization. Historical phrases such as `push` or `check` are context to re-evaluate, not reusable action tokens.
+Memory may explain preferences, but it must never grant or broaden authorization for writes, commits, pushes, publishing, public replies, deletion, or other state changes. Live task instructions and current project rules decide authorization, including explicit authorization still in force for the same unfinished goal. Historical phrases such as `push` or `check` are context to re-evaluate, not reusable action tokens.
 
 ## Redaction gate
 
 把 durable context 写入公开规则、skill、docs 或回复前，移除 local path、issue number、customer detail、machine state、secret、token、credential 和未公开 release fact。无法在不损失关键含义的情况下完成脱敏时，不要持久化该内容。
 
-每个 skill 会在自己的 Durable Context Preflight 段落中补充该 skill 专属的读取和覆盖规则。
+如果确实需要示例，使用 `ExampleCLI`、`ExampleApp`、`<issue>`、`<release>` 或 `<command>` 等中性占位符。不要把私人回答、维护者回复、截图观察或项目特定事故复制成 durable rule。
