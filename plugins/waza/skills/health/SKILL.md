@@ -26,7 +26,7 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 - **Agent config health**：Codex/Claude/Pi instruction drift、permissions、hooks、MCP、skills 和 memory supply chain。
 - **AI maintainability health**：non-obvious constraint reachability、risk-backed hotspot ownership、verifier coverage、generated-artifact checks，以及 stale 或 misleading durable docs。
 
-**Output language:** 按顺序检查：(1) project agent instructions（`AGENTS.md` before runtime-specific files）；(2) global agent instructions；(3) user recent language；(4) English。
+**Output language:** 跟随用户当前语言或明确的 language request。只有请求没有确立语言时，才使用适用的 project 和 global defaults。
 
 **Budget posture:** Start with the summary audit. Escalate automatically when the user asks for a deep, full, complete, thorough, "深入", "完整", "彻底", or "继续跑完" audit, when the user explicitly mentions AI coding code rot, Codex/Claude config drift, unclear context, missing verification, verifier output that points at stale paths, or "代码变烂", when current project instructions or remembered user preference says to run deep health checks by default, or when the summary pass exposes a critical ambiguity that cannot be resolved locally. Inventory counts never trigger escalation on their own. Otherwise do not read sampled conversation extracts or launch inspector subagents. Tell the user before escalating because deep health audits can consume significant token quota.
 
@@ -42,7 +42,7 @@ For `/health`: current config, command output, and live probes override memory. 
 
 - Summary 和 deep audit 只生成报告。只运行 Health 自带 collector 和只读 probe；中性的 Health 请求不授权运行项目 test、verifier、generator、build、formatter、package installer，也不授权刷新 fixture 或 snapshot。
 - **组合的 debugging 或 code-review 请求使用自己的工作流。** 先完成这份 report-only audit，再在同一 completion ledger 下把用户明确请求的工作路由到匹配的 skill 或 native capability。Review 请求仍不授权 repair；明确的 repair 授权只适用于 repair phase，不适用于 collector。
-- 项目 instructions 可以定义命令，但不构成运行授权。Report-only audit 中的 live verification 必须得到用户对该命令的明确授权；执行前说明 command、预期写入、target paths、isolation，以及 rollback 或 disposable-environment plan。
+- 项目 instructions 可以定义命令，但不构成运行授权。只读 health probes 属于 audit 请求范围。会启动应用、安装依赖或写入状态的 probe，除非已被当前请求覆盖，否则需要用户对该命令的明确授权；执行前说明 command、预期写入、target paths、isolation，以及 rollback 或 disposable-environment plan。
 
 ## Step 0: Establish the evidence basis
 
@@ -59,7 +59,7 @@ An absent map, a large file, many skills, or a high TODO count is informational 
 
 ## Step 1: Collect data
 
-先以 summary mode 运行 collection script。暂时不要 interpret。Windows 使用 Health 自带 launcher，只在 Bash child process 中加入 Git for Windows tools：
+上面的 static-only scope 把 `HEALTH_SCOPE` 设为 `instructions`，否则设为 `auto`，并在升级时保留该值。先以 summary mode 运行 collection script。暂时不要 interpret。Windows 使用 Health 自带 launcher，只在 Bash child process 中加入 Git for Windows tools：
 
 ```powershell
 $HEALTH_LAUNCHER = @(
@@ -70,7 +70,7 @@ if (-not $HEALTH_LAUNCHER) {
   throw "Health launcher not found under the installed skill base; reinstall Waza."
 }
 $POWERSHELL = Join-Path ([Environment]::SystemDirectory) "WindowsPowerShell\v1.0\powershell.exe"
-& "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" collect
+& "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" collect "$HEALTH_SCOPE"
 ```
 
 `-ExecutionPolicy Bypass` 只作用于这个 PowerShell process；不要修改用户或 account 的 execution policy。
@@ -88,7 +88,7 @@ if [ ! -f "${HEALTH_SCRIPT:-}" ]; then
   echo "health collect-data.sh not found under the installed skill base; reinstall Waza"
   exit 1
 fi
-BASH_ENV= ENV= /bin/bash -p "$HEALTH_SCRIPT"
+BASH_ENV= ENV= /bin/bash -p "$HEALTH_SCRIPT" "$HEALTH_SCOPE"
 ```
 
 tools missing 时，sections 可能显示 `(unavailable)`：
@@ -103,9 +103,9 @@ collector 同时包含 runtime-specific 和 agent-agnostic surfaces：
 - `AGENT CONFIG SUMMARY` / `AGENT CONFIG DETAIL` for Codex, Claude, Pi, and project instruction files; its sections start at `=== AGENT INSTRUCTION SURFACE ===`.
 - `AI MAINTAINABILITY SUMMARY` / `AI MAINTAINABILITY DETAIL` for project signals, verification surface, generated mirrors, wrappers, and doc links; its sections start at `=== PROJECT SHAPE ===`.
 
-## Step 1b: MCP Live Check
+## Step 1b: Runtime Inventory and MCP Check
 
-测试每个 MCP server：每个 server 调用一个 harmless tool。记录 `live=yes/no` 和 error detail。尊重 `enabled: false`（skip，不 flag）。对 API keys，只记录 environment variable 是否 set，绝不输出其值的任何部分。
+先检查已配置的 global、project 和 installed-plugin sources，保留 source 和 enablement。用 runtime inventory flag 缺失的 hook 和 MCP executables；未知 working directories 或 plugin state 仍算 coverage gaps。只对已经连接的 servers 调用 harmless tool。绝不为了测试 MCP 而启动未验证的 GUI executable。分别记录 connected、failed、disabled、pending approval 或 untested；static presence 不等于 live health。绝不输出 credentials。把发现的 instruction bytes 与 effective configured limit 对比，并说明任何未检查的 ancestors、nested files 或 runtime overrides。
 
 ## Step 1c: Safety and security checks
 
@@ -135,7 +135,7 @@ These run after collection and before the Step 2 analysis. The first two apply t
 
 ## Step 2: Analyze
 
-默认基于 summary output 本地分析。Budget posture 升级时，在 Windows 用 `& "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" collect auto deep`，在 Linux/macOS 用 `BASH_ENV= ENV= /bin/bash -p "$HEALTH_SCRIPT" auto deep` 重新 collection；然后只并行启动相关 inspector。Credential 统一 redact 为 `[REDACTED]`。
+默认基于 summary output 本地分析。Budget posture 升级时，在 Windows 用 `& "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" collect "$HEALTH_SCOPE" deep`，在 Linux/macOS 用 `BASH_ENV= ENV= /bin/bash -p "$HEALTH_SCRIPT" "$HEALTH_SCOPE" deep` 重新 collection；然后只并行启动相关 inspector。Credential 统一 redact 为 `[REDACTED]`。
 
 - **Deep inspector routing：**
   - **Agent 1** (Context + Security): Read `agents/inspector-context.md`. Feed `CONVERSATION SIGNALS` section.
@@ -211,4 +211,4 @@ Outdated items、global vs local placement、context hygiene、stale allowedTool
 
 If no issues: `All relevant checks passed. Nothing to fix.`
 
-本报告绝不在未经 confirmation 时自动应用修复，也不会充当 heavy lint、typecheck、duplication 或 architecture-rewrite 的替代品；`/health` 只报告 maintainability guardrails 和 concrete next actions。
+Report-only 请求绝不授权修复；明确的 optimization 或 repair 请求会进入其获授权的 repair phase，无需再次 confirmation。本 audit 不会充当 heavy lint、typecheck、duplication 或 architecture-rewrite 的替代品；`/health` 只报告 maintainability guardrails 和 concrete next actions。

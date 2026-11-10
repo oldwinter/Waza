@@ -3,6 +3,7 @@ import os
 import subprocess
 import sys
 from pathlib import Path
+from typing import Optional
 
 import pytest
 
@@ -12,6 +13,7 @@ SCRIPT = ROOT / "skills" / "health" / "scripts" / "check_agent_context.py"
 CANONICAL_PIPE_HOOK = (
     ROOT / "skills" / "health" / "scripts" / "block-pipe-to-shell.py"
 )
+needs_tomllib = pytest.mark.skipif(sys.version_info < (3, 11), reason="tomllib required")
 
 
 def run_context(project: Path, home: Path) -> str:
@@ -37,6 +39,303 @@ def write_json(path: Path, value: object) -> None:
 def write_skill(path: Path, name: str, body: str = "same body") -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(f"---\nname: {name}\n---\n\n{body}\n", encoding="utf-8")
+
+
+def test_disabled_plugins_are_not_reported_enabled(tmp_path: Path):
+    project, home = tmp_path / "project", tmp_path / "home"
+    project.mkdir()
+    config = home / ".codex" / "config.toml"
+    config.parent.mkdir(parents=True)
+    config.write_text('[plugins."active@example"]\nenabled = true\n'
+                      '[plugins."disabled@example"]\nenabled = false\n'
+                      '[plugins."active@example".mcp_servers.server]\nenabled = true\n')
+    output = run_context(project, home)
+    enabled = output.split("enabled_plugins:\n", 1)[1].split("marketplaces:", 1)[0]
+    assert "active@example" in enabled
+    assert "disabled@example" not in enabled
+    assert "mcp_servers" not in enabled
+
+
+@needs_tomllib
+def test_global_runtime_inventory_and_instruction_limit(tmp_path: Path):
+    project, home = tmp_path / "project", tmp_path / "home"
+    project.mkdir()
+    (project / "AGENTS.md").write_text("x" * 33000)
+    write_json(home / ".claude.json", {"mcpServers": {
+        "broken": {"command": str(home / "missing-executable")},
+        "remote": {"url": "https://example.com/mcp", "headers": {"Secret": "DO-NOT-PRINT"}},
+    }})
+    write_json(home / ".claude" / "settings.json", {"hooks": {"Stop": [{"hooks": [
+        {"type": "mcp_tool", "server": "remote", "tool": "turn_ended"}
+    ]}]}})
+    write_json(home / ".codex" / "hooks.json", {"hooks": {"Stop": [{"hooks": [
+        {"type": "command", "command": "true"}
+    ]}]}})
+    (home / ".codex" / "config.toml").write_text("")
+    output = run_context(project, home)
+    assert "claude:user mcp=broken state=enabled executable=missing" in output
+    assert "claude:user mcp=remote state=enabled executable=remote" in output
+    assert "claude:global hook=Stop type=mcp_tool" in output
+    assert "codex:global hook=Stop type=command" in output
+    assert "project_instruction_limit_exceeded: yes" in output
+    assert "DO-NOT-PRINT" not in output
+
+
+def test_runtime_plugin_sources_and_disabled_executables(tmp_path: Path):
+    project, home = tmp_path / "project", tmp_path / "home"
+    project.mkdir()
+    plugin = home / "plugin"
+    write_json(plugin / ".mcp.json", {"plugin-server": {"url": "https://example.com"}})
+    write_json(home / ".claude" / "settings.json", {"enabledPlugins": {"demo": True}})
+    write_json(home / ".claude" / "plugins" / "installed_plugins.json", {
+        "plugins": {"demo": [{"scope": "user", "installPath": str(plugin)}]}})
+    write_json(home / ".claude.json", {"mcpServers": {
+        "off": {"enabled": False, "command": str(home / "missing")}}})
+    output = run_context(project, home)
+    assert "claude:plugin:demo mcp=claude:plugin:demo:plugin-server" in output
+    assert "mcp=off state=disabled executable=skipped" in output
+
+
+def test_runtime_inventory_tolerates_malformed_collections(tmp_path: Path):
+    project, home = tmp_path / "project", tmp_path / "home"
+    project.mkdir()
+    write_json(home / ".claude.json", {"projects": {str(project): {"mcpServers": []}}})
+    write_json(home / ".claude" / "settings.json", {"hooks": {"Stop": [{"hooks": None}]}})
+    assert "=== RUNTIME CONFIGURATION ===" in run_context(project, home)
+
+
+@needs_tomllib
+def test_codex_budget_charges_only_the_project_doc(tmp_path: Path):
+    project, home = tmp_path / "project", tmp_path / "home"
+    project.mkdir()
+    (project / "AGENTS.md").write_text("p" * 60)
+    (home / ".codex").mkdir(parents=True)
+    (home / ".codex" / "AGENTS.md").write_text("g" * 60)
+    (home / ".codex" / "config.toml").write_text("project_doc_max_bytes = 100\n")
+    output = run_context(project, home)
+    assert "project_instruction_bytes: 60" in output
+    assert "project_instruction_limit_exceeded: no" in output
+
+
+def test_codex_budget_is_absent_without_codex_home(tmp_path: Path):
+    project, home = tmp_path / "project", tmp_path / "home"
+    project.mkdir()
+    home.mkdir()
+    (project / "AGENTS.md").write_text("x" * 33000)
+    output = run_context(project, home)
+    assert "=== RUNTIME CONFIGURATION ===" in output
+    assert "project_instruction_" not in output
+
+
+def test_codex_budget_uses_default_limit_without_config_toml(tmp_path: Path):
+    project, home = tmp_path / "project", tmp_path / "home"
+    project.mkdir()
+    (home / ".codex").mkdir(parents=True)
+    (home / ".codex" / "auth.json").write_text("{}")
+    (project / "AGENTS.md").write_text("x" * 33000)
+    output = run_context(project, home)
+    assert "project_instruction_limit: 32768" in output
+    assert "project_instruction_limit_exceeded: yes" in output
+
+
+def test_claude_project_mcp_disables_are_applied(tmp_path: Path):
+    project, home = tmp_path / "project", tmp_path / "home"
+    project.mkdir()
+    write_json(home / ".claude.json", {
+        "mcpServers": {"alpha": {"command": "python3", "env": {"TOKEN": "DO-NOT-PRINT"}}},
+        "projects": {str(project.resolve()): {
+            "disabledMcpServers": ["alpha"],
+            "disabledMcpjsonServers": ["beta"],
+        }},
+    })
+    write_json(project / ".mcp.json", {"mcpServers": {"beta": {"command": "python3"}}})
+    output = run_context(project, home)
+    assert "claude:user mcp=alpha state=disabled executable=skipped" in output
+    assert "claude:project mcp=beta state=disabled executable=skipped" in output
+    assert "DO-NOT-PRINT" not in output
+
+
+def test_claude_local_mcp_entry_outranks_project_and_user(tmp_path: Path):
+    project, home = tmp_path / "project", tmp_path / "home"
+    project.mkdir()
+    write_json(home / ".claude.json", {
+        "mcpServers": {"shared": {"url": "https://example.com/user"}},
+        "projects": {str(project.resolve()): {"mcpServers": {
+            "shared": {"command": "python3", "args": ["DO-NOT-PRINT"]},
+        }}},
+    })
+    write_json(project / ".mcp.json", {"mcpServers": {
+        "shared": {"url": "https://example.com/project", "headers": {"X": "DO-NOT-PRINT"}},
+    }})
+    output = run_context(project, home)
+    assert "claude:local-project mcp=shared state=enabled" in output
+    assert "claude:project mcp=shared" not in output
+    assert "claude:user mcp=shared" not in output
+    assert "DO-NOT-PRINT" not in output
+
+
+@pytest.mark.parametrize(
+    ("command", "present", "absent"),
+    [
+        ("FOO=1 python3 x.py", "hook_executable=found", "hook_executable=missing"),
+        ("source ~/.zshrc", None, "hook_executable="),
+        ("exec /definitely/missing/bin", "hook_executable=missing", None),
+        (f"exec {sys.executable}", "hook_executable=found", "hook_executable=missing"),
+        ("FOO=1 && true", None, "hook_executable="),
+        (f"2>/dev/null {sys.executable} x.py", "hook_executable=found", "hook_executable=missing"),
+        (f"exec 2>>log {sys.executable} x.py", "hook_executable=found", "hook_executable=missing"),
+        ("exit 0", None, "hook_executable="),
+        (f"unset FOO; {sys.executable} x.py", "hook_executable=found", "hook_executable=missing"),
+        ("exec env /definitely/missing/bin", "hook_executable=missing", "hook_executable=found"),
+        ("env -u HOME /definitely/missing/bin", "hook_executable=missing", None),
+        ("exec -a name /definitely/missing/bin", "hook_executable=missing", None),
+        ("env -S 'a b' x", "hook_executable=unverified", None),
+        ('cd "$CLAUDE_PROJECT_DIR" && /definitely/missing/bin', "hook_executable=missing", None),
+        ("command -v jq >/dev/null", None, "hook_executable="),
+        (f"time -p {sys.executable} x.py", "hook_executable=found", "hook_executable=missing"),
+        ("time -p /definitely/missing/bin", "hook_executable=missing", None),
+    ],
+)
+def test_hook_executable_skips_assignments_and_shell_builtins(
+    tmp_path: Path, command: str, present: Optional[str], absent: Optional[str]
+):
+    project, home = tmp_path / "project", tmp_path / "home"
+    project.mkdir()
+    write_json(home / ".claude" / "settings.json", {"hooks": {"Stop": [{"hooks": [
+        {"type": "command", "command": command}
+    ]}]}})
+    output = run_context(project, home)
+    assert "claude:global hook=Stop type=command" in output
+    if present:
+        assert f"claude:global {present}" in output
+    if absent:
+        assert absent not in output
+
+
+def test_settings_mcpjson_rejects_apply_and_keep_user_server(tmp_path: Path):
+    project, home = tmp_path / "project", tmp_path / "home"
+    project.mkdir()
+    write_json(home / ".claude.json", {"mcpServers": {"shared": {"url": "https://example.com/user"}}})
+    write_json(project / ".claude" / "settings.local.json", {"disabledMcpjsonServers": ["beta", "shared"]})
+    write_json(project / ".mcp.json", {"mcpServers": {
+        "beta": {"command": "python3"},
+        "shared": {"command": "/definitely/missing/bin"},
+    }})
+    output = run_context(project, home)
+    assert "claude:project mcp=beta state=disabled executable=skipped" in output
+    assert "claude:user mcp=shared state=enabled executable=remote" in output
+    assert "claude:project mcp=shared" not in output
+
+
+def test_mcpjson_reject_leaves_same_name_local_server_enabled(tmp_path: Path):
+    project, home = tmp_path / "project", tmp_path / "home"
+    project.mkdir()
+    write_json(home / ".claude.json", {"projects": {str(project.resolve()): {
+        "mcpServers": {"shared": {"command": sys.executable}},
+        "disabledMcpjsonServers": ["shared"],
+    }}})
+    write_json(project / ".mcp.json", {"mcpServers": {"shared": {"command": "/definitely/missing/bin"}}})
+    output = run_context(project, home)
+    assert "claude:local-project mcp=shared state=enabled executable=found" in output
+
+
+def test_unapproved_mcpjson_server_is_pending(tmp_path: Path):
+    project, home = tmp_path / "project", tmp_path / "home"
+    project.mkdir()
+    write_json(home / ".claude.json", {
+        "mcpServers": {"shared": {"url": "https://example.com/user"}},
+        "projects": {str(project.resolve()): {"enabledMcpjsonServers": ["approved", "my_srv"]}},
+    })
+    write_json(project / ".mcp.json", {"mcpServers": {
+        "approved": {"command": "python3"},
+        "my.srv": {"command": "python3"},
+        "fresh": {"command": "python3"},
+        "shared": {"command": "/definitely/missing/bin"},
+    }})
+    output = run_context(project, home)
+    assert "claude:project mcp=approved state=enabled" in output
+    assert "claude:project mcp=fresh state=pending" in output
+    assert "claude:project mcp=my.srv state=enabled" in output
+    assert "claude:user mcp=shared state=enabled executable=remote" in output
+
+
+def test_enable_all_project_mcp_servers_approves_mcpjson(tmp_path: Path):
+    project, home = tmp_path / "project", tmp_path / "home"
+    project.mkdir()
+    write_json(project / ".claude" / "settings.local.json", {"enableAllProjectMcpServers": True})
+    write_json(project / ".mcp.json", {"mcpServers": {"fresh": {"command": "python3"}}})
+    output = run_context(project, home)
+    assert "claude:project mcp=fresh state=enabled" in output
+
+
+def test_plugin_mcp_server_honors_disabled_runtime_name(tmp_path: Path):
+    project, home = tmp_path / "project", tmp_path / "home"
+    project.mkdir()
+    plugin = home / "plugins" / "github"
+    write_json(home / ".claude" / "plugins" / "installed_plugins.json", {"plugins": {
+        "github@market": [{"scope": "user", "installPath": str(plugin)}],
+    }})
+    write_json(home / ".claude" / "settings.json", {"enabledPlugins": {"github@market": True}})
+    write_json(plugin / ".mcp.json", {"github": {"command": "python3"}})
+    write_json(home / ".claude.json", {"projects": {str(project.resolve()): {
+        "disabledMcpServers": ["plugin:github:github"],
+    }}})
+    output = run_context(project, home)
+    assert "mcp=claude:plugin:github@market:github state=disabled executable=skipped" in output
+
+
+def test_settings_mcp_servers_are_not_claude_sources(tmp_path: Path):
+    project, home = tmp_path / "project", tmp_path / "home"
+    project.mkdir()
+    write_json(home / ".claude.json", {"projects": {str(project.resolve()): {
+        "mcpServers": {"shared": {"command": sys.executable}},
+    }}})
+    write_json(home / ".claude" / "settings.json", {"mcpServers": {"shared": {"url": "https://x"}}})
+    output = run_context(project, home)
+    assert "claude:local-project mcp=shared state=enabled executable=found" in output
+    assert "claude:global mcp=shared" not in output
+    assert "claude:global mcp_servers=ignored" in output
+
+
+def test_mcpjson_reject_does_not_disable_same_name_user_server(tmp_path: Path):
+    project, home = tmp_path / "project", tmp_path / "home"
+    project.mkdir()
+    write_json(home / ".claude.json", {
+        "mcpServers": {"alpha": {"url": "https://example.com/user"}},
+        "projects": {str(project.resolve()): {"disabledMcpjsonServers": ["alpha"]}},
+    })
+    output = run_context(project, home)
+    assert "claude:user mcp=alpha state=enabled executable=remote" in output
+
+
+@pytest.mark.parametrize(
+    ("prefix", "credited"),
+    [
+        ("FOO=1 ", "yes"),
+        ("PYTHONPATH=/tmp/evil ", "no"),
+        ("env PYTHONPATH=/tmp/evil ", "no"),
+        ("PATH=/tmp/evil ", "no"),
+        ("env PATH=/tmp/evil ", "no"),
+        ("DYLD_INSERT_LIBRARIES=/tmp/evil.dylib ", "no"),
+        ("LD_PRELOAD=/tmp/evil.so ", "no"),
+        ("exec ", "yes"),
+        ("! ", "no"),
+        ("</dev/null ", "no"),
+        ("0</dev/null ", "no"),
+        ("<<< '' ", "no"),
+        ("exec 0<&- ", "no"),
+    ],
+)
+def test_pipe_hook_floor_rejects_python_env_overrides(tmp_path: Path, prefix: str, credited: str):
+    project, home = tmp_path / "project", tmp_path / "home"
+    project.mkdir()
+    settings = complete_claude_floor(home)
+    settings["hooks"]["PreToolUse"][0]["hooks"][0]["command"] = (
+        prefix + "python3 ~/hooks/block-pipe-to-shell.py"
+    )
+    write_json(home / ".claude" / "settings.json", settings)
+    output = run_context(project, home)
+    assert f"pretool_pipe_to_shell_hook: {credited}" in output
 
 
 def complete_claude_floor(home: Path) -> dict[str, object]:
@@ -758,10 +1057,43 @@ def test_agents_md_alone_is_not_a_claude_surface_while_the_fallback_is_off(
     home = tmp_path / "home"
     project.mkdir()
     (project / "AGENTS.md").write_text("# Guide\n\n## Git Safety\n", encoding="utf-8")
-    write_json(home / ".claude" / "settings.json", {})
+    write_json(
+        home / ".claude" / "settings.json",
+        {"enabledPlugins": {"cc-plugin-agents-md@builtin": False}},
+    )
     out = run_context(project, home)
     assert "Claude instruction surface not found" in out
     assert "project_instructions_mode: claude-md" in out
+
+
+def test_agents_md_alone_is_a_claude_surface_by_default(tmp_path: Path):
+    project = tmp_path / "project"
+    home = tmp_path / "home"
+    project.mkdir()
+    (project / "AGENTS.md").write_text("# Guide\n\n## Git Safety\n", encoding="utf-8")
+    write_json(home / ".claude" / "settings.json", {})
+    out = run_context(project, home)
+    assert "Claude instruction surface not found" not in out
+    assert "project_instructions_mode: claude-md-or-agents-md" in out
+
+
+def test_current_plugin_id_sets_the_mode(tmp_path: Path):
+    project = tmp_path / "project"
+    home = tmp_path / "home"
+    project.mkdir()
+    (project / "AGENTS.md").write_text("# Guide\n", encoding="utf-8")
+    write_json(
+        home / ".claude" / "settings.json",
+        {
+            "pluginConfigs": {
+                "cc-plugin-agents-md@builtin": {
+                    "options": {"instructionFiles": "claude-md-and-agents-md"}
+                }
+            }
+        },
+    )
+    out = run_context(project, home)
+    assert "project_instructions_mode: claude-md-and-agents-md" in out
 
 
 def test_root_claude_md_hides_nested_agents_md_from_claude(tmp_path: Path):
@@ -837,3 +1169,38 @@ def test_both_mode_still_hides_nested_when_claude_md_aliases_agents(tmp_path: Pa
     )
     out = run_context(project, home)
     assert "a root CLAUDE.md hides 1 nested AGENTS.md from Claude" in out
+
+
+@pytest.mark.parametrize("runtime", [".claude", ".agents", ".codex"])
+@pytest.mark.parametrize("scope", ["project", "home"])
+@pytest.mark.parametrize("shape", ["directory", "entrypoint", "root"])
+def test_broken_skill_symlinks_are_reported(tmp_path: Path, runtime, scope, shape):
+    project, home = tmp_path / "project", tmp_path / "home"
+    project.mkdir()
+    home.mkdir()
+    base = project if scope == "project" else home
+    skill_root = base / runtime / "skills"
+    link = skill_root if shape == "root" else skill_root / "broken"
+    if shape == "entrypoint":
+        link = link / "SKILL.md"
+    link.parent.mkdir(parents=True)
+    link.symlink_to(base / "missing-target", target_is_directory=shape != "entrypoint")
+    output = run_context(project, home)
+    assert "broken_skill_links: 1" in output
+    prefix = "project:/" if scope == "project" else "~/"
+    assert f"{prefix}{link.relative_to(base).as_posix()}" in output
+    assert "missing-target" not in output
+    assert "conflict_status: WARN" in output
+
+
+def test_valid_skill_link_is_not_reported_broken(tmp_path: Path):
+    project, home = tmp_path / "project", tmp_path / "home"
+    project.mkdir()
+    source = home / "source" / "SKILL.md"
+    write_skill(source, "demo")
+    link = home / ".agents" / "skills" / "demo"
+    link.parent.mkdir(parents=True)
+    link.symlink_to(source.parent, target_is_directory=True)
+    output = run_context(project, home)
+    assert "broken_skill_links: 0" in output
+    assert "skill_files_scanned: 1" in output

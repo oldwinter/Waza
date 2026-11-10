@@ -1,19 +1,20 @@
 <div align="center">
-  <img src="https://gw.alipayobjects.com/zos/k/2h/waza.svg" width="120" />
+  <img src="https://raw.githubusercontent.com/tw93/Waza/main/assets/logo.svg" width="120" />
   <h1>Waza</h1>
   <p><b>把你已经熟悉的工程习惯，变成 AI agents 可以执行的 skills。</b></p>
   <p><a href="https://yobi.tw93.fun/projects/waza">产品事实与选择器</a> · <a href="llms.txt">LLM 指南</a></p>
+  <p><a href="https://github.com/tw93/Waza/blob/main/README.md">English</a> · <a href="README.md">中文</a> · <a href="README_TW.md">繁體</a> · <a href="README_JA.md">日本語</a> · <a href="README_KR.md">한국어</a> · <a href="README_DE.md">Deutsch</a> · <a href="README_FR.md">Français</a></p>
   <a href="https://github.com/tw93/Waza/actions/workflows/test.yml"><img src="https://img.shields.io/github/actions/workflow/status/tw93/Waza/test.yml?branch=main&style=flat-square&label=tests" alt="Tests"></a>
   <a href="https://github.com/tw93/Waza/stargazers"><img src="https://img.shields.io/github/stars/tw93/Waza?style=flat-square" alt="Stars"></a>
   <a href="https://github.com/tw93/Waza/releases"><img src="https://img.shields.io/github/v/tag/tw93/Waza?label=version&style=flat-square" alt="Version"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License"></a>
-  <a href="https://twitter.com/HiTw93"><img src="https://img.shields.io/badge/follow-Tw93-red?style=flat-square&logo=Twitter" alt="Twitter"></a>
+  <a href="https://x.com/HiTw93"><img src="https://img.shields.io/badge/follow-Tw93-red?style=flat-square&logo=x" alt="Twitter"></a>
 </div>
 
 <br/>
 
 > [!NOTE]
-> 这是基于 [`tw93/Waza`](https://github.com/tw93/Waza) 的社区维护中文 fork，当前同步到上游 `c3b74dd`。下方 `oldwinter/Waza` 安装命令会加载本 fork 中已中文化的 `skills/`；Codex plugin 还会加载生成的 `plugins/waza/` 镜像。
+> 这是基于 [`tw93/Waza`](https://github.com/tw93/Waza) 的社区维护中文 fork，当前同步到上游 `09840da`。下方 `oldwinter/Waza` 安装命令会加载本 fork 中已中文化的 `skills/`；Codex plugin 还会加载生成的 `plugins/waza/` 镜像。
 
 ## 为什么
 
@@ -56,6 +57,10 @@ npx skills add oldwinter/Waza -a claude-code codex cursor -g -y
 
 一份 copy 会安装到共享 skills 目录 `~/.agents/skills`，并为 Claude Code 建立 symlink；Codex、Cursor、Gemini CLI、Copilot、Amp、Kimi Code CLI 及所有读取该目录的 agent 都会以 `/check`、`/think` 等名称加载八个 skills。使用私有 skills 目录的 agent 可在 `-a` 后传入自己的 id，例如 `antigravity-cli` 或 `qwen-code`。后续用 `npx skills update -g -y` 更新。
 
+也可以让你的 agent 安装：
+
+> 读取 https://github.com/oldwinter/Waza/blob/main/llms.txt，帮我安装 Waza。
+
 **Native plugin**（用于 host-native update commands）
 
 ```bash
@@ -74,7 +79,7 @@ codex plugin add waza@waza
 
 如果想收到新版本通知，watch Waza 的 [GitHub Releases](https://github.com/tw93/Waza/releases)。
 
-## Project Context
+## 项目上下文
 
 Waza 把通用程序员习惯保留在公开 skill 内。`/check` 通过读取目标仓库的公开上下文和用户任务约束，变得 project-aware。
 
@@ -93,18 +98,19 @@ review context template 见 [`skills/check/references/project-context.md`](skill
 - **设计一个功能**：`/think` → approve → 说 "implement X" → `/check` → merge
 - **交付一个 fix**：`/hunt` → fix → `/check` → release/publish/push/issue follow-through
 - **研究并写作**：`/read`（fetch sources）→ `/learn`（synthesize）→ `/write`（polish）
-- **调试并验证**：`/hunt`（find root cause）→ fix → `/check`（review changes）
 
-每个箭头都是一个清晰的工作流转换；只执行用户已授权的完整链路。
+任务经过的阶段和每个阶段要守的规则，见 [AI coding rules](https://github.com/tw93/Waza/blob/main/docs/ai-coding-rules.zh.md)。
 
 ## 额外功能
 
-### Statusline
+这些 curl URLs 使用最新 GitHub release asset。如果想使用 bleeding-edge scripts，请在运行命令前设置 `WAZA_REF=main`。
+
+### 状态栏
 
 Claude Code 的极简 statusline：context window、5-hour quota 和 7-day quota。按使用量着色，没有进度条，没有噪音。
 
 <div align="center">
-  <img src="https://gw.alipayobjects.com/zos/k/y9/RUgevg.png" width="1000" />
+  <img src="https://raw.githubusercontent.com/tw93/Waza/main/assets/statusline.png" width="1000" />
 </div>
 
 ```bash
@@ -130,7 +136,7 @@ Codex 显示剩余额度；上面的 Claude Code statusline 显示已用百分�
 
 ### Optional Rules
 
-三个彼此独立的开关。复制你需要的命令即可（Codex 或 Antigravity CLI 用户把 `claude-code` 换成 `codex` 或 `antigravity-cli`）：
+Optional rules 只有安装进 agent 的 persistent instructions 后，才会在 skill invocation 之外生效。只安装 Waza skills 不会启用它们。复制需要的命令即可（Codex 或 Antigravity CLI 用户把 `claude-code` 换成 `codex` 或 `antigravity-cli`）：
 
 ```bash
 (
@@ -148,26 +154,22 @@ Codex 显示剩余额度；上面的 Claude Code statusline 显示已用百分�
 
   # Routing hint: tells non-Claude hosts to prefer Waza skills when a request matches their triggers
   bash "$WAZA_RULE_SCRIPT" waza-routing claude-code
+
+  # Clear everyday replies: consistent terms, explicit conditions, preserved uncertainty
+  bash "$WAZA_RULE_SCRIPT" clarity claude-code
+
+  # Chinese writing: applies these habits to Chinese replies and prose
+  bash "$WAZA_RULE_SCRIPT" chinese claude-code
 )
 ```
 
 <div align="center">
-  <img src="https://gw.alipayobjects.com/zos/k/24/vfkGOi.png" width="1000" />
+  <img src="https://raw.githubusercontent.com/tw93/Waza/main/assets/english-coaching.png" width="1000" />
 </div>
 
-Curl URLs 使用最新 GitHub release asset。如果想使用 bleeding-edge scripts，请在运行命令前设置 `WAZA_REF=main`。
+[Clarity](rules/clarity.md) 使用 ASD-STE100 的清晰写作原则，但不强制 controlled-English grammar，也不改变你的 voice。重新运行它的命令可更新已安装规则，然后开新 session。Codex 会在 `~/.codex/AGENTS.md` 中写入带标记的 block；Claude Code 和 Antigravity 安装 rule file。其他工具请把规则复制到它们的 persistent custom instructions。
 
-## Why
-
-Waza (技, わざ) is a Japanese martial arts term for technique: a move practiced until it becomes instinct.
-
-A good engineer does more than write code. They pressure-test requirements, debug to root cause, review their own diffs, and read primary sources. AI has the raw output for all of it, but without structure that output drifts into generic, imprecise work. Each Waza skill states the outcome, the red lines, and how the result gets verified, then steps back and lets the model choose the path. As models improve, that restraint pays compound interest.
-
-Tools like Superpowers and gstack are powerful but heavy: too many skills, too much configuration. Waza stays small, eight skills for the habits that actually matter, each with one job and a clear trigger. Built from real projects and refined through 300+ sessions across 7 projects, every gotcha traces to a real failure. The `/health` skill grew from the six-layer Claude Code framework in [this post](https://tw93.fun/en/2026-03-12/claude.html).
-
-Part of a trilogy: [Kaku](https://github.com/tw93/Kaku) (書く) writes code, [Waza](https://github.com/tw93/Waza) (技) drills habits, [Kami](https://github.com/tw93/Kami) (紙) ships documents. Think of them as a family: Kaku is the dad, Waza the big sister, Kami the little sister.
-
-## Uninstall
+## 卸载
 
 ```bash
 npx skills remove oldwinter/Waza -g
@@ -175,9 +177,10 @@ rm -f ~/.claude/statusline.sh
 rm -f ~/.claude/rules/english.md
 rm -f ~/.claude/rules/anti-patterns.md
 rm -f ~/.claude/rules/waza-routing.md
+rm -f ~/.claude/rules/clarity.md
 ```
 
-Claude Desktop 用户从 Customize > Skills 删除 Waza。Codex rule installs 则从 `~/.codex/AGENTS.md` 中删除带标记的 Waza blocks。
+Statusline 还要从 `~/.claude/settings.json` 删除 `statusLine` entry。Claude Desktop 用户从 Customize > Skills 删除 Waza。Codex rule installs 从 `~/.codex/AGENTS.md` 中删除带标记的 Waza blocks。Antigravity 删除 `~/.gemini/antigravity-cli/rules/` 中选中的 rule file。其他工具从 custom instructions 中删除复制过去的规则。删除规则后开新 session。
 
 ## 背景
 
@@ -189,21 +192,20 @@ Superpowers 和 gstack 这样的工具很厉害，但也很重：skills 太多�
 
 `/health` skill 源自 [这篇文章](https://tw93.fun/en/2026-03-12/claude.html) 描述的六层 Claude Code framework，现在覆盖 Codex、Claude Code、Pi、verifier surfaces 和 AI maintainability。
 
-## Support
+## 支持
 
 - 支持作者最直接的方式，是购买我的付费 Mac 清理应用 [Mole for Mac](https://mole.fit)。
-- 如果 Waza 帮到了你，可以[分享给朋友](https://twitter.com/intent/tweet?url=https://github.com/tw93/Waza&text=Waza%20-%20AI%20coding%20skills%20for%20the%20complete%20engineer.)，或给它一个 star。
-- 有想法或 bug？欢迎开 issue 或 PR，也欢迎贡献你最喜欢的 AI model。
+- 如果 Waza 帮到了你，可以[分享给朋友](https://x.com/intent/tweet?url=https://github.com/tw93/Waza&text=Waza%20-%20Tw93%27s%20engineering%20habits%2C%20turned%20into%20your%20skills.)，或给它一个 star。
+- 有想法或 bug？读一下 [SCOPE.md](https://github.com/tw93/Waza/blob/main/SCOPE.md) 后，欢迎开 issue 或 PR。
 - 我有两只猫，TangYuan 和 Coke。如果你觉得 Waza 让生活更开心，可以给它们投喂<a href="https://cats.tw93.fun?name=Waza" target="_blank">罐头 🥩</a>。
 
 <details>
 <summary>这些可爱的人已经投喂过 🐱</summary>
 <br/>
 <div align="center">
-  <a href="https://cats.tw93.fun?name=Waza"><img src="https://cdn.jsdelivr.net/gh/tw93/sponsors@main/assets/sponsors.svg" width="1000" loading="lazy" /></a>
+  <a href="https://cats.tw93.fun?name=Waza"><img src="https://raw.githubusercontent.com/tw93/sponsors/main/assets/sponsors.svg" width="1000" loading="lazy" /></a>
 </div>
-</details>
 
-## License
+## 许可证
 
 MIT License。欢迎使用 Waza，也欢迎贡献。

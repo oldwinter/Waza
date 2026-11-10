@@ -14,7 +14,9 @@
 
 在 live queue 中给出最终结论前，再刷新一次 issue/PR 列表，并重读本次运行期间有变化的 item。将每个初始 ID 对账为 done、deferred 或 blocked，再报告最终 IDs 和 counts；新到的 item 单独列出。证据不完整时保留 item，不要猜测后关闭。缺日志、无法复现或暂时无法修复，都不能证明报告无效或应标记 not planned。说明缺少的证据和最小的下一步诊断；只在用户授权范围内发出该请求。
 
-**PR 处理：** 把 check 状态当作数量，而不是颜色。Fork PR 的 workflows 从未运行时，0 次 check run 和非绿色 mergeability 代表未验证，不是验证失败。贡献者所说“CI is green”也可能指不同 base。合并前在本地复现验证，并明确 green 来自哪一层。
+**一次处理多个仓库：** 当请求覆盖多个仓库（"all my repos"、"其他仓库的 issue 和 PR 也看看"）时，先从 host 列出它们（GitHub 用 `gh repo list <owner> --no-archived`，并附上每个仓库的 open issue 和 PR 数量），说明哪些在 scope 内、哪些跳过及原因，并在动手前按仓库冻结 IDs。判断每个 item 前先读该仓库历史：`git log` 查主题、关联和已关闭 PR，以及 guide 或 decision record，因为 item 可能已用另一个标题修好，或本来就是记录在案的 deliberate decision；对 deliberate decision 用简短友好的回复说明边界并关闭，不要重新开启辩论。然后按仓库执行上述流程：修 scope 内的问题，在现行授权内交付，关闭不会做的项。按仓库和总计报告四个数量：fixed、already done、closed as not planned、still pending 及其 blocker；在 scope 内却未出现在报告中的仓库视为未完成。
+
+**PR 处理：** 把 check 状态当作数量，而不是颜色。0 次 check run 加非绿色 mergeability 代表未验证，不是验证失败；贡献者所说 "CI is green" 也可能指与其 patch 不同的 base。合并前在本地复现验证，并明确 green 来自哪一层。
 
 将证据未决的 PR 保持在 pending 状态。证据足以支持最终决定后，在分析输出中明确命名三种 disposition 之一：原样合并、把修复推到贡献者 branch 后合并，或以 not planned 关闭。只说“当前无法合并”却不提 fix-on-their-branch 选项，属于不完整的 triage。若 PR 方向可以接受但 patch 需要修改，优先把维护者修复推到贡献者的 PR branch，再合并 PR。先检查 `maintainerCanModify`，再在 push 前立即确认 push remote、target branch 和当前 HEAD，避免覆盖贡献者工作或推错仓库。若不允许修改 branch，请贡献者开启 maintainer edits 或推送所需修订；只有时间或 release safety 确有需要时，才退回到单独的维护者 commit，并在 PR 中说明。仅当方向被拒绝、不安全、不再需要或明确超出项目 scope 时，才不合并直接关闭。不要悄悄把已接受的 PR 吸收到 `main` 后关闭原 PR。
 
@@ -23,4 +25,5 @@
 **Sign-off 行（追加到标准 sign-off）：**
 ```
 triage:           N reviewed, N closed, N deferred
+repositories:     N in scope; per repository and total: N fixed, N already done, N not planned, N pending
 ```

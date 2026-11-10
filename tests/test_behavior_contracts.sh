@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+# Static routing/contract checks only. tests/behavior-cases.json contains
+# independent task scenarios; evaluate their actual outputs and side effects.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

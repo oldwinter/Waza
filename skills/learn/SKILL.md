@@ -127,3 +127,11 @@ outline solid 前不要开始 Phase 4。
 | Phase 2 wrote summaries instead of teaching the concept | Digest means building the mental model. Summarizing is not digesting. |
 | AI offered to upload the article to a blog or social platform after the user said it was ready | Stop at confirmation. Publishing is the user's action, not yours. |
 | Turned a project review into a generic Waza rule without filtering | Promote only repeated workflow behavior. Leave project-specific commands, paths, and safety constraints in that project |
+
+## Output
+
+Artifact 是上表中该 mode 的出口。写过文件时报告保存路径，并完成获授权的 handoff；publication 需要 Hard Rules 所述的明确请求。
+
+在请求的格式和范围内，按读者的问题选择 representation：结论用 prose，关系和分支用 diagrams，变化条件用 interactive examples，时序或运动重要的过程用 animation 或 video。只有能帮助读者理解或检验解释时才增加 representation；单纯的研究请求不要求构建 app 或制作 video。
+
+跨 representations 保持相同 facts、conditions、failure branches 和 uncertainty。Interactive results 必须遵循有依据的 model 或明确标注的 assumptions，不能只是装饰性 controls。判断解释好坏，看内容是否让读者追踪相关 failure path、预测条件变化或识别 load-bearing assumption；视觉打磨本身不是正确性证据。

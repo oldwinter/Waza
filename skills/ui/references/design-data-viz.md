@@ -20,12 +20,8 @@ Dashboards 是 utility surfaces：帮助用户定位、显示 status、支持 ac
 | Distribution | Histogram 或 box plot；绝不要 pie chart |
 | Correlation | Scatter plot；不要用 line chart |
 
-超过 4 个 segments 的 pie charts 基本不传达信息。改用 treemap 或 ranked list。
-
 ## Number-dense interfaces
 
-- 每个 number column 都使用 `font-variant-numeric: tabular-nums`，让 digits 垂直对齐。
-- 所有 numbers right-align；所有 text labels left-align。同一 column 中 mixed alignment 永远不对。
 - Subtle row separators：`1px` line，light 使用 `rgba(0,0,0,0.06)`，dark 使用 `rgba(255,255,255,0.05)`。只有 table 很宽（12+ columns）时才使用 alternating row backgrounds。
 - Column spacing：相邻 columns 至少 `16px`；逻辑上不同的 groups 之间留更多。
 

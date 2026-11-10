@@ -9,9 +9,9 @@
 工作流：
 
 1. **先建图，只读。** 编辑前读完整篇文章，列出所有 `##` section、table、list 和 image。标出三类结构问题：跨 section 重复（同一 checklist / judgment list / core claim 出现两次以上）、复述 table（某 section 的正文逐行重讲上方 table）以及整个多余的 section 或 paragraph。
-2. **说明每个 paragraph 依靠什么。** 在内部为每段指出支撑它的材料：用户提供的经历、公开来源、可运行 artifact、数字或 quote。若诚实答案只是“进一步解释上一段”或“这是一种可能影响”，该段没有新材料，应作为删减候选。然后做 compression test：删掉三分之一再读。若 facts、actions、judgments 和阅读体验几乎没变，原稿就是 padding，更短的版本才是 draft。
-3. **把删改建议写成 change-points。** 每次结构删减或合并都展示 before -> after，让用户选择要采用的子集。绝不默默删除整个 section 或 paragraph；它可能包含其他地方没有的事实，必须先确认（见 `references/write-zh.md`“删段之前先确认信息量”）。
-4. **再逐段去 AI 味，** 每个 section 遵循 `references/write-zh.md`。
-5. **输出 change-points，而不是 blob。** 展示改了什么，让用户可以 review 并保留自己的手工修改。只有用户明确说“直接改”或 “just rewrite”时，才返回完整改写文本；返回前先执行 Punctuation Gate。
+2. **检验每个 paragraph 的贡献。** 经历、情绪、个人信念、限定条件和解释都可以支撑一个 paragraph。缺少新事实或新来源，不构成删掉它的理由。检查一次编辑是否同时丢失了作者立场或情绪强度，而不只是事实含义；更短、更中性的稿子可能更差。保留 maker 的一手视角：个人验证过的坑、具体成本和真实取舍，远比 AI 生成的穷举分类或复述既有概念有价值。刻意设计的系列标题或栏目名属于作者选择，不是 AI pattern flag。
+3. **尊重编辑范围。** 只读请求只给 change-points。明确 rewrite 请求授权在该范围内编辑；常规句子删减不必再次询问。整段删除要在 diff summary 中点名；删除整个 section 或重排 headings 前先询问，除非用户明确要求这类结构工作。
+4. **再逐段做 line-level 去 AI 味，** 每个 section 使用对应语言的 references。处理 mirror 时，同时检查含义和母语节奏。
+5. **返回用户要求的 artifact。** Repository edits 要保留 frontmatter、code、media、links 和实质性解释，运行站点 build，并报告 scoped diff。Pasted-text rewrite 返回 prose。对编辑后的 prose 执行 Punctuation Gate，但不要为了满足风格规则而改动 technical examples。
 
 不要单次重写四万字文章：这会无声覆盖作者手工打磨的措辞，也无法作为 diff review。对应内容规则见 `references/write-zh.md`“结构级重复与表格复读（长文专项）”。

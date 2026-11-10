@@ -5,9 +5,15 @@ Input bundle：settings.local.json、GITIGNORE、CLAUDE.md（global）、CLAUDE.
 ## Part A: Control + Verification Layer
 
 Hooks checks：
-- Hooks 是 optional。只有 repeated deterministic failure 或 high-consequence safety boundary 适合机械 enforcement 时才建议添加。
-- 如果存在 hooks，verify schema：每个 entry 有 `matcher` 和 `hooks` array；每个 hook 有 `type: "command"` 和 `command`；缺少 `matcher` 会对所有 tool calls fire。
-- flag 每次 edit 都跑 full test suites；优先 fast checks。flag 没有 output truncation 或 explicit failure surfacing 的 commands。
+- Hooks 是 optional。只有当 repeated deterministic failure 或 high-consequence safety boundary 更适合机械 enforcement、而不是靠 prose 记住时才建议添加。
+- 如果存在 hooks，verify schema：
+  - 每个 event group 都需要 `hooks` array；只对支持 filtering 的 events 校验 `matcher`。
+  - 按 runtime 和 type 校验 handlers：command hooks 需要 `command`；MCP-tool hooks 需要 `server` 和 `tool`。Prompt、agent、HTTP 和陌生类型要按对应 runtime contract 校验，不能只用 command-only 规则拒绝。
+  - Command hooks 从 stdin 以 JSON 读取 tool input，包括任何 file path。
+  - 按 event 解释 `matcher`；Stop 等 lifecycle hooks 不需要 tool matcher。
+- Flag 每次 edit 都跑 full test suites 的做法；优先用 fast checks 提供即时反馈。
+- Flag 没有 output truncation 的 commands，无界输出会淹没 context。
+- Flag 没有 explicit failure surfacing 的 commands。
 
 allowedTools hygiene：只 flag genuinely dangerous operations：sudo *、force-delete root paths、*>* 和 git push --force origin main。不要 flag path-hardcoded、debug/test、brew/launchctl/maintenance commands。
 
@@ -44,7 +50,6 @@ Data source：summary mode 提供最多 3 个 recent previous sessions；deep mo
 6. Anti-patterns：只 flag directly observable 内容：
    - Claude 未运行 verification 就 declaring done
    - 用户跨 sessions 反复解释相同 context，missing HANDOFF.md 或 memory
-   - 超过 20 turns 的 long sessions 没有 /compact 或 /clear
 
 在两个 sections 下返回 bullet points：
 [CONTROL LAYER: hooks issues | allowedTools to remove | cache hygiene | three-layer gaps | verification gaps | subagents issues]

@@ -21,6 +21,8 @@ Scope by load surface, not just by layer. A rule kept in the project still pays 
 
 **Concentrated fix chains.** Run `git -c core.fsmonitor=false log --oneline --since='2 weeks ago' | grep -i fix` and group by area (the prefix before `:` or `(`). Repetition is a lead, not a finding: read enough evidence to confirm that several fixes converge on the same invariant or failure layer rather than unrelated work sharing a prefix. Report a Structural `WARN` only after that validation, naming the recurring failure and recommending the narrowest routed rule plus executable verifier that would have prevented it.
 
+When those fixes repair defects that reached users or a published build and the project keeps no incident ledger (or keeps one its checks never validate), add one Incremental note recommending a ledger row per such defect with the layer that missed it and the test that catches it now, as described by `check`'s incident-ledger reference. A project without user-facing fixes in the window gets no note; the absence of a ledger alone is not a finding.
+
 **Non-obvious constraint reachability and risk-backed hotspot ownership.** File size and module shape do not create documentation requirements. When real failures or high-consequence paths concentrate in an area and expose a stable boundary that cannot be recovered cheaply from code, verify that the relevant task can reach a concise ownership rule and the executable check that locks it. Report the unreachable constraint or missing verifier, not an absent blanket "hotspot map".
 
 **Missing stable verifier entrypoint.** Treat `wrapper_findings` as discovery leads. Check the documented default and its executable coverage across package scripts, native build tools, task runners, scripts, and CI; a Makefile is not required. Report a Structural `WARN` only when fragmented checks cause required verification to be missed and no usable default covers it. A named target that only prints success does not supply verification.
@@ -37,27 +39,11 @@ On Linux and macOS:
 BASH_ENV= ENV= /bin/bash -p "${HEALTH_SCRIPT%/*}/check-maintainability.sh" . summary
 ```
 
-For deep audits:
-
-```powershell
-& "$POWERSHELL" -NoLogo -NoProfile -ExecutionPolicy Bypass -File "$HEALTH_LAUNCHER" maintainability . deep
-```
-
-On Linux and macOS:
-
-```bash
-BASH_ENV= ENV= /bin/bash -p "${HEALTH_SCRIPT%/*}/check-maintainability.sh" . deep
-```
+For deep audits, run the same command with `deep` in place of `summary`.
 
 Keep actions concrete and non-invasive: add or fix the smallest useful routed instruction surface, add one executable validation command at the real failure layer, repair a generated-mirror check, or repair the broken reference. Split only when the boundary is already clear. Do not propose broad rewrites from the script output alone.
 
-**Broken doc references.** Scan `AGENTS.md`, `CLAUDE.md`, `.claude/rules/*.md`, and every `.claude/skills/*/SKILL.md` for references shaped like `@<path>`, `~/.claude/rules/<name>.md`, `~/.claude/skills/<name>/`, `docs/<name>.md`, or `references/<name>.md`. For each match, check that the target exists on disk. Report every "referenced but missing" pointer with the source file and line.
-
-Common offenders:
-- A project-level rule references a global rule file that was never created (e.g. `~/.claude/rules/swift.md`).
-- A `CLAUDE.md` uses an `@AGENTS.md` placeholder but the actual `AGENTS.md` is missing or empty.
-- A skill body references `references/<name>.md` but only `references/<name>-v2.md` exists.
-- A rule file references a deleted skill path.
+**Broken doc references.** Run the checker below; it resolves `@...`, `docs/...`, `~` and skill-relative `references/...`, and each MISSING is a finding with its source file and line.
 
 Quick check from the project root, reusing `$HEALTH_SCRIPT` resolved in Step 1:
 
@@ -70,8 +56,6 @@ On Linux and macOS:
 ```bash
 BASH_ENV= ENV= /bin/bash -p "${HEALTH_SCRIPT%/*}/check-doc-refs.sh" .
 ```
-
-The checker resolves `@...` and `docs/...` from the project root, expands `~`, resolves `references/...` from each `.claude/skills/<name>/SKILL.md` directory, checks every reference on a line, skips fenced code examples, and exits non-zero when any target is missing.
 
 Report missing references as Structural findings, not Critical, unless the missing file is named as a hard dependency (e.g. `release.md` for the project's release skill).
 

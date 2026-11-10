@@ -1,6 +1,6 @@
 # Waza Agent Guide
 
-这个文件是 Waza 仓库的 canonical agent guide。`CLAUDE.md` 是指向它的 symlink，所以 Claude Code 和 Codex 会看到同一份内容。编辑此文件，不要编辑 `CLAUDE.md`。
+这个文件是 Waza 仓库的 canonical agent guide。Claude Code 和 Codex 都直接读取它；没有 `CLAUDE.md`。
 
 ## Project
 
@@ -8,12 +8,8 @@ Waza 是面向 engineering workflows 的 skill collection。仓库包含八个 s
 
 ## Repository Map
 
-- `VERSION` - lock-step version 的单一事实源。Marketplace entry、README install URL 和 installer `WAZA_REF` 默认值必须与此文件一致，并由 codegen 强制保证。每个 skill 的 frontmatter 不带 version 字段；validator 会拒绝过期的 `metadata.version`。
+- `VERSION` - lock-step version 的单一事实源。Marketplace entries、`package.json` 和 installer `WAZA_REF` 默认值必须与此文件一致，并由 codegen 强制保证。每个 skill 的 frontmatter 不带 version 字段；verifier 会拒绝过期的 `metadata.version`。
 - `skills/RESOLVER.md` - skill set 的 trigger 和 routing table。
-- `skills/*/SKILL.md` - 单个 skill entrypoint。
-- `skills/*/agents/` - specialist reviewer 或 inspector prompts。
-- `skills/*/references/` - 只在需要时加载的 supporting references。
-- `skills/*/scripts/` - 确定性的 helper scripts。
 - `rules/` - install 和 validation flows 使用的共享 writing/behavior rules。`rules/durable-context.md` 是共享 Durable Context Preflight preamble；codegen 会把它复制到每个引用它的 skill，路径为 `skills/<name>/references/durable-context.md`（direct installs 只拿到单个 skill 目录），六个带 optional memory context 的 skills 会链接到这份 skill-local copy。
 - `.claude-plugin/marketplace.json` - **generated**。编辑 `VERSION` 或每个 skill 的 `SKILL.md` frontmatter 后运行 `make regenerate`；不要手工编辑。
 - `.agents/plugins/marketplace.json` - **generated** Codex repo marketplace。它让 Codex 在 plugin install 时指向 `plugins/waza`；不要手工编辑。
@@ -27,14 +23,16 @@ Waza 是面向 engineering workflows 的 skill collection。仓库包含八个 s
 - `Makefile` - smoke discovery 和 packaging entrypoints。新增一个 `tests/test_<name>.sh` 文件就会自动创建对应的 `smoke-<name>` target。
 - `tests/test_*.sh` - 每个 surface 一个 smoke；会 source `tests/test_helpers.sh` 来获取 tmpdir、repo-copy、stub-curl 和 instruction-file fixture factories。`tests/python/` 是 pytest unit layer（`make verify-unit`）。
 
-## Health Implementation Ownership
+## Issue And Pull Request Maintenance
 
-Verify Health changes with `make verify-unit` plus the matching smoke (`tests/test_health.sh`, `tests/test_maintainability.sh`).
+- Use the official GitHub CLI/API for this repository's issue and PR queue. Read the complete discussion and use [check triage guidance](skills/check/references/mode-triage.md) for disposition and release evidence.
+- Before modifying an item, check relevant local and remote commits, associated PRs, branches/worktrees, and accessible existing agent conversations or task inventories. Report the deduplication evidence and owner first. Verify an existing fix; if another session owns ongoing work, report its verifiable ID/status and leave implementation there. Record unread or inaccessible history as a coverage gap, not evidence that no owner exists.
+- Preserve concurrent and uncommitted work; implement fixes on the current branch, using isolated fixtures for reproduction and targeted verification. Missing evidence keeps an item pending; an empty queue requires no manufactured changes.
+- Public replies, closure, commits, pushes, merges, and releases follow current task authorization. Historical conversation requests and saved queue snapshots do not grant permission or establish current state. Before implementing any change to user-visible interfaces, visual effects, interaction, user parameters, or configuration defaults, present the concrete before/after behavior and obtain explicit user confirmation; general fix or push authorization does not cover those changes. Pause and isolate any such unconfirmed work already in progress; report already-pushed changes without independently reverting them.
 
-- `skills/health/scripts/collect-data.sh`: owns bounded, redacted discovery and receipt assembly. Keep shell to orchestration and simple presence checks; structured parsing belongs in Python helpers.
-- `skills/health/scripts/check_agent_context.py`: owns effective instruction, permission, hook, path-context, and active-skill routing evidence. It must not treat plugin caches as active installs or follow escaped symlinks.
-- `skills/health/scripts/conversation_audit.py`: owns project-scoped, redacted conversation signals and coverage receipts. Structured runtime events define interruptions; cloned history must not multiply corrections.
-- `skills/health/scripts/check_maintainability.py`: owns repository-signal, verifier, doc-link, generated-mirror, and drift receipts. Counts, missing maps, and large files stay informational unless tied to risk or real failure evidence.
+## Health Changes
+
+Each script's header states what it owns. Verify Health changes with `make verify-unit` plus the matching smoke (`tests/test_health.sh`, `tests/test_maintainability.sh`).
 
 ## Commands
 
@@ -45,7 +43,7 @@ make verify-generated # drift check used by CI; non-zero if regenerate would cha
 make package          # build dist/waza.zip from packaging.allowlist
 ```
 
-在对 skill behavior、packaging、scripts、marketplace metadata 或任何 generated 内容做有意义修改前，运行 `make test`。如果只编辑了 frontmatter 或 VERSION，也要运行 `make regenerate`，并把生成的 `.claude-plugin/marketplace.json` / `README.md` / installer 变更与 source edits 一起提交。
+在对 skill behavior、packaging、scripts、marketplace metadata 或任何 generated 内容做有意义修改前，运行 `make test`。如果只编辑了 frontmatter 或 VERSION，也要运行 `make regenerate`，并把生成的 `.claude-plugin/marketplace.json` / `package.json` / installer 变更与 source edits 一起提交。
 
 ## Skill Design Rules
 
@@ -64,20 +62,19 @@ make package          # build dist/waza.zip from packaging.allowlist
 
 - 把 adaptive、judgment-heavy workflows 放进 skills。
 - 把 deterministic checks、lookups 和 table-driven validation 放进 scripts。
-- `rules/anti-patterns.md` 负责跨 skill 的 behavioral guardrails，也就是无论 active skill 是哪个都适用的 AI failure modes。它会进入 full plugin、Codex plugin 和 Desktop ZIP，但 `npx skills add` 和 per-skill plugin entry 只安装 skill directory，因此必须在所有安装面生效的 guardrail，还需要在 skill body 中包含其操作性语句；table 是 canonical statement，不是 delivery。每个 skill 自己的 gotchas 留在各自 `skills/*/SKILL.md` 的 Gotchas table；只有当某个 gotcha 对八个 skills 都完全适用时，才放进 `rules/anti-patterns.md`。
+- `rules/anti-patterns.md` 负责跨 skill 的 behavioral guardrails，也就是无论 active skill 是哪个都适用的 AI failure modes。它在 full plugin、Codex plugin 和 Desktop ZIP 中随磁盘发布，但只有运行 `setup-rule.sh` 后才加载；`npx skills add` 和 per-skill plugin entries 只安装 skill directory，因此必须在所有安装面生效的 guardrail，还需要在 skill body 中包含其操作性语句；table 是 canonical statement，不是 delivery。每个 skill 自己的 gotchas 留在各自 `skills/*/SKILL.md` 的 Gotchas table；只有当某个 gotcha 对八个 skills 都完全适用时，才放进 `rules/anti-patterns.md`。
 - Catalogs 的职责是合并，不是累积。这适用于 `rules/anti-patterns.md` rows，也适用于每个 reference example list、banned-phrase list 和 replacement table（`skills/write/references/*`、`skills/ui/references/*` 等）。添加 row、pattern、banned phrase 或 example 前，先找到它实例化的现有 row 或 principle，并折叠进去；不要追加近义词，也不要为已经在上文表达过的 rule 加第三种编码。措辞要足够通用，可以发布到本仓库之外。Reference file 如果在 numbered pattern 下重复列出已经覆盖的 items，那是 drift，不是 coverage。
 - no-op test 会逐句修剪 skill prose：一行只有在相对模型默认行为确实改变行为时才值得保留。删除已证实的 no-op，例如泛化的勉励，并合并重复约束，同时不丢失 trigger、exception 或 scope。拿不准某行是否改变行为时，先保留，直到 concrete comparison 解决不确定性。
 - Rule 和 reference prose 命名 smell，不要说教 virtue。这同样适用于 `rules/*.md` 和 `skills/*/references/*`：按文件已有约定，以名词命名失败（`报告腔`、`讲解腔`、`专家腔`），让 NO/OK 示例完成纠正。不要声明 `be X` 目标，也不要用说教式引言开启 anti-preaching rule；imperative heading 应改为名词 smell-name。
 - Leading words 会把被反复陈述的品质压缩成一个模型已经会联想到的 pretrained token：`fast, deterministic, low-overhead` 可以变成一个 `tight` loop；`a repro you trust` 可以变成会在 bug 上 `red` 的 loop。一个 token 能锚定整片行为区域，比展开三连词更锋利、更省 token。当某个 skill 三次表达同一种品质时，就把那段压缩成一个 leading word。
 - skill description、trigger 或 scope 改变时，同步更新 `skills/RESOLVER.md`。
 - 每个 `description` 都要简短精确：说明它做什么、何时使用，并包含 `Not for` exclusion。不要用近义词列表或“in any language”范围填充；多语言 aliases 属于 `when_to_use`。
-- 写 skill entrypoints 时 outcome-first：说清目标结果、什么算完成、哪些约束和证据重要、最终回答或 artifact 应该长什么样。详细流程放到 mode sections 和 references。
+- 写 skill entrypoints 时 outcome-first：说清目标结果、什么算完成、哪些约束和证据重要、最终回答或 artifact 应该长什么样。详细流程放到 references。
 - `SKILL.md` 只承载该 skill 每次运行都需要的内容；只有部分运行需要的正文放进 `references/`，并通过 picker row 或明确命名 trigger 的 conditional line 到达。Mutually exclusive modes 是最典型的情况：diff review 不应为 release、triage 和 audit playbook 支付 context。Deterministic checks 仍然放进 `scripts/`；本规则决定 judgment prose 在何时加载，不是拆分 skill。
 - 八个 `SKILL.md` 要保持同一套 skeleton，读起来像一个 set：第一行是 `🥷` 加一句 tagline，然后是 Outcome Contract；会读 memory 的 skills 紧接着放 Durable Context Preflight；再放 modes、must-obey list、Gotchas 和 Output。同一个概念在各 skills 中只用一个名字（skill 的 must-obey constraints 叫 `Hard Rules`；`Hard Stops` 是 check 里单独的 merge-blocker list）。Tables 保持紧凑的 `| a | b |`，不要手工对齐；numbered step sequence 要连续，side-checks 放在某一步下面，不要插在两个步骤之间。
-- 避免把无关 workflows 混在一个宽泛 skill 里。
 - 八个 skills 是硬上限。不要提出第 9 个 skill，也不要拆分现有 skill。Behavior additions 应落在 `references/`、`rules/`、`scripts/` 或 `rules/anti-patterns.md`，不要新增 skill。
 - Waza 保留通用程序员能力。Project-specific constraints 应从公开 repository context 或用户提供的 task context 中提取。
-- 把 `code-review` 视为 Waza `check` 的 invocation alias，不要当成另一个通用 skill。
+- 在没有 built-in reviewer 的 runtimes 上，`code-review` 是 Waza `check` 的 invocation alias，不是另一个通用 skill。Claude Code 有自己的 `/code-review`。
 - Skill names 保持短动词（`check`、`think`）。拒绝重命名或添加 `waza-` 前缀的请求；与其他已安装 skill 发生冲突时，应精简用户安装的 skills，而不是重命名 Waza skill。`.claude-plugin/marketplace.json` 中的 `waza-<name>` per-skill plugin id 是 host install namespace，不是 skill name，不受影响；invocation 已通过 `/waza:check` 命名空间化。
 - Waza `check` 必须保持 project-aware，但不能依赖未发布的本地文件。它从 target diff、public docs、manifests、CI config 和 user-provided context 中提取 commands、generated artifacts、risk areas 和 release rules。
 - Distribution files 要对 Claude Desktop 和 plugin installs 自包含。release ZIP 可以把 sub-skill bodies inline 到 generated root `SKILL.md`；source-of-truth skill content 仍保留在 `skills/*/SKILL.md`。
@@ -118,7 +115,6 @@ make package          # build dist/waza.zip from packaging.allowlist
 - `npx skills add oldwinter/Waza` 默认应安装八个 direct coding skills。不要添加 source-root `SKILL.md`，它会阻止 nested skill discovery。
 - Codex marketplace entries 必须 resolve 到 `plugins/waza`，不是 repository root。Codex marketplace、plugin manifest 或 plugin mirror changes 后，不只检查 JSON shape，还要验证 isolated install flow。
 - Plugin mirror generation 必须在 generator 和 verifier paths 中过滤 local cache 和 noise files，包括 `__pycache__`、`*.pyc`、`.pytest_cache`、`.ruff_cache`、`.mypy_cache` 和 `.DS_Store`。
-- Claude Desktop 使用 `scripts/package-skill.sh` 构建的 release ZIP。
 - `scripts/package-skill.sh` 会构建一个 public archive，其中恰好有一个 generated root `SKILL.md`；nested `skills/*/SKILL.md` files 会为 packaged installs inline 进去。
 - 不要让 packaged skills 通过个人 home-directory caches 或 machine paths 解析 scripts 或 references。应相对 installed Waza directory 解析。
 - `rules/` 下的 rules 是 shared public behavior，不是 project-private memory。
@@ -129,8 +125,6 @@ make package          # build dist/waza.zip from packaging.allowlist
 - 会触网的 smokes（read fetch、skills-add e2e）支持 `WAZA_SMOKE_OFFLINE=1` 进行完全 hermetic 运行；在线时会对 transient failures 做 backoff retry。
 - Packaging changes：运行 `make package` 并检查 generated archive。
 - Marketplace、resolver 或 root dispatcher changes：运行 `python3 scripts/verify_skills.py`，并确认每个 marketplace source 都指向存在的 skill directory。对于 Codex plugin changes，还要运行 clean install smoke，例如 `CODEX_HOME=$(mktemp -d) codex plugin marketplace add <repo>`，随后运行 `codex plugin add waza@waza` 和 `codex plugin list`。
-- Non-trivial diffs：release handoff 前运行 review workflow。
-- Documentation-only changes：检查 internal links 和 command names。
 
 ## Commit And Release
 
@@ -149,7 +143,7 @@ make package          # build dist/waza.zip from packaging.allowlist
 
 ```markdown
 <div align="center">
-  <img src="..." width="120" />
+  <img src="https://raw.githubusercontent.com/tw93/Waza/main/assets/logo.svg" width="120" />
   <h1>Waza V{version}</h1>
   <p><em>tagline</em></p>
 </div>

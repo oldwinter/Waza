@@ -2,36 +2,16 @@
 
 运行 Waza `/check` 前，用此 template 压缩 repository context。Context 必须来自 public project files、diff、CI configuration 或 explicit user instructions。不要依赖 private machine paths 或 unpublished project instructions。
 
-## What Belongs In Waza `/check`
-
-- Diff depth classification。
-- Scope drift detection。
-- Hard stops，例如 destructive automation、missing release artifacts、generated artifact drift、version skew、unknown identifiers、injection risks、credential leakage 和 dependency surprises。
-- release readiness 的 Release Gate 2.0 matrix。
-- destructive operations、command construction、path boundaries、signing/appcast、sandbox/approval 和 auth prompts 的 Safety sink review。
-- Security 和 architecture specialist routing。
-- Autofix policy。
-- Sign-off format。
-- Verification expectations。
-
 ## What Belongs In Project Context
 
-- 从 public docs、manifests、Makefiles、scripts 或 CI workflows 发现的 verification commands。
+下面的 template 已覆盖大部分内容。还要记录：
+
 - Protected files and directories。
-- 必须与 source changes 保持同步的 generated 或 bundled artifacts。
 - Packaging source of truth：archives 是从 `git ls-files`、explicit allowlists、generated manifests 还是 source directories 构建。
 - Delivery surfaces：generated outputs 是 tracked、ignored、external release assets、registry uploads、appcasts、installer metadata、checksums，还是 site/download copy；以及它们如何 regenerated、inspected、staged 或 uploaded。
-- Distribution lanes：preview、beta、nightly、stable、App Store 或 registry channels，以及每个 lane 应包含哪些 generated artifacts。
-- CLI command surfaces：entrypoints、subcommands、flags、help/version behavior、exit codes、stdout/stderr contract、TTY 和 non-interactive paths、config/env precedence，以及 installed-runtime checks。
-- diff 引入的 Runtime dependencies：CI/docs 中尚未声明的 Python packages、CLIs、network services、package managers 或 platform tools。
-- Skill、plugin、marketplace 或 package install surfaces：installer default ref、marketplace source path、generated mirror、package allowlist、archive root、executable bits 和 installed-runtime smoke command。
+- diff 引入的 runtime dependencies：CI/docs 中尚未声明的 Python packages、CLIs、network services、package managers 或 platform tools。
 - Domain-specific safety rules。
-- 必须存在的 Release artifacts。
-- 项目期望的 GitHub release reactions 或其他 public release follow-through。
-- Release-asset verification method：download、archive entry comparison、checksum manifest、package metadata readback、appcast readback 或 registry query。
-- Public issue 或 PR reply conventions。
-- 项目文档记录的 Known CI 或 test flakes，以及如何把它们和 real failures 区分开。
-- 项目文档记录的 release、publish、push 或 issue-closure prerequisites。
+- 项目文档记录的 known CI 或 test flakes，以及如何把它们和 real failures 区分开。
 
 ## What Does Not Belong In Public Context
 
@@ -126,5 +106,10 @@
 - 从 user input 构建 shell、AppleScript、SQL、URL 或 filesystem paths。
 - 改变 cwd handling、symlink resolution、path traversal guards、sandbox permissions、approval checks 或 auth prompts。
 - 改变 signing、notarization、appcast、update、license、payment 或 release asset generation。
+- 改变 CI workflows、release 或 publish scripts、installers，或任何以 elevated privilege 运行的内容。
 
 先 review 到达 sink 的 smallest entry point，再 review downstream call。如果 validation 缺失或 rollback 不清楚，把它视为 hard stop。
+
+### Risk tiers by path
+
+Tier 由 change 触及的 paths 决定，而不是由大小或作者决定。对 workflow、updater、license check、installer、privilege helper 或 deletion path 的一行改动，也要走项目最重的 gate（完整或 native test run、security pass、human maintainer review），agent、bot 或 automated reviewer 的 approval 永远不能替代那位 human。从项目 docs 中提取 tiers；如果项目维护了按 changed paths 打印 gates 的 table-driven script，运行它并粘贴输出行。该 script 只是建议，不是 pass：它列出的 gates 可能在本 session 无法证明已运行的地方执行。处于某个 tier 的 commits 和 PRs 还要说明如何验证、如何回滚（`mode-ship.md` step 4）。

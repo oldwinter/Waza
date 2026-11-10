@@ -1,5 +1,5 @@
 # AI Assistant Configuration
-# CLAUDE.md and AGENTS.md are tracked (project instructions for contributors
+# AGENTS.md is tracked (project instructions for contributors
 # and agents). Local-only overrides stay ignored.
 .claude/
 .agent/

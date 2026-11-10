@@ -34,6 +34,19 @@ defuddle parse "{url}" -m
 
 两个 proxies 都失败时的 last resort。`agent-fetch --json` 返回 JSON，所以在返回或保存结果前要提取包含 Markdown 的 field。`defuddle parse -m` 直接输出 Markdown。Raw JSON 不是 `/read` 的 valid final output。
 
+## DeepSeek Search 与 Fetch
+
+需要 DeepSeek platform 的 `DEEPSEEK_API_KEY`，并在 shell profile 中 export。没有它时，script 以 exit 2 退出，不发送任何内容。
+
+```bash
+python3 "$READ_SCRIPT_DIR/deepseek.py" search "{query}" --count 10
+python3 "$READ_SCRIPT_DIR/deepseek.py" fetch "{url}"
+```
+
+- `search` 输出带编号的结果，包含 URL、site、date、`authority`（0-4，3+ 为高权威）和 `score`（0-3，1.5+ 为强匹配），以及 600-800 字符的 summary。Summary 是 DeepSeek 的 index-time snapshot，引用其中事实前先读原页面。
+- Query 长度为 1-128 字符，支持 `site:`、`lang:`、`after:` 等 operators。`--content` 追加 page bodies；`--json` 返回原始响应。
+- 每次成功请求都会计费；失败、为空和超时的请求不计费。批量运行前先规划 query set。
+
 ## GitHub URLs
 
 GitHub file URLs（`github.com/user/repo/blob/...`）会 render heavy HTML。proxy cascade 经常返回 partial 或 nav-heavy content。优先使用：

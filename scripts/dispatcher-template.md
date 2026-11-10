@@ -23,7 +23,7 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 如果消息可能匹配多个 skills，使用这些 disambiguation rules：
 
 1. Most specific wins：对 UI decisions，`/ui` 比 `/think` 更具体。
-2. 消息含 URL：从 `/read` 开始。如果 content 是 research material，再 chain to `/learn`。
+2. 请求 read、fetch、quote、cite、convert 或 save 一个 URL/PDF：从 `/read` 开始。如果 content 是 research material，再 chain to `/learn`。
 3. Code already done vs. code broken：done/PR -> `/check`；error/broken -> `/hunt`。
 4. Config/maintainability vs. code：Codex/Claude misbehaving、hooks/MCP、`/health` token usage、AI coding code rot、unclear context、missing verification 或 stale verifier output -> `/health`；user code errors -> `/hunt`。
 5. Release action vs. release prose：commit/tag/publish/push/release reactions/close issue -> `/check`；写 release notes/changelog text -> `/write`。
