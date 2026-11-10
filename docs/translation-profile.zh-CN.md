@@ -10,7 +10,8 @@
 - 目标用户：希望直接使用中文工程工作流 skills 的开发者
 - 用户安装后实际读取的入口文件：`skills/*/SKILL.md`、相邻 `references/` 与 `rules/`，以及生成的 `plugins/waza/`
 - 不应宣传为中文版安装的入口：`https://github.com/tw93/Waza/releases/latest/download/waza.zip`
-- 当前同步上游 commit：`c3b74dd5845b39a80a79c36bb82b028947674a05`
+- 当前同步上游 commit：`6ea2e84951cf3f05a268b381ae2739e7fe2bab53`
+- 本次同步摘要：合并 `health` 的 prune 模式、路径规则失效检测与文档引用解析修复，保留既有中文本地化层。
 
 ## 本地化目标
 

@@ -1,8 +1,8 @@
 ---
 name: health
-description: "Audits agent config, instruction drift, hooks or MCP, and AI maintainability. Use when Claude, Codex, or Pi setup looks wrong. Not for application bugs or PR review."
-when_to_use: "检查claude, 检查codex, 检查pi, Codex 配置, Pi 配置, agent instructions, 健康度, 配置检查, 配置对不对, AI coding 腐化, Claude ignoring instructions, Pi coding agent, check config, settings not working, audit config"
-dispatch_intent: "Codex/Claude/Pi ignoring instructions, agent config audit, hooks/MCP broken, health token usage, AI coding code rot, risk-backed hotspot ownership, unreachable project constraints, unclear context, missing verification, stale verifier output"
+description: "Audits or prunes agent config, instruction drift, hooks or MCP, and AI maintainability. Use when Claude, Codex, or Pi setup looks wrong or guidance needs slimming. Not for application bugs or PR review."
+when_to_use: "检查claude, 检查codex, 检查pi, Codex 配置, Pi 配置, agent instructions, 健康度, 配置检查, 配置对不对, AI coding 腐化, 精简规则, 精简 skills, 规则瘦身, Claude ignoring instructions, Pi coding agent, check config, settings not working, audit config, prune guidance, slim AGENTS.md"
+dispatch_intent: "Codex/Claude/Pi ignoring instructions, agent config audit, prune or slim agent guidance and skills, hooks/MCP broken, health token usage, AI coding code rot, risk-backed hotspot ownership, unreachable project constraints, unclear context, missing verification, stale verifier output"
 ---
 
 # Health: Agent-Assisted Engineering Health
@@ -31,6 +31,8 @@ Prefix your first line with 🥷 inline, not as its own paragraph.
 **Budget posture:** Start with the summary audit. Escalate automatically when the user asks for a deep, full, complete, thorough, "深入", "完整", "彻底", or "继续跑完" audit, when the user explicitly mentions AI coding code rot, Codex/Claude config drift, unclear context, missing verification, verifier output that points at stale paths, or "代码变烂", when current project instructions or remembered user preference says to run deep health checks by default, or when the summary pass exposes a critical ambiguity that cannot be resolved locally. Inventory counts never trigger escalation on their own. Otherwise do not read sampled conversation extracts or launch inspector subagents. Tell the user before escalating because deep health audits can consume significant token quota.
 
 **Conversation scope:** 当请求只指定静态材料（`AGENTS.md`、skills、rules、settings、“只审查指令和配置”）时，将 `instructions` 作为 `collect-data.sh` 的第一个参数。该 run 会跳过 session history，并把它报告为 out of scope，而不是 coverage gap。这由请求自动决定，用户无需知道某个 switch。其他情况下：本地历史存在时，Summary 从有界 candidate window 中扫描 Claude 和 Codex 最近最多三个当前项目 previous sessions。Deep 会流式扫描两个 runtime 中当前项目的全部 previous sessions，但只输出有界 extracts 和 coverage receipt。默认不扫描其他项目。只有用户明确要求 all conversations 或 cross-project capability distillation 时，才运行 `python3 <skill-base-dir>/scripts/conversation_audit.py <claude-projects-root> deep --all-projects --codex-root <codex-sessions-root>`（第一个参数包含所有 per-project log folders，parser 会拒绝其他 flag 组合），或交给已安装的 cross-project retro。只有 `coverage_status: complete` 且 `cross_project_full_history: yes` 时才声称 complete coverage；`no_data`、root unavailable、parse/read error、扫描期间发生变化的 files 和被排除的 live sessions 都是明确的 coverage gaps。
+
+**Prune requests:** 当用户要求精简、修剪或收紧 guidance、skills 或 rules 时，用 `instructions` scope 收集，并加载 [references/prune.md](references/prune.md)。其中的 ledger 会取代 finding list；即使用户的请求里说了要修，也只有当用户确认 ledger 后才开始 repair。
 
 ## Durable Context Preflight
 
